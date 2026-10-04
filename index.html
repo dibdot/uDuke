@@ -1,0 +1,2542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>uDuke</title>
+<!-- The favicon: Duke's radiation sign, drawn here (no GRP needed, sharp at 16 px).
+     Percent-encoded completely: a raw '#' in a data: URL starts the fragment. -->
+<link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2716%27%20r%3D%2715%27%20fill%3D%27%23201c14%27%20stroke%3D%27%23d8a12a%27%20stroke-width%3D%272%27%2F%3E%3Cpath%20d%3D%27M11.80%2016.00L3.80%2016.00A12.2%2012.2%200%200%201%209.90%205.43L13.90%2012.36A4.2%204.2%200%200%200%2011.80%2016.00ZM18.10%2012.36L22.10%205.43A12.2%2012.2%200%200%201%2028.20%2016.00L20.20%2016.00A4.2%204.2%200%200%200%2018.10%2012.36ZM18.10%2019.64L22.10%2026.57A12.2%2012.2%200%200%201%209.90%2026.57L13.90%2019.64A4.2%204.2%200%200%200%2018.10%2019.64Z%27%20fill%3D%27%23e8872a%27%2F%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2716%27%20r%3D%272.6%27%20fill%3D%27%23d8a12a%27%2F%3E%3C%2Fsvg%3E">
+<style>
+  :root {
+    --bg: #0d0c0b; --panel: #17150f; --line: #2e2a20;
+    --ink: #e8e2d4; --dim: #8a8172; --hot: #d8a12a; --warn: #c05a2a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font: 13px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; overflow: hidden; }
+
+  /* The full screens (start-up, loading, endings) are 320x200 at 4:3,
+     letterboxed. In play the frame fills the window (#frame.wide below). */
+  #screen { position: fixed; inset: 0; display: grid; place-items: center; background: #000; }
+  canvas { image-rendering: pixelated; aspect-ratio: 4 / 3; height: 100%;
+    max-width: 100%; max-height: 100%; }
+  /* Sized by the narrower side, so a portrait phone letterboxes top and
+     bottom instead of stretching the 4:3 frame to the full height. */
+  #frame { height: auto; width: min(100vw, 133.333vh); width: min(100vw, 133.333dvh); }
+  /* In play, wider than 4:3: the frame fills the window (the view widened,
+     see viewWidthFor). The canvas is then W x 200 for a window of aspect A
+     with W = 240*A, so its pixels keep Duke's 1:1.2. */
+  #frame.wide { aspect-ratio: auto; width: 100vw; height: 100vh; height: 100dvh; }
+  #screen.hidden, #hud.hidden, #menu.hidden { display: none; }
+
+  /* --- menu --- */
+  #menu { position: fixed; inset: 0; overflow: auto; display: grid; place-items: center;
+    padding: 24px; background: radial-gradient(120% 90% at 50% 0%, #201c14 0%, var(--bg) 70%); }
+  .panel { width: min(560px, 100%); border: 1px solid var(--line); background: var(--panel);
+    padding: 22px 22px 18px; }
+  h1 { margin: 0; font-size: 30px; letter-spacing: 4px; color: var(--hot); font-weight: 700; }
+  .sub { color: var(--dim); margin: 6px 0 18px; }
+  .step { border-top: 1px solid var(--line); padding: 14px 0 4px; }
+  .step h2 { margin: 0 0 6px; font-size: 12px; letter-spacing: 2px; color: var(--dim);
+    text-transform: uppercase; font-weight: 600; }
+  .files { color: var(--dim); font-size: 12px; margin-top: 6px; }
+  input[type=file] { color: var(--dim); font: inherit; max-width: 100%; }
+  #levels { margin-top: 4px; }
+  #levels button, .btn { font: inherit; color: var(--ink); background: #221e16;
+    border: 1px solid var(--line); padding: 6px 10px; cursor: pointer; }
+  #levels button:hover, .btn:hover { border-color: var(--hot); color: var(--hot); }
+  #levels button[disabled] { opacity: .4; cursor: default; }
+  .note { color: var(--dim); font-size: 12px; margin-top: 14px; border-top: 1px solid var(--line);
+    padding-top: 12px; }
+  .warn { color: var(--warn); }
+  kbd { border: 1px solid var(--line); padding: 0 4px; color: var(--ink); }
+  select { font: inherit; }
+  #saveInfo { white-space: pre-line; line-height: 1.6; margin-top: 6px; }
+  select, input[type=text] { color: var(--ink); background: #221e16; border: 1px solid var(--line); padding: 3px 6px; }
+  .btn { padding: 4px 10px; }
+  .episode { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; margin: 6px 0 10px; }
+  .episode h3 { margin: 0; font-size: 12px; color: var(--hot); font-weight: 600; }
+  .episode .row { display: flex; flex-wrap: wrap; gap: 4px; }
+  #levels .episode button { padding: 3px 8px; font-size: 12px; }
+  details.step > summary { cursor: pointer; font-size: 12px; letter-spacing: 2px; color: var(--dim);
+    text-transform: uppercase; font-weight: 600; margin-bottom: 6px; }
+  details.step > summary:hover { color: var(--hot); }
+  details.step[open] > summary { color: var(--ink); }
+  .keys { display: grid; grid-template-columns: max-content 1fr max-content 1fr; gap: 3px 12px;
+    font-size: 12px; align-items: baseline; }
+  .keys span:nth-child(even) { color: var(--dim); }
+  @media (max-width: 520px) { .keys { grid-template-columns: max-content 1fr; } }
+  :focus-visible { outline: 1px solid var(--hot); outline-offset: 2px; }
+
+  /* --- hud --- */
+  #hud { position: fixed; inset: 0; pointer-events: none; }
+  #status { position: absolute; top: 8px; left: 10px; white-space: pre; font-size: 11px;
+    color: var(--dim); text-shadow: 0 1px 0 #000; }
+  #hint { position: absolute; bottom: 8px; left: 10px; font-size: 11px; color: var(--dim);
+    text-shadow: 0 1px 0 #000; }
+  .hud-btn { position: absolute; pointer-events: auto; font: inherit; font-size: 11px;
+    letter-spacing: 1px; color: var(--ink); background: rgba(20, 20, 15, 0.62); border: 1px solid var(--line);
+    padding: 7px 11px; cursor: pointer; }
+  .hud-btn:hover { border-color: var(--hot); color: var(--hot); }
+  #btnMenu { top: 8px; right: 10px; }
+  #btnMap { top: 8px; right: 74px; }
+  /* MAP and MENU only with the mobile controls; on the desktop Tab and Esc.
+     The probe line then wraps short of them. */
+  .hud-btn { display: none; }
+  body.mobile .hud-btn { display: block; }
+  body.mobile #hudline { padding-right: 150px; }
+
+  /* Mobile controls (a menu option, on by default on a touch device and
+     remembered): a d-pad bottom left, the action keys bottom right, and a
+     drag anywhere else on the view turns and looks. Hidden otherwise, because
+     a pointer-lock player does not want thumb targets over the view. */
+  #touch { display: none; }
+  body.mobile #touch { display: block; }
+  /* The key line is for the touch player only — and with the d-pad over its
+     corner, not shown there either; the probe lines only with Alt+D. */
+  #hint { display: none; }
+  #hudline, #status { display: none; }
+  body.debug #hudline, body.debug #status:not([hidden]) { display: block; }
+  body.mobile #hudline, body.mobile #status { font-size: 9px; line-height: 1.3; }
+  body.mobile #screen, body.mobile #hud { touch-action: none; user-select: none; -webkit-user-select: none; }
+  .pad { position: absolute; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); left: calc(14px + env(safe-area-inset-left, 0px));
+    width: 168px; height: 168px; pointer-events: auto; touch-action: none; }
+  .pad span { position: absolute; width: 56px; height: 56px; display: grid; place-items: center;
+    font-size: 18px; color: var(--ink); background: rgba(20, 20, 15, 0.55); border: 1px solid var(--line); }
+  /* The touch controls see-through. */
+  .pad span.on { border-color: var(--hot); color: var(--hot); background: rgba(60, 50, 20, 0.6); }
+  .pad .up { left: 56px; top: 0; }
+  .pad .down { left: 56px; bottom: 0; }
+  .pad .left { left: 0; top: 56px; }
+  .pad .right { right: 0; top: 56px; }
+  .pad .mid { left: 56px; top: 56px; border-radius: 50%; }
+  .acts { position: absolute; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); right: calc(14px + env(safe-area-inset-right, 0px));
+    display: grid; grid-template-columns: repeat(3, 62px); grid-auto-rows: 62px; gap: 10px; pointer-events: none; }
+  .act { font: inherit; font-size: 12px; letter-spacing: 1px; color: var(--ink); background: rgba(20, 20, 15, 0.55);
+    border: 1px solid var(--line); border-radius: 50%; pointer-events: auto; touch-action: none; padding: 0; }
+  .act.small { font-size: 10px; border-radius: 10px; }
+  .act.fire { grid-column: 3; grid-row: 2 / span 2; border-radius: 31px; color: #ffd7d0; background: rgba(150, 30, 20, 0.5); border: 2px solid rgba(230, 90, 70, 0.7); font-weight: bold; }
+  .act.on { border-color: var(--hot); color: var(--hot); background: rgba(60, 50, 20, 0.6); }
+  .act.fire.on { color: #fff; background: rgba(210, 60, 40, 0.75); border-color: rgba(230, 90, 70, 0.7); }
+  @media (max-height: 420px), (max-width: 440px) {
+    .pad { width: 141px; height: 141px; } .pad span { width: 47px; height: 47px; }
+    .pad .up, .pad .down, .pad .mid { left: 47px; } .pad .left, .pad .right, .pad .mid { top: 47px; }
+    .acts { grid-template-columns: repeat(3, 52px); grid-auto-rows: 52px; gap: 8px; }
+    .act.fire { border-radius: 26px; }
+  }
+
+  #map { position: fixed; inset: 0; background: #000c; display: none; }
+  #map.on { display: block; }
+</style>
+</head>
+<body>
+
+<div id="screen" class="hidden"><canvas id="frame" width="320" height="200"></canvas></div>
+<canvas id="map"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="hudline"></div>
+  <div id="status"></div>
+  <p id="hint"></p>
+  <button id="btnMap" class="hud-btn">MAP</button>
+  <button id="btnMenu" class="hud-btn">MENU</button>
+  <div id="touch">
+    <!-- One surface, not five buttons: the thumb slides from forward into a
+         turn without lifting (pointer capture, the zone from the position). -->
+    <div class="pad" id="pad"><span class="up">▲</span><span class="left">◀</span><span class="mid">◎</span><span class="right">▶</span><span class="down">▼</span></div>
+    <div class="acts">
+      <button id="btnWpn" class="act small" data-fn="Next_Weapon">WPN</button>
+      <button id="btnInv" class="act small" data-fn="Inventory">USE<br>ITEM</button>
+      <button id="btnItem" class="act small" data-fn="Inventory_Right">ITEM ›</button>
+      <button id="btnCrouch" class="act" data-hold="KeyZ">CRO</button>
+      <button id="btnJump" class="act" data-hold="KeyA">JMP</button>
+      <button id="btnFire" class="act fire" data-hold="ControlLeft">FIRE</button>
+    </div>
+  </div>
+</div>
+
+<div id="menu">
+  <div class="panel">
+    <h1>uDuke</h1>
+    <p class="sub">A Build engine renderer that reads <em>your own</em> game data.
+      No content ships with it — DUKE3D.GRP from your copy of the game lies beside this page.</p>
+
+    <div class="step">
+      <h2>Game data</h2>
+      <div class="files" id="grpInfo">looking for DUKE3D.GRP beside the page…</div>
+    </div>
+
+    <div class="step">
+      <h2>Levels</h2>
+      <div id="levels"><button disabled>waiting for the GRP</button></div>
+    </div>
+
+    <div class="step">
+      <h2>Game</h2>
+      <label>difficulty <select id="optSkill">
+        <option value="1">Piece of Cake</option>
+        <option value="2" selected>Let's Rock</option>
+        <option value="3">Come Get Some</option>
+        <option value="4">Damn I'm Good</option>
+      </select></label><br>
+      <label><input id="optCross" type="checkbox"> crosshair</label><br>
+      <label><input id="optGod" type="checkbox"> god mode</label><br>
+      <label><input id="optAmmo" type="checkbox"> all weapons, full ammo and all key cards</label><br>
+      <label><input id="optMobile" type="checkbox" autocomplete="off"> mobile controls</label><br>
+      <label><input id="optMusic" type="checkbox" checked> music</label>
+    </div>
+
+    <div class="step">
+      <h2>Saved games</h2>
+      <button id="btnResume" type="button" class="btn">resume</button>
+      <label>slot <select id="optSlot"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label>
+      <button id="btnSave" type="button" class="btn">save</button> <button id="btnLoad" type="button" class="btn">load</button>
+      <div class="files" id="saveInfo"></div>
+    </div>
+
+    <details class="step">
+      <summary>Keys</summary>
+      <div class="keys">
+        <span><kbd>↑</kbd> <kbd>↓</kbd></span><span>move</span>
+        <span><kbd>←</kbd> <kbd>→</kbd></span><span>turn</span>
+        <span><kbd>Alt</kbd></span><span>+ ← →: strafe</span>
+        <span><kbd>,</kbd> <kbd>.</kbd></span><span>strafe</span>
+        <span><kbd>Shift</kbd></span><span>run</span>
+        <span><kbd>CapsLock</kbd></span><span>auto run</span>
+        <span><kbd>A</kbd> <kbd>Z</kbd></span><span>jump, crouch</span>
+        <span><kbd>Space</kbd></span><span>open, use</span>
+        <span><kbd>Ctrl</kbd></span><span>fire (or the mouse)</span>
+        <span><kbd>PgUp</kbd> <kbd>PgDn</kbd></span><span>look up, down</span>
+        <span><kbd>Home</kbd> <kbd>End</kbd></span><span>aim up, down</span>
+        <span><kbd>Alt</kbd> <kbd>↑</kbd> <kbd>↓</kbd></span><span>aim (uDuke only)</span>
+        <span><kbd>Ins</kbd> <kbd>Del</kbd></span><span>look aside</span>
+        <span><kbd>Bksp</kbd></span><span>turn around</span>
+        <span><kbd>1</kbd>–<kbd>0</kbd></span><span>weapon</span>
+        <span><kbd>;</kbd> <kbd>'</kbd></span><span>previous, next weapon</span>
+        <span><kbd>`</kbd></span><span>quick kick</span>
+        <span><kbd>ScrLk</kbd></span><span>holster</span>
+        <span><kbd>Enter</kbd></span><span>use item</span>
+        <span><kbd>[</kbd> <kbd>]</kbd></span><span>choose item</span>
+        <span><kbd>H</kbd> <kbd>J</kbd> <kbd>N</kbd></span><span>holoduke, jetpack, night vision</span>
+        <span><kbd>M</kbd> <kbd>R</kbd></span><span>medkit, steroids</span>
+        <span><kbd>Tab</kbd></span><span>map</span>
+        <span><kbd>-</kbd> <kbd>=</kbd></span><span>status bar, mini HUD, none</span>
+        <span><kbd>I</kbd></span><span>crosshair</span>
+        <span><kbd>U</kbd></span><span>mouse aiming</span>
+        <span><kbd>Esc</kbd></span><span>this menu</span>
+        <span><kbd>Alt</kbd>+<kbd>D</kbd></span><span>debug lines</span>
+      </div>
+      <div class="files">Touch (the option "mobile controls"): the d-pad walks and turns, its centre opens; FIRE, JMP, CRO, WPN (next weapon), USE ITEM and ITEM › on the right; drag on the view to turn and look; MENU top right.</div>
+      <div class="files">Duke's default layout from SETUP.EXE, by key position as Duke's scan codes were. On a German keyboard: crouch is the key labelled <kbd>Y</kbd>, the screen size <kbd>ß</kbd> <kbd>´</kbd> (left of Backspace) for - =, the items <kbd>Ü</kbd> <kbd>+</kbd> for [ ], the weapons <kbd>Ö</kbd> <kbd>Ä</kbd> for ; ', the quick kick <kbd>^</kbd>, and jump <kbd>-</kbd> besides A.</div>
+    </details>
+
+  </div>
+</div>
+
+<script>
+// Before the module loads: a plain script that catches what a module cannot.
+// If a cached or half-deployed module lacks an export this page imports, the
+// module graph fails to LINK — "does not provide an export named" — and not
+// one line of the page runs, tripwire included. The browser reports that as
+// a window error, which this does catch, and says what it means.
+window.addEventListener('error', (e) => {
+  const msg = String(e.message || '');
+  if (!/does not provide an export named|Failed to fetch dynamically imported|Importing a module script failed/.test(msg)) return;
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99;background:#7a1a1a;color:#fff;font:14px monospace;padding:12px 16px;white-space:pre-wrap';
+  box.textContent = 'uDuke: a module on the server is older than this page \u2014 a stale browser cache '
+    + '(private windows share one until ALL of them are closed) or a partial deploy.\n' + msg
+    + '\nHard-reload the page (Ctrl+Shift+R / Cmd+Shift+R). If it persists, redeploy the whole js/ directory.';
+  document.body.prepend(box);
+});
+</script>
+<script type="module">
+import { loadAssets, buildLevel, refreshPrep, buildSounds } from './js/boot.js';
+import { grpEntry } from './js/grp.js';
+import { groupLevels } from './js/menu.js';
+import { parseTimbres, levelMusic, titleMusic } from './js/music.js';
+import { MusicOut, MusicOutDirect } from './js/musicout.js';
+import { tileToRgba } from './js/art.js';
+import { AudioOut } from './js/audio.js';
+import { callSound } from './js/sound.js';
+import { Renderer, HORIZ_MIN, HORIZ_MAX } from './js/render.js';
+import { STAGE } from './js/version.js';
+import { clipMove, getZRange, pushMove, CLIPMASK0 } from './js/clip.js';
+import { doAnimations, useKey, useProbe, operateSector, isUnderOperator, isNearOperator, LOTAG_MASK, SIM_HZ } from './js/sector.js';
+import { activateBySector, moveEffectors, moveTransports, moveMasterSwitches, moveTouchplates,
+  operateActivators, earthquakeShake, operateEffectorSector, krand } from './js/effector.js';
+import { animateCamSprite, takeFrozenHit, spriteGlass, rnd } from './js/con.js';
+import { moveActors, animateSprites, ejectShell, takePlayerDamage, playerShoot, weaponTic, selectWeapon, hitsFromPlayer, canPlaceTripbomb, stompTic, pressNukeButton, syncPlayerSprite, cuePoolBall, useViewscreen, leaveViewscreen, cameraViewTic, furthestAngle, guts, shootFrom, randomScrap, hitASprite, spawnFrom, operateRespawns, playerFootprints, toggleHoloduke, holodukeTic, isBadguy, useWaterFountain } from './js/con.js';
+import { checkHitSwitch, checkActivatorMotion, animateForceFields, operateForceFields } from './js/switch.js';
+import { checkHitWall } from './js/hitwall.js';
+import { movePlayerZ, movePlayerXY, turnPlayer, swimSway, viewZ, toggleJetpack, jetpackFuelTic, jetpackTic, toggleHeat, heatTic, checkSectorLotag, exitTic, tipTic, airTic, incurDamage, hurtFloorTic, checkPlayerHurt, quickKill, deathTic, shrinkTic, isShrunk, idleTic, weaponPosTic, useToilet, pissTic, fistTic, nextLevel, accessTic, carryPlayer, cycleInventory, inventoryFunction, takeSteroids, steroidsTic, onSteroids, useMedkit, toggleHolster, canChangeWeapon, cycleWeapon, turnAround, turnAroundTic, pitchTic, lookSideTic, watchInputClears } from './js/player.js';
+import { weaponFrames, tilePlacement, fistFrame, accessFrame, tipFrame, scubaFrames, shrunkFistFrames, shrunkFistStep, cameraTextFrames, rotatedPlacement } from './js/weaponview.js';
+import { getZsOfSlope } from './js/map.js';
+import { inside, updateSector } from './js/geometry.js';
+import { snapshotLevel, restoreLevel, saveToStorage, loadFromStorage, listSaves } from './js/save.js';
+import { statusBar, miniStatusBar, VIEW_HEIGHT } from './js/statusbar.js';
+import { action, held as heldKey, chorded, FUNCTIONS_OF } from './js/keys.js';
+import { Anm, T as ST, BASE_PAL, TICRATE, anmStepAt, anmFrameTics, anmFlushes, anmSounds, victory1Frame, VICTORY1, ENDING_STILL, thanksOps, paltoSteps, DREALMS_TICS, TITLE_TICS, titleFrame, loadScreenOps, gateOps, blitTile, toRgba, FADE_IN, FADE_OUT } from './js/screens.js';
+import * as M_art from './js/art.js';
+import * as M_audio from './js/audio.js';
+import * as M_boot from './js/boot.js';
+import * as M_clip from './js/clip.js';
+import * as M_con from './js/con.js';
+import * as M_effector from './js/effector.js';
+import * as M_map from './js/map.js';
+import * as M_player from './js/player.js';
+import * as M_render from './js/render.js';
+import * as M_sector from './js/sector.js';
+import * as M_sound from './js/sound.js';
+import * as M_switch from './js/switch.js';
+import * as M_hitwall from './js/hitwall.js';
+import * as M_geometry from './js/geometry.js';
+import * as M_save from './js/save.js';
+import * as M_statusbar from './js/statusbar.js';
+import * as M_weaponview from './js/weaponview.js';
+import * as M_version from './js/version.js';
+import * as M_keys from './js/keys.js';
+import * as M_screens from './js/screens.js';
+import * as M_grp from './js/grp.js';
+import * as M_menu from './js/menu.js';
+import * as M_music from './js/music.js';
+import * as M_musicout from './js/musicout.js';
+import * as M_opl3 from './js/opl3.js';
+import * as M_monitor from './js/monitor.js';
+import { drawMonitor, restoreMonitor } from './js/monitor.js';
+import { tileSource, blit, blitPlaced, rotateInto } from './js/blit.js';
+import * as M_blit from './js/blit.js';
+
+// The cache tripwire: refuse to run a mix of module versions. A browser that
+// re-fetched this page and one module but kept another from its cache has no
+// other honest symptom than a wrong field somewhere; this names the file.
+//
+// Self-contained on purpose. The first version imported a checker from
+// boot.js — and a stale boot.js without that export fails at LINK time, before
+// any line of the page runs, with "does not provide an export named". The
+// tripwire must not lean on anything a stale module might lack: namespace
+// imports never fail, and STAGE has been in version.js since the beginning.
+{
+  const staleModules = (mods) => Object.entries(mods)
+    .filter(([, m]) => m.MODULE_STAGE !== STAGE)
+    .map(([name, m]) => `${name} (${m.MODULE_STAGE ?? 'no stage'})`);
+  const stale = staleModules({ art: M_art, audio: M_audio, boot: M_boot, clip: M_clip, con: M_con, effector: M_effector, map: M_map, player: M_player, render: M_render, sector: M_sector, sound: M_sound, switch: M_switch, hitwall: M_hitwall, geometry: M_geometry, version: M_version, weaponview: M_weaponview, save: M_save, statusbar: M_statusbar, keys: M_keys, screens: M_screens, grp: M_grp, menu: M_menu, music: M_music, musicout: M_musicout, opl3: M_opl3, monitor: M_monitor, blit: M_blit });
+  if (stale.length) {
+    const box = document.createElement('div');
+    box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99;background:#7a1a1a;color:#fff;font:14px monospace;padding:12px 16px;white-space:pre-wrap';
+    box.textContent = 'uDuke: stale browser cache \u2014 these modules are from another stage than version.js (' + STAGE + '):\n  '
+      + stale.join('\n  ') + '\nHard-reload the page (Ctrl+Shift+R / Cmd+Shift+R), or open it in a fresh private window.';
+    document.body.prepend(box);
+    throw new Error('stale modules: ' + stale.join(', '));
+  }
+}
+
+
+// player.c: clipmove(...,164,4<<8,20<<8,CLIPMASK0), neartag range 1280.
+const WALL_DIST = 164, CEIL_DIST = 4 << 8, FLOR_DIST = 20 << 8, USE_RANGE = 1280;
+// player.c 2377: getzrange runs with 163, ONE less than clipmove's 164. The
+// difference is the point: clipmove leaves the player 164 from a solid
+// wall sprite's line, and getzrange's clipinsideboxline(walldist+1) then
+// does not count it — at 164 it would, and a wall switch at chest height
+// became a floor the player climbed onto.
+const ZRANGE_DIST = 163;
+
+const els = {};
+for (const id of ['menu', 'screen', 'hud', 'frame', 'map', 'status', 'hudline', 'hint',
+  'grpInfo', 'levels', 'btnMap', 'btnMenu', 'touch', 'optGod', 'optAmmo', 'optCross', 'optSkill', 'optMusic', 'optMobile', 'pad', 'btnResume', 'optSlot', 'btnSave', 'btnLoad', 'saveInfo']) {
+  els[id] = document.getElementById(id);
+}
+
+// Two views: the full 200 rows, and premap.c vscrn's 166-row viewport
+// above Duke's status bar (screen_size 8) — same focal length, same horiz
+// unit, the centre row of the shorter view. The status-bar box picks.
+// Widened ('Hor+', as the Build ports do it): W columns at the same focal
+// length (160 columns per unit of tan) and the same 200 rows — more to the
+// left and right, nothing stretched. fov = 2*atan(W/320); at 320, 90 degrees.
+let viewW = 320, viewOx = 0;                 // the view's width, and where the 320 overlays sit in it
+let fullRenderer = new Renderer(320, 200, 90);
+let barRenderer = new Renderer(320, VIEW_HEIGHT, 90, { refHeight: 200 });
+/** The view's width for the window: 4:3 or narrower keeps 320 (portrait letterboxes); wider, 240 columns per unit of height. */
+function viewWidthFor(w, h) {
+  const a = w / Math.max(1, h);
+  if (!(a > 4 / 3 + 1e-3)) return 320;
+  return Math.min(1024, Math.round(240 * a / 2) * 2);
+}
+function setViewWidth(w) {
+  if (w === viewW) return;
+  const wasBar = renderer === barRenderer;
+  const fov = 2 * Math.atan(w / 320) * 180 / Math.PI;
+  fullRenderer = new Renderer(w, 200, fov);
+  barRenderer = new Renderer(w, VIEW_HEIGHT, fov, { refHeight: 200 });
+  renderer = wasBar ? barRenderer : fullRenderer;
+  frameImage = ctx.createImageData(w, 200); framePx = new Uint32Array(frameImage.data.buffer);
+  viewW = w;
+}
+// The canvas in play (widened to the window) and for the full screens
+// (the start-up, the loading screen, the endings: 320x200 at 4:3, centred).
+function gameCanvas() {
+  setViewWidth(viewWidthFor(innerWidth, innerHeight));
+  setFrameWidth(viewW);
+  els.frame.classList.toggle('wide', viewW > 320);
+  viewOx = (viewW - 320) >> 1;
+}
+function screenCanvas() {
+  setFrameWidth(320);
+  els.frame.classList.remove('wide');
+  viewOx = 0;
+}
+
+// --- the camera monitors' picture (xyzmirror, js/monitor.js) -----------------
+// A camera's view drawn into the VIEWSCREEN tile, about every 12th frame
+// while the player is near a monitor in use; loadtile puts the tile's own
+// picture back when the monitor is let go or the level changes.
+const monitorState = {};
+function restoreMonitorTile(tile) { if (assets) restoreMonitor(assets.art, monitorState, tile); }
+function restoreMonitorTiles() { if (assets) restoreMonitor(assets.art, monitorState); }
+function xyzMirror(camIdx, tileNum) {
+  drawMonitor({ map: level.map, vm: level.vm, res: level.res, radarang: level.radarang, art: assets.art, rgb: assets.rgb,
+    Renderer, animateSprites, clock: performance.now() * 0.12 }, monitorState, camIdx, tileNum);
+}
+// The tilted view (game.c displayrooms, ud.screen_tilting on as shipped): with
+// p->rotscrnang set Duke renders into a square tile with a WIDER aspect
+// (setaspect by cos*8 + sin*5) and rotatesprites it back by the same factor
+// and the angle — the same focal length, a margin of picture around the
+// screen, rotated. Here: a TILT_W x TILT_H view at the screen's focal length
+// (fov and reference height scaled with the width, horiz rescaled to keep
+// the shear), rotated onto the view window. Two sizes: 356x260 covers the
+// window up to about 11 degrees (look-aside peaks near 8, a knock at 11);
+// any larger angle — the dead view lies on its side at any angle — takes a
+// 380x380 square, which covers the window's corners (188 from its centre)
+// at every angle.
+const TILTS = [];
+function tiltBuffer(w, h, ref = w) {
+  let t = TILTS.find((b) => b.w === w && b.h === h && b.ref === ref);
+  if (!t) {
+    // focalX 160 at any width (fov from w); focalY from the 320 view's buffer (ref).
+    t = { w, h, ref,
+      renderer: new Renderer(w, h, 2 * Math.atan(w / 320) * 180 / Math.PI, { refHeight: 200 * ref / 320, tall: true }) };
+    TILTS.push(t);
+  }
+  return t;
+}
+function tiltedView(eye, opts, viewH, tang) {
+  const a = ((tang + 1024) & 2047) - 1024;          // -1024..1023
+  // A widened view: the same picture scale (the 320 view's buffer, ref),
+  // the buffer as much wider as the view, and tall enough to cover the
+  // wider window turned (W*sin + 200*cos at 11.25 degrees; the square
+  // covers its diagonal).
+  const small = Math.abs(a) <= 64;
+  const ref = small ? 356 : 380;
+  const extra = viewW - 320;
+  const t = small
+    ? tiltBuffer(356 + extra, Math.max(260, Math.ceil(viewW * 0.1951 + 200 * 0.9808) + 4), ref)
+    : (() => { const d = Math.max(380, Math.ceil(Math.hypot(viewW, 200)) + 4); return tiltBuffer(d, d, ref); })();
+  const TILT_W = t.w, TILT_H = t.h;
+  const stats = t.renderer.render({ ...eye, horiz: 100 + (eye.horiz - 100) * 320 / ref }, opts);
+  // rotatesprite's angle: clockwise on screen, about the window's centre.
+  rotateInto(framePx, viewW, viewH, t.renderer.pixels, TILT_W, TILT_H, tang);
+  return stats;
+}
+let renderer = barRenderer;
+let screenSize = 8;                          // ud.screen_size: 8 bar, 4 mini HUD, 0 none — kept from level to level, as Duke keeps it
+function setScreenSize(n) { screenSize = n; renderer = n === 8 ? barRenderer : fullRenderer; }
+const ctx = els.frame.getContext('2d', { alpha: false });
+// The frame's pixels: the 3D view, the tilt and every tile (weapon,
+// crosshair, bars, camcorder frame) are written into this one array, and the
+// canvas gets ONE putImageData per frame (js/blit.js).
+let frameImage = ctx.createImageData(320, 200);
+let framePx = new Uint32Array(frameImage.data.buffer);
+function setFrameWidth(w) {
+  if (els.frame.width !== w) els.frame.width = w;
+}
+
+let assets = null, level = null, running = false, lastTime = 0;
+let simDebt = 0, useReport = '', mapOn = false, hurtTime = 0, dead = false;
+let eol = null;                       // { name, next, nextName, time, kills } while the level-complete card shows
+const carry = { fromBonus: 0 };        // what survives a level change: from_bonus
+let cheats = { god: false, ammo: false, cross: false };
+// The audio device. A browser allows no AudioContext before a user gesture,
+// so it is created on the first click or key while a level runs.
+let audio = null;
+/** spritesound(NAME, pi): a sound by its CON name, from the player. */
+let lastSay = '';
+function dukeSay(name, lengthTics = null) {
+  // A number is a sound number already (a switch's hitag); a name is looked up.
+  const num = typeof name === 'number' ? name : assets.con?.labels.get(name);
+  if (num === undefined) { lastSay = `${name}: no such label`; return; }
+  if (!level?.sounds) { lastSay = `${name}: no sound system`; return; }
+  const cam = level.cam;
+  const ev = level.sounds.at(num, -2, cam.x, cam.y, cam.z, cam, level.map, lengthTics);
+  // For the HUD: what became of the last line asked for. A refused Duke
+  // line is normal while another runs; a refused one with nothing running
+  // is a finding.
+  lastSay = `${name}#${num}: ${ev ? 'queued' : (level.sounds.dukeTalking() ? 'busy' : 'refused')}`
+    + (level.sounds.missing.has(num) ? ' (file missing)' : '');
+}
+// --- music (js/music.js, js/musicout.js) -------------------------------------
+//
+// Duke's MIDI on an emulated OPL3 with Duke's own instruments (D3DTIMBR.TMB).
+// `wantedSong` is what Duke would be playing now; it plays once the sound
+// device runs (a browser needs a click or a key first) and the menu's music
+// box is ticked. No TMB in the GRP: no music.
+let music = null, wantedSong = null, playingSong = null, timbres, tmbBytes = null;
+function musicTimbres() {
+  if (timbres !== undefined) return timbres;
+  const f = assets?.grp.order.find((n) => n.toUpperCase() === 'D3DTIMBR.TMB');
+  tmbBytes = f ? grpEntry(assets.grp, f) : null;
+  timbres = tmbBytes ? parseTimbres(tmbBytes) : null;
+  if (!timbres) console.warn('uDuke: no D3DTIMBR.TMB — no music');
+  return timbres;
+}
+// The worker first (js/musicout.js): synthesis off the main thread, on plain
+// HTTP too. Should it fail to start (no module workers), the ScriptProcessor
+// takes over and the song is played again there.
+function newMusic() {
+  let ready = false;
+  const direct = () => {
+    console.warn('uDuke music: no worker — on the main thread (ScriptProcessor)');
+    music = new MusicOutDirect(audio.ctx, timbres);
+    const song = playingSong; playingSong = null; if (song) syncMusic();
+  };
+  if (typeof Worker === 'undefined') return new MusicOutDirect(audio.ctx, timbres);
+  try {
+    return new MusicOut(audio.ctx, tmbBytes, {
+      onReady: (stages) => {
+        ready = true;
+        const stale = Object.entries(stages).filter(([, st]) => st !== STAGE).map(([n, st]) => `${n} ${st}`);
+        if (stale.length) console.error(`uDuke music: the worker loaded stale modules (${stale.join(', ')}) — reload without cache`);
+        console.info('uDuke music: in a worker, off the main thread');
+      },
+      onError: (msg) => { console.warn('uDuke music worker:', msg); if (!ready && music instanceof MusicOut) direct(); },
+    });
+  } catch (err) { console.warn('uDuke music worker:', err.message); return new MusicOutDirect(audio.ctx, timbres); }
+}
+// playmusic(); `restart`: MUSIC_StopSong first, the song from its beginning.
+function playMusic(name, restart = false) { wantedSong = name || null; if (restart) playingSong = null; syncMusic(); }
+function stopMusic() { wantedSong = null; syncMusic(); }              // MUSIC_StopSong()
+function syncMusic() {
+  const want = els.optMusic?.checked ? wantedSong : null;
+  if (!want) { if (music && playingSong) music.stop(); playingSong = null; return; }
+  if (!audio?.ctx || !musicTimbres()) return;                          // later, once the device runs
+  if (!music) music = newMusic();
+  if (playingSong === want && music.playing) return;
+  const f = assets.grp.order.find((n) => n.toUpperCase() === want.toUpperCase());
+  if (!f) { console.warn(`uDuke: music ${want} not in the GRP`); playingSong = null; music.stop(); return; }
+  try { music.play(grpEntry(assets.grp, f)); playingSong = want; console.info(`uDuke music: ${want}`); }
+  catch (err) { console.warn(`uDuke: music ${want}:`, err.message); playingSong = null; }
+}
+els.optMusic.addEventListener('change', syncMusic);
+
+let menuPaused = false;                    // toMenu suspended the device over a running level
+function ensureAudio() {
+  if (!level?.sounds) return;
+  if (!audio) audio = new AudioOut(level.sounds);
+  else if (audio.sounds !== level.sounds) {
+    // A new level has a new SoundSystem; the device keeps its context (a
+    // browser allows only so many) and re-points its decoder and cache.
+    audio.sounds = level.sounds;
+    audio.buffers.clear();
+    for (const num of [...audio.voices.keys()]) audio.stop(num);
+  }
+  // Not while a level waits paused behind the menu (toMenu suspended the
+  // device): every click and key there comes through here, and the
+  // difficulty box brought the music back. Resume, a new level or a loaded
+  // game set `running` first and resume it themselves.
+  if (audio.start() && audio.ctx.state === 'suspended' && !(menuPaused && !running)) audio.ctx.resume();
+  syncMusic();
+}
+addEventListener('pointerdown', () => { if (level?.sounds) ensureAudio(); });
+addEventListener('keydown', () => { if (level?.sounds) ensureAudio(); });
+const keys = new Set();
+
+/**
+ * Every button in this file releases focus the moment it is pressed.
+ *
+ * A focused button turns the next Space press into a second click on itself.
+ * A shell full of buttons over a keyboard-driven view is the worst place for
+ * it, so it is done centrally rather than remembered at each call site.
+ */
+function wire(el, fn) {
+  el.addEventListener('click', (e) => { el.blur(); e.preventDefault(); fn(); });
+}
+
+// --- loading -----------------------------------------------------------------
+
+function showLoaded(name) {
+  els.grpInfo.textContent =
+    `${name} — ${assets.grp.order.length} entries, ${(assets.bytes / 1048576).toFixed(1)} MB, `
+    + `${assets.maps.length} levels`
+    + (assets.shareware.length ? ' — shareware data: the registered weapons are blank tiles in this GRP' : '');
+  // By episode, as USER.CON numbers them (js/menu.js).
+  els.levels.innerHTML = '';
+  for (const g of groupLevels(assets.maps, assets.con?.defs ?? {})) {
+    const box = document.createElement('div');
+    box.className = 'episode';
+    const h = document.createElement('h3');
+    h.textContent = g.title;
+    const row = document.createElement('div');
+    row.className = 'row';
+    for (const lv of g.levels) {
+      const b = document.createElement('button');
+      b.textContent = lv.label;
+      b.title = lv.title;
+      wire(b, () => start(lv.file, false, { newGame: true }));
+      row.append(b);
+    }
+    box.append(h, row);
+    els.levels.append(box);
+  }
+}
+
+
+// The GRP lies beside the page: the server (uhttpd on the router) serves the
+// uDuke directory, so DUKE3D.GRP is one fetch away; `?grp=name` picks another
+// file. The file picker that used to stand in for a missing GRP is gone —
+// the game data is part of the installation now, and a miss is reported.
+(async () => {
+  const wanted = new URLSearchParams(location.search).get('grp') || 'DUKE3D.GRP';
+  try {
+    const r = await fetch(wanted, { cache: 'no-store' });
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    els.grpInfo.textContent = `loading ${wanted}…`;
+    assets = loadAssets(await r.arrayBuffer());
+    showLoaded(wanted);
+    startIntro();
+  } catch (err) {
+    showWarn(`${wanted} not found beside the page (${err.message}). Put DUKE3D.GRP from your copy of the game into the uDuke directory and reload.`);
+  }
+})();
+
+// --- Duke's 2D screens (js/screens.js) ----------------------------------------
+//
+// The start-up (game.c Logo(): logo.anm with its sounds, the 3D Realms screen,
+// the title with the words zooming in) and the "ENTERING <level>" screen
+// between levels (premap.c dofrontscreens). Drawn indexed into a 320x200
+// buffer and shown with one palette and one palto() fade.
+//
+// Written as generators: one yield per display frame, `now` in, so the
+// sequences read like Duke's own straight-line code with its loops.
+//
+// Adaptations, each on purpose:
+//  - A browser plays no sound before the page has had a click or a key, so
+//    the intro waits for one first (a black screen and a line of text).
+//  - Duke's palto() steps ran as fast as the VGA palette could be set; here
+//    one step is FADE_MS, a 70 Hz frame.
+//  - Loading a level here takes no time, and Duke's screen stayed up exactly
+//    as long as the load took. It stays LOAD_HOLD_MS, or until a key.
+const FADE_MS = 1000 / 70, LOAD_HOLD_MS = 1000;
+const scrBuf = new Uint8Array(320 * 200);
+let scrImg = null;
+let front = null;              // { gen, skip, escape, gate, onDone }
+function showIndexed(pal, e) {
+  screenCanvas();
+  scrImg ??= ctx.createImageData(320, 200);
+  toRgba(scrBuf, pal, e, scrImg.data);
+  ctx.putImageData(scrImg, 0, 0);
+}
+function drawOps(ops) { for (const op of ops) blitTile(scrBuf, assets.art, op); }
+function black() { screenCanvas(); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 320, 200); }
+// A 6-bit VGA palette from 8-bit values, as playanm does it (palptr[k] >> 2).
+const vga8 = (p) => p.map((v) => Math.round((v >> 2) * 255 / 63));
+function frontSound(name) {
+  const num = assets.con?.labels.get(name);
+  if (num === undefined || !front?.sounds) return;
+  front.sounds.global(num);
+  if (audio) audio.pump(); else front.sounds.drain();
+}
+function* frontWait(ms, redraw) {
+  const t0 = yield 'now';
+  for (let now = t0; now - t0 < ms; now = yield) {
+    if (front.escape) return true;
+    if (front.skip) { front.skip = false; return true; }
+    redraw?.(now - t0);
+  }
+  return false;
+}
+function* frontFade(steps, pal) {
+  for (const e of steps) {
+    if (front.escape) return;
+    showIndexed(pal, e);
+    const t0 = yield 'now';
+    for (let now = t0; now - t0 < FADE_MS; now = yield) {}
+  }
+}
+// playanm(fn, t) (menues.c 4603): the ANM's own palette, no fade in; the
+// frame period and the sounds by t and the volume (screens.js); a key ends
+// it. Returns 'done', 'skipped' or 'missing'. The last frame stays up.
+function* playAnmSeq(name, t, vol) {
+  const file = assets.grp.order.find((n) => n.toUpperCase() === name.toUpperCase());
+  if (!file) return 'missing';
+  let anm;
+  try { anm = new Anm(grpEntry(assets.grp, file)); } catch (err) { console.warn(`uDuke: ${name}`, err.message); return 'missing'; }
+  if (anmFlushes(t)) front.skip = false;
+  if (front.skip || front.escape) { front.skip = false; stopAllSounds(); return 'skipped'; }
+  const pal = vga8(anm.palette), per = anmFrameTics(t, vol);
+  const t0 = yield 'now';
+  let shown = 0;
+  for (let now = t0; ; now = yield) {
+    if (front.escape) return 'skipped';
+    if (front.skip) { front.skip = false; return 'skipped'; }
+    const step = anmStepAt((now - t0) * TICRATE / 1000, anm.numFrames, per);
+    while (shown < step && shown < anm.numFrames - 1) {
+      shown++;
+      scrBuf.set(anm.drawFrame(shown).subarray(0, 320 * 200));
+      for (const snd of anmSounds(t, vol, shown)) { if (snd === '*STOPALL*') stopAllSounds(); else frontSound(snd); }
+    }
+    if (shown) showIndexed(pal, 0);
+    if (shown >= anm.numFrames - 1) return 'done';
+  }
+}
+// FX_StopAllSounds.
+function stopAllSounds() { if (audio) for (const num of [...audio.voices.keys()]) audio.stop(num); }
+// A wait that no key shortens (`while(totalclock < ototalclock) getpackets()`).
+function* frontPause(ms) {
+  const t0 = yield 'now';
+  for (let now = t0; now - t0 < ms && !front.escape; now = yield) {}
+}
+// `sound(x); while(Sound[x].lock >= 200)`: until it has played; a key ends the
+// wait (Duke checks after each). Returns true on a key.
+function* frontSoundWait(name) {
+  frontSound(name);
+  const num = assets.con?.labels.get(name);
+  const tics = num === undefined ? 0 : front.sounds.length(num);
+  return yield* frontWait(tics * 1000 / 30);
+}
+// A picture held until a key, faded with the given steps.
+function* frontStill(tile, pal, fadeIn, fadeOut) {
+  scrBuf.fill(0);
+  drawOps([{ tile, x: 0, y: 0, corner: true, opaque: true }]);
+  front.skip = false;
+  yield* frontFade(fadeIn, pal);
+  yield* frontWait(Infinity);
+  yield* frontFade(fadeOut, pal);
+}
+// dobonus (game.c 9732): the end of an episode, by ud.volume_number.
+function* endingSeq(vol) {
+  const game = assets.rgb;
+  stopAllSounds();
+  stopMusic();                                     // dobonus: MUSIC_StopSong
+  front.skip = false;
+  if (vol === 0) {
+    const endingpal = assets.lookups?.basePalettes[BASE_PAL.ENDING];
+    if (endingpal && assets.art.get(VICTORY1)?.pixels) {
+      scrBuf.fill(0);
+      drawOps([{ tile: VICTORY1, x: 0, y: 50, corner: true, opaque: true }]);
+      yield* frontFade(paltoSteps(63, -1, -1), endingpal);
+      front.skip = false;
+      let bonuscnt = 0;
+      yield* frontWait(Infinity, (ms) => {
+        const r = victory1Frame(ms * TICRATE / 1000, bonuscnt);
+        bonuscnt = r.bonuscnt;
+        scrBuf.fill(0);
+        drawOps(r.ops);
+        for (const snd of r.sounds) frontSound(snd);
+        showIndexed(endingpal, 0);
+      });
+      if (front.escape) return;
+      yield* frontFade(paltoSteps(0, 64, 1), endingpal);
+    }
+    if (front.escape) return;
+    if (assets.art.get(ENDING_STILL[0])?.pixels) yield* frontStill(ENDING_STILL[0], game, paltoSteps(63, 0, -1), paltoSteps(0, 64, 1));
+    stopAllSounds();
+  } else if (vol === 1) {
+    black();
+    yield* playAnmSeq('CINEOV2.ANM', 1, 1);
+    if (front.escape) return;
+    black();
+    frontSound('PIPEBOMB_EXPLODE');
+    if (assets.art.get(ENDING_STILL[1])?.pixels) yield* frontStill(ENDING_STILL[1], game, paltoSteps(63, 0, -1), paltoSteps(0, 64, 1));
+  } else if (vol === 2) {
+    black();
+    yield* playAnmSeq('CINEOV3.ANM', 2, 2);
+    if (front.escape) return;
+    yield* frontPause(200 * 1000 / TICRATE);
+    black();
+    stopAllSounds();
+    const r = yield* playAnmSeq('RADLOGO.ANM', 3, 2);
+    if (front.escape) return;
+    let key = r === 'skipped';
+    for (const n of [5, 6, 7, 8, 9]) { if (key) break; key = yield* frontSoundWait(`ENDSEQVOL3SND${n}`); }
+    if (!key && !front.escape) yield* frontWait(120 * 1000 / TICRATE);
+    stopAllSounds();
+    black();
+  } else if (vol === 3) {
+    black();
+    front.skip = false;
+    for (const [f, t] of [['VOL4E1.ANM', 8], ['VOL4E2.ANM', 10], ['VOL4E3.ANM', 11]]) {
+      yield* playAnmSeq(f, t, 3);
+      if (front.escape) return;
+      black();
+    }
+    stopAllSounds();
+    frontSound('ENDSEQVOL3SND4');
+    scrBuf.fill(0);
+    drawOps(thanksOps(assets.art));
+    front.skip = false;
+    yield* frontFade(paltoSteps(63, 0, -3), game);
+    yield* frontWait(Infinity);
+    yield* frontFade(paltoSteps(0, 64, 3), game);
+    if (front.escape) return;
+    black();
+    yield* playAnmSeq('DUKETEAM.ANM', 4, 3);
+    front.skip = false;
+    yield* frontWait(Infinity);
+    black();
+    stopAllSounds();
+  }
+}
+function* introSeq() {
+  // The gate: a gesture for the sound device. Not Duke's. "COME GET
+  // SOME!" and "press a key", in Duke's fonts.
+  scrBuf.fill(0);
+  drawOps(gateOps(assets.art));
+  showIndexed(assets.rgb, 0);
+  while (front.gate) yield;
+  // playanm("logo.anm", 5); a key ends it, then black (palto 63).
+  yield* playAnmSeq('LOGO.ANM', 5, 0);
+  // "MIDI start here" (game.c Logo): the title song, on into the menu.
+  playMusic(titleMusic(assets.con?.defs));
+  if (front.escape) return;
+  black();
+  front.skip = false;                              // KB_FlushKeyboardQueue
+  const drealms = assets.lookups?.basePalettes[BASE_PAL.DREALMS];
+  const titlepal = assets.lookups?.basePalettes[BASE_PAL.TITLE];
+  if (!drealms || !titlepal || !assets.art.get(ST.DREALMS)?.pixels) return;
+  // "Reality is our game": out (the screen is black already), in, 7 s.
+  scrBuf.fill(0);
+  yield* frontFade(FADE_OUT, drealms);
+  scrBuf.fill(0);
+  drawOps([{ tile: ST.DREALMS, x: 0, y: 0, corner: true, opaque: true }]);
+  yield* frontFade(FADE_IN, drealms);
+  if (yield* frontWait(DREALMS_TICS * 1000 / TICRATE)) { if (front.escape) return; }
+  // The title: out (from the full palette — palto starts at 0 again, Duke's
+  // own flicker), BETASCREEN in titlepal, in, then 980 tics of zooming.
+  yield* frontFade(FADE_OUT, drealms);
+  if (front.escape) return;
+  front.skip = false;
+  scrBuf.fill(0);
+  drawOps([{ tile: ST.BETASCREEN, x: 0, y: 0, corner: true, opaque: true }]);
+  yield* frontFade(FADE_IN, titlepal);
+  const plutopak = !!assets.art.get(ST.PLUTOPAKSPRITE + 1)?.pixels;
+  let soundanm = 0;
+  yield* frontWait(TITLE_TICS * 1000 / TICRATE, (ms) => {
+    const r = titleFrame(ms * TICRATE / 1000, soundanm, plutopak);
+    soundanm = r.soundanm;
+    scrBuf.fill(0);
+    drawOps(r.ops);
+    for (const snd of r.sounds) frontSound(snd);
+    showIndexed(titlepal, FADE_IN[FADE_IN.length - 1]);
+  });
+}
+// premap.c newgame, Episode 4: playanm vol41a (6), clear, vol42a (7), vol43a
+// (9), clear, FX_StopAllSounds — then enterlevel: the level's song and the
+// ENTERING screen.
+function* e4OpeningSeq(name, levelSong) {
+  black();
+  yield* playAnmSeq('VOL41A.ANM', 6, 3);
+  if (front.escape) return;
+  black();
+  yield* playAnmSeq('VOL42A.ANM', 7, 3);
+  if (front.escape) return;
+  yield* playAnmSeq('VOL43A.ANM', 9, 3);
+  if (front.escape) return;
+  black();
+  stopAllSounds();
+  ensureAudio();                                   // back to the level's sound system
+  playMusic(levelSong, true);
+  if (assets.art.get(ST.LOADSCREEN)?.pixels) yield* loadingSeq(name, false);
+}
+// A level's slot, volume*11 + level: definelevelname by file, else E<v>L<l>.
+function levelSlot(name) {
+  const up = name.toUpperCase();
+  for (const [k, lv] of assets.con?.defs.levels ?? []) if (lv?.file?.toUpperCase() === up) return k;
+  const m = /^E(\d)L(\d+)\.MAP$/.exec(up);
+  return m ? (Number(m[1]) - 1) * 11 + Number(m[2]) - 1 : -1;
+}
+function* loadingSeq(name, fromGame) {
+  // dofrontscreens: the game fades to black (only when it was on screen),
+  // LOADSCREEN with ENTERING and the name, fading in with the game palette.
+  if (fromGame) {
+    const snap = ctx.getImageData(0, 0, els.frame.width, 200);
+    for (const e of FADE_OUT.slice(0, -1)) {
+      ctx.putImageData(snap, 0, 0);
+      ctx.fillStyle = `rgba(0,0,0,${Math.min(1, e / 64)})`;
+      ctx.fillRect(0, 0, els.frame.width, 200);
+      const t0 = yield 'now';
+      for (let now = t0; now - t0 < FADE_MS; now = yield) {}
+    }
+  }
+  const lv = [...(assets.con?.defs.levels?.values() ?? [])].find((l) => l.file?.toUpperCase() === name.toUpperCase());
+  scrBuf.fill(0);
+  drawOps(loadScreenOps(assets.art, lv ? lv.name : name.replace(/\.MAP$/i, '')));
+  front.skip = false;
+  yield* frontFade(FADE_IN, assets.rgb);
+  yield* frontWait(LOAD_HOLD_MS);
+}
+// Drive the generator one display frame. Returns true while it runs.
+function frontTick(now) {
+  if (!front) return false;
+  let r = front.gen.next(now);
+  // A 'now' request asks for the current time straight back.
+  while (!r.done && r.value === 'now') r = front.gen.next(now);
+  if (r.done || front.escape) { const done = front.onDone; front = null; done?.(); return false; }
+  return true;
+}
+function frontKey(e) {
+  if (!front) return false;
+  if (front.gate) {
+    // The gesture the browser waits for: the sound device starts HERE.
+    front.gate = false;
+    if (!audio) audio = new AudioOut(front.sounds);
+    else audio.sounds = front.sounds;
+    if (audio.start() && audio.ctx.state === 'suspended') audio.ctx.resume();
+    syncMusic();
+    return true;
+  }
+  if (e?.code === 'Escape') front.escape = true; else front.skip = true;
+  return true;
+}
+// A warning in the GRP line — as text, never as markup: the GRP's name can
+// come from the URL (?grp=…), and an error message is not ours either.
+function showWarn(msg) {
+  const w = document.createElement('span');
+  w.className = 'warn';
+  w.textContent = msg;
+  els.grpInfo.replaceChildren(w);
+}
+
+function startIntro() {
+  // ?ending=1..4 plays that episode's ending once the GRP is loaded — to look
+  // at them without playing an episode through. Behind the same gate (sound).
+  const ending = Number(new URLSearchParams(location.search).get('ending'));
+  if (ending >= 1 && ending <= 4 && assets?.con) {
+    els.menu.classList.add('hidden');
+    els.screen.classList.remove('hidden');
+    els.hud.classList.add('hidden');
+    front = { gen: (function* () {
+      scrBuf.fill(0); drawOps(gateOps(assets.art)); showIndexed(assets.rgb, 0);
+      while (front.gate) yield;
+      yield* endingSeq(ending - 1);
+    })(), gate: true, skip: false, escape: false, sounds: buildSounds(assets),
+    onDone: () => { stopAllSounds(); if (!running) toMenu(); } };
+    const tick = (now) => { if (frontTick(now)) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+    return;
+  }
+  if (new URLSearchParams(location.search).get('intro') === '0') return;
+  if (!assets?.con || !assets.art.get(ST.DREALMS)?.pixels) return;
+  els.menu.classList.add('hidden');
+  els.screen.classList.remove('hidden');
+  els.hud.classList.add('hidden');
+  front = { gen: introSeq(), gate: true, skip: false, escape: false, sounds: buildSounds(assets),
+    onDone: () => { if (!running) toMenu(); } };
+  const tick = (now) => { if (frontTick(now)) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
+addEventListener('pointerdown', (e) => { if (front) { frontKey(null); e.preventDefault(); } });
+
+function start(name, keep = false, opts = {}) {
+  perf.worst = null;                          // the probe's worst frame is per level
+  const fromGame = running && !els.screen.classList.contains('hidden');
+  dead = false; hurtTime = 0;
+  cheats = { god: els.optGod.checked, ammo: els.optAmmo.checked, cross: els.optCross.checked };
+  setScreenSize(screenSize);                  // ud.screen_size carries over; - and = change it in play
+  const previous = keep && level ? level.player : null;
+  try {
+    restoreMonitorTiles();                    // loadtile: every monitor's own picture back
+    level = buildLevel(assets, name, { skill: Number(els.optSkill.value) || 2 });
+    if (level.vm) level.vm.restoreTile = restoreMonitorTile;
+  } catch (err) {
+    showWarn(`${name}: ${err.message}`);
+    return;
+  }
+  // Coming through a nuke button, Duke keeps the player: weapons, ammo,
+  // health, shield, inventory. Key cards do not cross a level.
+  if (previous) carryPlayer(previous, level.player);
+  useReport = '';
+  simDebt = 0;
+  mapOn = false;
+  els.map.classList.remove('on');
+  els.menu.classList.add('hidden');
+  els.screen.classList.remove('hidden');
+  els.hud.classList.remove('hidden');
+  els.hint.textContent = '↑↓ move · ←→ turn · Alt strafe · Ctrl fire · Space open · A jump · Z crouch · PgUp/PgDn look · Tab map · Esc menu';
+  running = true;
+  menuPaused = false;
+  // The level button's click is the user gesture the browser demands for an
+  // AudioContext. Waiting for a later click or key meant a player who started
+  // by mouse and then moved by keyboard could stand in a silent level with
+  // every line "queued" — which is what the HUD showed.
+  ensureAudio();
+  // premap.c newgame: a new game at E4L1 opens with Episode 4's three films
+  // (vol41a/42a/43a) under env_music_fn[1] — before enterlevel's own song.
+  const levelSong = levelMusic(assets.con?.defs, name);
+  const e4 = !!opts.newGame && levelSlot(name) === 33 && assets.grp.order.some((n) => n.toUpperCase() === 'VOL41A.ANM');
+  // enterlevel: MUSIC_StopSong, then music_fn[volume][level] from the start.
+  playMusic(e4 ? assets.con?.defs?.envMusic?.[1] : levelSong, true);
+  // dofrontscreens: ENTERING <level> first; loop() shows it and holds the game.
+  if (e4) {
+    els.hud.classList.add('hidden');
+    front = { gen: e4OpeningSeq(name, levelSong), skip: false, escape: false, gate: false, sounds: buildSounds(assets),
+      onDone: () => {
+        // Also on Esc: the level's sounds and song, whatever the films got to.
+        stopAllSounds(); ensureAudio();
+        if (playingSong !== levelSong) playMusic(levelSong, true);
+        lastTime = performance.now(); simDebt = 0; els.hud.classList.remove('hidden');
+      } };
+    if (audio) audio.sounds = front.sounds;
+  } else if (assets.art.get(ST.LOADSCREEN)?.pixels) {
+    els.hud.classList.add('hidden');
+    front = { gen: loadingSeq(name, fromGame), skip: false, escape: false, gate: false, sounds: null,
+      onDone: () => { lastTime = performance.now(); simDebt = 0; els.hud.classList.remove('hidden'); } };
+  }
+  lastTime = performance.now();
+  if (!fromGame) requestAnimationFrame(loop);
+  // Not with the mobile controls: under pointer lock every pointer event
+  // reports the lock's frozen position, so each touch on the pad landed on
+  // the same spot — ▲ — and the pad only ever walked forward.
+  if (!document.body.classList.contains('mobile')) els.frame.requestPointerLock?.();
+}
+
+function toMenu() {
+  // NOT Duke's: Duke's menu lies over the paused game and the music plays
+  // on. uDuke's menu is a page of its own, so leaving a running level with
+  // Esc suspends the sound device — music and effects stop where they are
+  // and go on from there with `resume`. A new level, a loaded game or the
+  // intro's title music into the menu are not affected (ensureAudio resumes
+  // the device; the intro reaches the menu with no level running).
+  if (running && level && audio?.ctx?.state === 'running') { audio.ctx.suspend(); menuPaused = true; console.info('uDuke music: paused (menu)'); }
+  running = false;
+  keys.clear();
+  document.exitPointerLock?.();
+  els.menu.classList.remove('hidden');
+  els.screen.classList.add('hidden');
+  els.hud.classList.add('hidden');
+  els.map.classList.remove('on');
+  mapOn = false;
+}
+wire(els.btnMenu, toMenu);
+wire(els.btnMap, () => { mapOn = !mapOn; els.map.classList.toggle('on', mapOn); if (mapOn) drawMap(); });
+
+// --- input -------------------------------------------------------------------
+
+function resumeLevel() {
+  if (!level) return;
+  cheats = { god: els.optGod.checked, ammo: els.optAmmo.checked, cross: els.optCross.checked };   // the boxes as set now
+  els.menu.classList.add('hidden');
+  els.screen.classList.remove('hidden');
+  els.hud.classList.remove('hidden');
+  // The frame loop returns when running is false (toMenu), so it has to be
+  // started again — a level button does the same. lastTime is reset so the
+  // menu's minutes do not arrive as one dt.
+  const was = running;
+  running = true;
+  lastTime = performance.now(); simDebt = 0;
+  menuPaused = false;
+  if (audio?.ctx?.state === 'suspended') { audio.ctx.resume(); console.info('uDuke music: resumed'); }
+  if (!was) requestAnimationFrame(loop);
+}
+wire(els.btnResume, resumeLevel);
+
+// --- saving and loading (js/save.js) ------------------------------------------
+// The level's mutable state into localStorage, as a difference from a
+// freshly built copy of the same level (about 100 KB for E1L5 mid-game).
+function describeSaves() {
+  const saves = listSaves();
+  els.saveInfo.textContent = saves.map((sv, i) => `${i + 1}: ${sv ? `${sv.name} ${sv.savedAt.replace('T', ' ').slice(0, 16)}` : 'empty'}`).join('\n');   // one slot a line
+}
+function saveGame() {
+  if (!level) { els.saveInfo.textContent = 'nothing to save'; return; }
+  try {
+    const base = buildLevel(assets, level.name, { skill: Number(els.optSkill.value) || 2 });
+    const snap = snapshotLevel(level, { cheats, skill: Number(els.optSkill.value) || 2 }, base);
+    saveToStorage(els.optSlot.value, snap);
+    describeSaves();
+    els.saveInfo.textContent = `saved to slot ${els.optSlot.value} (${(JSON.stringify(snap).length / 1024).toFixed(0)} KB)\n` + els.saveInfo.textContent;
+  } catch (err) { els.saveInfo.textContent = `save failed: ${err.message}`; }
+}
+function loadGame() {
+  let snap;
+  try { snap = loadFromStorage(els.optSlot.value); } catch (err) { els.saveInfo.textContent = `load failed: ${err.message}`; return; }
+  if (!snap) { els.saveInfo.textContent = `slot ${els.optSlot.value} is empty`; return; }
+  if (!assets.grp.order.some((n) => n.toUpperCase() === snap.name.toUpperCase())) { els.saveInfo.textContent = `${snap.name} is not in this GRP`; return; }
+  if (snap.page?.skill) els.optSkill.value = String(snap.page.skill);
+  start(snap.name);
+  if (!level) return;
+  try {
+    restoreLevel(level, snap);
+    refreshPrep(level);
+    if (snap.page?.cheats) { els.optGod.checked = !!snap.page.cheats.god; els.optAmmo.checked = !!snap.page.cheats.ammo; els.optCross.checked = !!snap.page.cheats.cross; cheats = { ...snap.page.cheats }; }
+    if (level.vm) syncPlayerSprite(level.vm, level.map, level.cam, level.player, 0);
+    els.saveInfo.textContent = `loaded slot ${els.optSlot.value}`;
+  } catch (err) { els.saveInfo.textContent = `load failed: ${err.message}`; }
+}
+wire(els.btnSave, saveGame);
+wire(els.btnLoad, loadGame);
+describeSaves();
+function jetpackKey() {
+  if (!level) return;
+  const r = toggleJetpack(level.player);
+  if (r === 'on') { dukeSay('DUKE_JETPACK_ON'); useExt.quote(52); }
+  else if (r === 'off') { dukeSay('DUKE_JETPACK_OFF'); useExt.quote(53); }
+}
+// The interface keys, once a tic — sector.c 2440..2906 in its order. Each
+// press in `pressed` is one edge (interface_toggle_flag). Dead, nothing runs.
+function interfaceTic(level, cam) {
+  const pl = level.player;
+  const edges = pressed.splice(0);
+  if (!edges.length || !level.vm || pl.health <= 0) return;
+  const has = (fn) => edges.includes(fn);
+  const free = pl.newOwner === -1;                     // not watching a camera
+  // Inventory: the key of the item on show (sector.c 2486).
+  if (has('Inventory') && free) { const f = inventoryFunction(pl); if (f) edges.push(f); }
+  if (has('NightVision')) {
+    const r = toggleHeat(pl);
+    if (r) { dukeSay('NITEVISION_ONOFF'); useExt.quote(r === 'on' ? 106 : 107); pl.invenIcon = 5; }
+  }
+  // Steroids end the dispatcher's tic, taken or not (sector.c 2507).
+  if (has('Steroids')) {
+    if (takeSteroids(pl)) { dukeSay('DUKE_TAKEPILLS'); useExt.quote(12); }
+    return;
+  }
+  if (free && (has('Inventory_Left') || has('Inventory_Right'))) {
+    const q = cycleInventory(pl, has('Inventory_Right'));
+    if (q) useExt.quote(q);
+  }
+  // The weapon branch (sector.c 2598). Duke's order: 1..6, then previous/
+  // next, then 7..10 — the later one wins. A weapon key pressed mid-cycle
+  // waits while it is held (Duke keeps it as wantweaponfire).
+  let want = null;
+  for (let n = 1; n <= 6; n++) if (has(`Weapon_${n}`)) want = n;
+  if (has('Previous_Weapon')) want = 'prev';
+  if (has('Next_Weapon')) want = 'next';
+  for (let n = 7; n <= 10; n++) if (has(`Weapon_${n}`)) want = n;
+  const xr = level.map.sprites[level.vm.playerSprite]?.xRepeat ?? 42;
+  if (canChangeWeapon(pl, xr)) {
+    let slot = -1;
+    if (want === 'prev' || want === 'next') slot = cycleWeapon(pl, want === 'prev' ? -1 : 1);
+    else if (want === 7) slot = pl.currWeapon === 6 && pl.gotWeapon[11] ? 11 : 6;   // the shrinker, again the expander
+    else if (want) slot = want - 1;
+    if (pl.holsterWeapon) {
+      // Any interface key with the gun holstered brings it back.
+      pl.weaponPos = -9;
+      const q = toggleHolster(pl); if (q) useExt.quote(q);
+    } else {
+      if (slot >= 0 && pl.gotWeapon[slot] && pl.currWeapon !== slot) {
+        selectWeapon(pl, slot);
+        pl.subweapon = slot === 11 ? (pl.subweapon ?? 0) | (1 << 11) : slot === 6 ? (pl.subweapon ?? 0) & ~(1 << 11) : pl.subweapon;
+      }
+      if (has('Holster_Weapon')) { const q = toggleHolster(pl); if (q) useExt.quote(q); }
+    }
+  } else if (typeof want === 'number' && action(keys, `Weapon_${want}`)) pressed.push(`Weapon_${want}`);
+  if (has('Holo_Duke') && free && !pl.dead) {
+    const q = toggleHoloduke(level.vm, level.map, level.cam, pl, level.sounds);
+    if (q) useExt.quote(q);
+    pl.invenIcon = 3;
+  }
+  if (has('MedKit') && useMedkit(pl)) dukeSay('DUKE_USEMEDKIT');
+  if (has('Jetpack') && free) {
+    if (pl.inventory.jetpack > 0) { jetpackKey(); if (pl.jetpackOn) pl.invenIcon = 4; }
+    else useExt.quote(50);
+  }
+  if (has('TurnAround')) turnAround(pl);
+  // The quick kick, with whatever is in hand (player.c: quick_kick 14).
+  if (has('Quick_Kick') && !(pl.quickKick > 0) && !pl.kneeIncs) pl.quickKick = 14;
+}
+
+// Duke's key table (js/keys.js). Two kinds of key, as in Duke:
+//  - the page's own toggles, which Duke's nonsharedkeys() handles once a
+//    frame outside the game tic: auto run, the map, the crosshair, the
+//    screen size, mouse aiming, hiding the weapon;
+//  - the player's interface keys, which go through sync bits and
+//    interface_toggle_flag — a press counts once, on the tic after it went
+//    down. Those are queued here and run by interfaceTic() in the tic loop.
+// Everything else (move, turn, fire, jump, look ...) is read as held keys.
+const INTERFACE_FNS = new Set(['Inventory', 'Inventory_Left', 'Inventory_Right', 'Holo_Duke', 'Jetpack',
+  'NightVision', 'MedKit', 'Steroids', 'Holster_Weapon', 'TurnAround', 'Next_Weapon', 'Previous_Weapon',
+  'Quick_Kick', 'Open', 'Weapon_1', 'Weapon_2', 'Weapon_3', 'Weapon_4', 'Weapon_5', 'Weapon_6', 'Weapon_7',
+  'Weapon_8', 'Weapon_9', 'Weapon_10']);
+const pressed = [];
+// myaimmode: Duke starts with mouse aiming off (U toggles it, FTA 44/45).
+// uDuke has always looked up and down with the mouse, so here it starts on.
+let aimMode = 1;
+// ud.auto_run: off at start, CapsLock toggles it in play. It is kept across
+// levels and restarts, as Duke keeps it for the session.
+let autoRun = false;
+// Alt+D: the debug lines over the view (the HUD line and the status block).
+let debugHud = false, altGrHeld = false;
+addEventListener('keydown', (e) => {
+  // A front screen (intro, loading) takes every key: one skips it.
+  if (front) { e.preventDefault(); if (!e.repeat) frontKey(e); return; }
+  if (e.code === 'Escape') { toMenu(); return; }
+  // Alt+D: the probe lines at the top, off by default — uDuke's own key,
+  // outside Duke's table (D is unbound there). preventDefault keeps it from
+  // the browser, where Alt+D would focus the address bar.
+  // Either Alt: the right one of a German keyboard is AltGr, which Linux
+  // reports as AltGraph with altKey false (Windows: Ctrl+Alt).
+  if (e.key === 'AltGraph') altGrHeld = true;
+  if ((e.altKey || altGrHeld || e.getModifierState?.('AltGraph')) && e.code === 'KeyD') {
+    e.preventDefault();
+    if (!e.repeat) {
+      debugHud = !debugHud; document.body.classList.toggle('debug', debugHud);
+      console.info(`uDuke: debug lines ${debugHud ? 'on' : 'off'} (Alt+D)`);
+    }
+    return;
+  }
+  if (!running) return;
+  const fns = FUNCTIONS_OF.get(e.code) ?? [];
+  // Every key of Duke's table belongs to the game while it runs: Alt would
+  // open the browser's menu bar, ' and / Firefox's quick find, Backspace and
+  // Tab navigate, Space and the arrows scroll.
+  if (fns.length) e.preventDefault();
+  // The key is filed BEFORE anything runs on it: a use, a jetpack, the
+  // goggles — should one of those throw, the dead branch still sees Space.
+  keys.add(e.code);
+  if (e.repeat) return;
+  for (const fn of fns) {
+    if (INTERFACE_FNS.has(fn)) pressed.push(fn);
+    switch (fn) {
+      case 'Open': if (!dead) useHere(); break;
+      case 'Map':
+        mapOn = !mapOn;
+        els.map.classList.toggle('on', mapOn);
+        if (mapOn) drawMap();
+        break;
+      // game.c 7045: ud.auto_run = 1-ud.auto_run, FTA(85+auto_run).
+      case 'AutoRun': autoRun = !autoRun; useExt.quote(85 + (autoRun ? 1 : 0)); break;
+      // game.c 6691: ud.crosshair = 1-ud.crosshair, FTA(21-crosshair).
+      case 'Toggle_Crosshair': cheats.cross = !cheats.cross; els.optCross.checked = cheats.cross; useExt.quote(21 - (cheats.cross ? 1 : 0)); break;
+      // ud.screen_size as Duke steps it with - and =: 8 the status bar, 4 the
+      // full view with the mini HUD, 0 the full view bare (smaller views with
+      // a border, above 8, are not done).
+      case 'Shrink_Screen': setScreenSize(screenSize === 0 ? 4 : 8); break;
+      case 'Enlarge_Screen': setScreenSize(screenSize === 8 ? 4 : 0); break;
+      // getinput: the mouse-aiming toggle, FTA(44+myaimmode).
+      case 'Mouse_Aiming': aimMode ^= 1; useExt.quote(44 + aimMode); break;
+    }
+  }
+});
+addEventListener('keyup', (e) => { if (e.key === 'AltGraph') altGrHeld = false; keys.delete(e.code); if (FUNCTIONS_OF.has(e.code) && running) e.preventDefault(); });
+addEventListener('blur', () => { keys.clear(); altGrHeld = false; });
+
+// Mobile controls. Nothing here invents a second input path: a held button
+// is a held key in the same key set the keyboard fills, a tapped one is the
+// interface press the key would queue, the d-pad's centre is the use key, and
+// a drag over the view is the mouse look — so the two cannot behave
+// differently. Every touch control takes its pointer (setPointerCapture):
+// a thumb that drifts off FIRE keeps firing until it lifts.
+const touchHeld = new Set();                     // the codes the touch controls hold down
+// A phone or a tablet: its MAIN pointer is a finger (pointer: coarse).
+function touchDevice() {
+  const q = globalThis.matchMedia?.('(pointer: coarse)');
+  return q ? q.matches : (navigator.maxTouchPoints || 0) > 0;
+}
+function applyMobile(on) {
+  document.body.classList.toggle('mobile', on);
+  if (on && document.pointerLockElement) document.exitPointerLock?.();
+  if (!on) { for (const c of touchHeld) keys.delete(c); touchHeld.clear(); padZone = null; padPointer = null; for (const f of holdReset) f(); }
+}
+// Capture is a nicety: a pointer the browser no longer tracks throws, and
+// that must not cost the press.
+function capture(el, e) { try { el.setPointerCapture(e.pointerId); } catch { /* not an active pointer */ } }
+function holdKey(code, on) {
+  if (on) { keys.add(code); touchHeld.add(code); } else { keys.delete(code); touchHeld.delete(code); }
+}
+const holdReset = [];                            // blur, the option off: every held button let go
+for (const b of els.touch.querySelectorAll('[data-hold]')) {
+  const code = b.dataset.hold;
+  // Held by one pointer: another pointer's events (a second finger, the
+  // browser's mouse events) neither press nor release it.
+  let id = null;
+  const down = (e) => { e.preventDefault(); if (id !== null) return; id = e.pointerId; capture(b, e); holdKey(code, true); b.classList.add('on'); };
+  const up = (e) => { e.preventDefault(); if (e.pointerId !== id) return; id = null; holdKey(code, false); b.classList.remove('on'); };
+  b.addEventListener('pointerdown', down);
+  b.addEventListener('pointerup', up);
+  b.addEventListener('pointercancel', up);
+  b.addEventListener('lostpointercapture', up);
+  holdReset.push(() => { id = null; b.classList.remove('on'); });
+}
+// A tapped function key: queued exactly as its keyboard key queues it.
+for (const b of els.touch.querySelectorAll('[data-fn]')) {
+  b.addEventListener('pointerdown', (e) => { e.preventDefault(); if (running && INTERFACE_FNS.has(b.dataset.fn)) pressed.push(b.dataset.fn); });
+}
+// The d-pad: forward/back walk, left/right turn (the arrow keys), the centre
+// uses — once each time the thumb enters it.
+const PAD_CODE = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' };
+let padZone = null, padPointer = null;
+// The zone under the thumb: from its position on the pad; a point off the
+// pad (a browser that reports no coordinates gives 0,0) falls back to the
+// arrow the event landed on.
+function padZoneAt(e) {
+  const r = els.pad.getBoundingClientRect();
+  const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  if (!inside) {
+    const sp = e.target?.closest?.('#pad span');
+    return sp ? ['up', 'down', 'left', 'right', 'mid'].find((c) => sp.classList.contains(c)) ?? padZone : padZone;
+  }
+  const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < r.width / 6) return 'mid';
+  return Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
+}
+function setPadZone(z) {
+  if (z === padZone) return;
+  if (padZone && PAD_CODE[padZone]) holdKey(PAD_CODE[padZone], false);
+  els.pad.querySelector(`.${padZone}`)?.classList.remove('on');
+  padZone = z;
+  if (!z) return;
+  els.pad.querySelector(`.${z}`)?.classList.add('on');
+  if (PAD_CODE[z]) holdKey(PAD_CODE[z], true);
+  else if (running && !dead) useHere();
+}
+// Only the pointer that went down on the pad steers it.
+els.pad.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  if (padPointer !== null && padPointer !== e.pointerId) return;
+  padPointer = e.pointerId; capture(els.pad, e); setPadZone(padZoneAt(e));
+});
+els.pad.addEventListener('pointermove', (e) => { if (e.pointerId === padPointer && padZone) setPadZone(padZoneAt(e)); });
+for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+  els.pad.addEventListener(t, (e) => { if (e.pointerId === padPointer) { padPointer = null; setPadZone(null); } });
+}
+// A drag on the view: the mouse look. Across the whole width is half a turn;
+// down the whole height, 200 rows of horiz (with aiming on, as the mouse).
+let lookId = null, lookX = 0, lookY = 0;
+els.screen.addEventListener('pointerdown', (e) => {
+  if (!document.body.classList.contains('mobile') || !running || lookId !== null) return;
+  lookId = e.pointerId; lookX = e.clientX; lookY = e.clientY; capture(els.screen, e);
+});
+els.screen.addEventListener('pointermove', (e) => {
+  if (e.pointerId !== lookId || !running) return;
+  const dx = e.clientX - lookX, dy = e.clientY - lookY;
+  lookX = e.clientX; lookY = e.clientY;
+  level.cam.ang = (level.cam.ang + dx * 1024 / innerWidth + 2048) % 2048;
+  if (aimMode) level.cam.horiz = Math.max(HORIZ_MIN, Math.min(HORIZ_MAX, level.cam.horiz - dy * 200 / innerHeight));
+});
+for (const t of ['pointerup', 'pointercancel']) els.screen.addEventListener(t, (e) => { if (e.pointerId === lookId) lookId = null; });
+addEventListener('blur', () => { touchHeld.clear(); padPointer = null; setPadZone(null); lookId = null; for (const f of holdReset) f(); });
+{
+  // Not remembered: every load starts from the device — on for a phone or a
+  // tablet, off otherwise; ticking it holds for this visit.
+  try { globalThis.localStorage.removeItem('uduke.mobileControls'); } catch { /* private mode */ }
+  els.optMobile.checked = touchDevice();
+  applyMobile(els.optMobile.checked);
+  els.optMobile.addEventListener('change', () => applyMobile(els.optMobile.checked));
+}
+
+// Mouse look, only while the pointer is locked. Horizontal is Build's 2048-unit
+// turn; vertical is horiz, which is a screen ROW and not an angle, so the
+// sensitivity of the two is deliberately not the same number.
+// Fire: the left button while the pointer is locked, or Ctrl. Held down it
+// keeps firing at the pistol's own rate; the tic loop reads `firing`.
+let firing = false, mouseMoved = false, prevX = 0, prevY = 0;
+addEventListener('mousedown', (e) => {
+  if (!running || document.pointerLockElement !== els.frame) return;
+  if (e.button === 0) firing = true;
+});
+addEventListener('mouseup', (e) => { if (e.button === 0) firing = false; });
+addEventListener('mousemove', (e) => {
+  if (!running || document.pointerLockElement !== els.frame) return;
+  mouseMoved = true;
+  level.cam.ang = (level.cam.ang + e.movementX * 0.35 + 2048) % 2048;
+  if (aimMode) level.cam.horiz = Math.max(HORIZ_MIN, Math.min(HORIZ_MAX, level.cam.horiz - e.movementY * 0.5));
+});
+els.frame.addEventListener('click', () => { if (running && !document.body.classList.contains('mobile')) els.frame.requestPointerLock?.(); });
+
+// --- the use key -------------------------------------------------------------
+
+const useExt = (map, sectNum, lotag) =>
+  operateEffectorSector(map, level.effectors, sectNum, lotag, level ? { z: level.cam.z, sect: level.cam.sectNum } : null);
+// callsound(sn) on every door, lift and ceiling that sets off — a property on
+// the function, which is what operateSector receives as `ext`.
+// callsound(sn, whatsprite): the sound plays FROM whatsprite — the SE an
+// activator toggled, the player using a door — and only with -1 from the
+// MUSICANDSFX itself. That choice matters: xyzsound's ambient rule (a
+// MUSICANDSFX in a sector of lotag under 9 has its distance divscale14'd by
+// hitag+1) fires when the source IS the MUSICANDSFX; with hitag 0 the
+// distance goes astronomical and the sound is refused. E1L4's underwater
+// hatch (sector 240, lotag 0, edoor10 on a MUSICANDSFX of hitag 0) was
+// silent for exactly that: the hook dropped the second argument.
+useExt.callsound = (sn, whatsprite = -1) => { if (level?.sounds) callSound(level.map, level.sounds, level.effectors, level.cam, sn, whatsprite); };
+// The key-card check reads the player's inventory and speaks through the quote line.
+Object.defineProperty(useExt, 'player', { get: () => level?.player });
+useExt.quote = (q) => { if (level?.player) { level.player.quote = q; level.player.quoteTime = 26 * 4; } };
+
+// The switch probe: what a press fired, and the force-field walls and SE 12
+// lights of its tag afterwards — E2L1's field/light pairs share a tag.
+function switchReport(r) {
+  const map = level.map;
+  const fields = map.walls.map((w, i) => (w.lotag === r.tag && (w.overPicNum === 230 || (w.overPicNum >= 663 && w.overPicNum <= 665)) ? `w${i}:cstat${w.cstat}/pal${w.pal}` : null)).filter(Boolean);
+  const lights = level.effectors.list.map((i) => { const sp = map.sprites[i]; return sp && !sp.removed && sp.lotag === 12 && sp.hitag === r.tag ? `SE12#${i}:t0=${level.effectors.temp(i)[0]}` : null; }).filter(Boolean);
+  return `switch tag ${r.tag} fired ${r.fired} fields ${r.fields} armed ${r.armed}` + (fields.length ? ' [' + fields.join(' ') + ']' : '') + (lights.length ? ' [' + lights.join(' ') + ']' : '');
+}
+
+// The nearest force-field wall within 4096: its cstat and pal, every frame —
+// for the E2L1 field whose colour and presence did not match the model.
+function nearestFieldReport() {
+  const map = level.map, cam = level.cam;
+  let best = -1, bd = 4096;
+  for (let i = 0; i < map.walls.length; i++) {
+    const w = map.walls[i];
+    if (!(w.overPicNum === 230 || (w.overPicNum >= 663 && w.overPicNum <= 665))) continue;
+    const d = Math.hypot(w.x - cam.x, w.y - cam.y);
+    if (d < bd) { bd = d; best = i; }
+  }
+  if (best < 0) return '';
+  const w = map.walls[best];
+  return `   ff w${best}: over ${w.overPicNum} cstat ${w.cstat} pal ${w.pal} lotag ${w.lotag} extra ${w.extra} d${Math.round(bd)}`;
+}
+
+function useHere() {
+  if (!level || dead) return;
+  const { cam, map, effectors, anims } = level;
+  const x = Math.round(cam.x), y = Math.round(cam.y), z = Math.round(cam.z);
+  const ang = Math.round(cam.ang);
+  // sector.c 2990 (checksectors): the wall straight ahead first — a
+  // MIRROR within 1280 with a lotag speaks that sound number (E1L2:
+  // 252, DUKE_LOOKINTOMIRROR) and that is all the use does.
+  // checksectors 3015: watching a camera, neartag runs from the player's
+  // own place (oposx, oang — here the player never left it). A VIEWSCREEN
+  // found again steps to its next free camera; none left, or anything
+  // else found (or nothing), is CLEARCAMERAS (sector.c 3162, 3196).
+  if (level.player.newOwner >= 0) {
+    const t = useProbe(map, x, y, z, cam.sectNum, ang, USE_RANGE, level.res.art);
+    const pn = t.sprite >= 0 ? map.sprites[t.sprite].picNum : -1;
+    const next = (pn === 502 || pn === 499) ? useViewscreen(level.vm, map, t.sprite, level.player, cam) : -1;
+    if (next >= 0) { useReport = `camera ${next}`; return; }
+    leaveViewscreen(level.vm, map, level.player); useReport = 'camera off'; return;
+  }
+  {
+    const wa = hitsFromPlayer(level.vm, map, cam, true);
+    if (wa && wa.wall >= 0 && wa.dist < 1280 && map.walls[wa.wall].overPicNum === 560 && map.walls[wa.wall].lotag > 0) {
+      dukeSay(map.walls[wa.wall].lotag);
+      useReport = 'mirror';
+      return;
+    }
+  }
+  // actors.c 3268: the use key on a pool ball is the cue. Independent of
+  // what checksectors then finds.
+  if (level.vm) { const b = cuePoolBall(level.vm, map, cam); if (b >= 0) useReport = 'cue'; }
+  const tagged = useProbe(map, x, y, z, cam.sectNum, ang, USE_RANGE, level.res.art);
+  // sector.c 3060: under water (the player's sector lotag 2), with no sprite
+  // and no wall tagged by neartag, a hitscan from the player (hitasprite)
+  // names the sprite it meets within 1280 — E1L4's three dip switches sit on
+  // the far wall of a 32-deep strip sector behind a tagged-sector boundary
+  // that cuts neartag's reach at 132.
+  if (tagged.sprite < 0 && tagged.wall < 0 && (map.sectors[cam.sectNum]?.lotag & LOTAG_MASK) === 2 && level.vm?.playerSprite >= 0) {
+    const d = hitASprite(level.vm, map, level.vm.playerSprite);
+    if (d <= 1280 && level.vm.lastHitSprite >= 0) tagged.sprite = level.vm.lastHitSprite;
+  }
+
+  if (tagged.sprite >= 0) {
+    const pn = map.sprites[tagged.sprite].picNum;
+    if (pn === 569 || pn === 571) {                      // TOILET, STALL
+      useReport = useToilet(level.player, 100, dukeSay);
+      return;
+    }
+    if (pn === 563) {                                     // WATERFOUNTAIN: the drink
+      useReport = useWaterFountain(level.vm, map, tagged.sprite, level.player, dukeSay);
+      return;
+    }
+    if (pn === 502 || pn === 499) {                      // VIEWSCREEN, VIEWSCREEN2
+      useReport = useViewscreen(level.vm, map, tagged.sprite, level.player, cam) >= 0 ? 'camera' : 'nothing happens';
+      return;
+    }
+    if (pn >= 142 && pn <= 145) {                        // NUKEBUTTON..+3
+      // hitawall(): the wall straight ahead must carry no overpicnum.
+      const over = tagged.wall >= 0 ? map.walls[tagged.wall].overPicNum : 0;
+      useReport = pressNukeButton(level.vm, map, tagged.sprite, over) ? 'nuke button' : 'nothing happens';
+      return;
+    }
+    const r = checkHitSwitch(map, effectors, anims, 1, tagged.sprite, operateSector, useExt);
+    useReport = r ? switchReport(r) : 'nothing happens';
+    if (r && r.sound) dukeSay(r.sound);                // SWITCH_ON, or the switch's hitag as a sound (sector.c)
+    if (r && r.extraSound) dukeSay(r.extraSound);      // a dip combination completed: END_OF_LEVEL_WARN
+    return;
+  }
+  if (useKey(map, anims, x, y, z, cam.sectNum, ang, USE_RANGE, useExt, level.res.art) >= 0) {
+    useReport = 'door';
+    return;
+  }
+  if (tagged.wall >= 0 && map.walls[tagged.wall].lotag) {
+    const r = checkHitSwitch(map, effectors, anims, 0, tagged.wall, operateSector, useExt);
+    useReport = r ? switchReport(r) : 'nothing happens';
+    if (r && r.sound) dukeSay(r.sound);
+    if (r && r.extraSound) dukeSay(r.extraSound);
+    return;
+  }
+  // Nothing in reach and a wall close ahead: "Where is it?" — sector.c 3195,
+  // DUKE_SEARCH, one time in sixteen DUKE_SEARCH2.
+  if (level.vm && hitsFromPlayer(level.vm, map, cam) < 512) {
+    dukeSay((Math.random() * 256) < 16 ? 'DUKE_SEARCH2' : 'DUKE_SEARCH');
+  }
+  useReport = 'nothing to use';
+}
+
+// --- the loop ----------------------------------------------------------------
+
+/**
+ * The gun in hand. Tiles come from art.js's own converter, cached per tile
+ * and per flip on offscreen canvases (drawImage composites; putImageData
+ * would punch the tile's transparent surround into the view). The shade is
+ * the sector's floor shade, the way the player sprite carries it.
+ */
+const gunTiles = new Map();
+// A gun frame as rotatesprite draws it: its shade (getpalookup clamps to
+// 0..numshades-1, so a bright negative one is shade 0) through the pal's
+// shade tables.
+function gunTile(num, flip, pal = 0, shade = 0) {
+  const sh = Math.max(0, Math.min(31, shade | 0));
+  const key = ((num * 2 + (flip ? 1 : 0)) * 32 + (pal & 31)) * 32 + sh;
+  if (gunTiles.has(key)) return gunTiles.get(key);
+  const t = assets.art.get(num);
+  let lut;
+  const pl = pal ? assets.palLuts?.get(pal) : null;
+  if (pl) lut = pl.subarray(sh * 256, sh * 256 + 256);
+  else {
+    const base = assets.shadeLuts ? assets.shadeLuts.subarray(sh * 256, sh * 256 + 256) : assets.lut;
+    // a pal without its tables: the LOOKUP remap over the shade's colours
+    const remap = pal ? assets.lookups?.lookups?.get(pal) : null;
+    lut = remap ? Uint32Array.from(base, (_, i) => base[remap[i]]) : base;
+  }
+  const rgba = t ? tileToRgba(t, lut) : null;
+  const c = rgba ? tileSource(rgba, flip) : null;   // packed pixels, mirrored when flipped
+  gunTiles.set(key, c);
+  return c;
+}
+let gunReport = '', projReport = 'none';
+/**
+ * cameratext(), game.c: the camcorder frame over a camera's picture —
+ * CAMCORNER at the four corners (two of them turned a quarter, one also
+ * flipped) and the blinking CAMLIGHT; a destroyed camera (T1 set) shows
+ * STATIC tiles instead. Placements from weaponview.js (rotatesprite with
+ * dastat 2, so relative to the 3D window's centre), drawn through a
+ * canvas transform for the quarter turn.
+ */
+function drawCameraText() {
+  const s = level.map.sprites[level.player.newOwner];
+  if (!s) return;
+  const clock = Math.floor(performance.now() * 120 / 1000);       // totalclock, 120 Hz
+  const viewH = renderer === barRenderer ? VIEW_HEIGHT : 200;
+  for (const f of cameraTextFrames(!!level.vm.fx.temp(level.player.newOwner)[0], clock, viewH, viewOx)) {
+    const t = assets.art.get(f.tile);
+    const c = gunTile(f.tile, false, 0);
+    if (!t || !c) continue;
+    const at = rotatedPlacement(f, t);
+    blitPlaced(framePx, viewW, 200, c, { ...at, x: at.x + viewOx }, viewH);
+  }
+}
+
+function drawWeapon() {
+  const sec = level.map.sectors[level.cam.sectNum];
+  // displayweapon 1312: gs = the player sprite's shade (eased to the
+  // sector's light, syncPlayerSprite), at most 24.
+  const psh = level.map.sprites[level.vm?.playerSprite]?.shade;
+  const shade = Math.min(24, psh ?? (sec ? sec.floorShade : 0));
+  // ...and the pal: frozen 1, else the sector's floor pal (myos; myospal is
+  // handed the same) — a frame naming its own pal keeps it.
+  const floorPal = sec ? sec.floorPal : 0;
+  const parts = [];
+  const fist = fistFrame(level.player.fistIncs || 0, shade);
+  // displayweapon 1315: fist, then the tip hand, then the card — any one
+  // of them replaces the weapon for the frame. Pal is the floor's.
+  const tip = !fist && level.player.tipIncs > 0 ? tipFrame(level.player.tipIncs, level.cam.horiz, sec ? sec.floorPal : 0, shade) : null;
+  const card = !fist && !tip && level.player.accessIncs > 0
+    ? accessFrame(level.player.accessIncs, level.player.accessTarget ? (level.player.accessTarget.kind === 1 ? level.map.sprites[level.player.accessTarget.index].pal : level.map.walls[level.player.accessTarget.index].pal) : (level.player.lastAccessPal || 0), shade)
+    : null;
+  if (card && level.player.accessTarget) level.player.lastAccessPal = card.pal;
+  // displaymasks: the scuba mask sits under whatever is in hand.
+  const maskTile = level.player.scubaOn ? assets.art.get(2581) : null;
+  const mask = maskTile ? scubaFrames(maskTile.width, maskTile.height, sec ? sec.floorPal : 0) : [];
+  // displayweapon 1355: shrunk (the sprite under 40 wide), no weapon is
+  // drawn — two fists pump with the run instead. fistsign advances a frame.
+  const ps = level.map.sprites[level.vm?.playerSprite];
+  let hands = null;
+  if (ps && ps.xRepeat < 40 && !fist && !tip && !card) {
+    const xv = ps.xVel;   // the sprite's xvel: the distance walked this tic (player.c 2758)
+    level.player.fistsign = shrunkFistStep(level.player.fistsign || 0, xv, !!level.player.jetpackOn);
+    hands = shrunkFistFrames(level.player.fistsign, xv, !!level.player.jetpackOn, shade);
+  }
+  // displayweapon 1315: a dead player shows no weapon — unless frozen (pal
+  // 1), whose gun stays up, drawn in pal 1 (player.c 1338: `if (sprite pal
+  // == 1) pal = 1`). displaymasks is apart and stays.
+  const frozenView = level.player.frozen && !level.player.shattered;
+  const inHand = level.player.health <= 0 && !frozenView ? []
+    : (fist ? [fist] : tip ? [tip] : card ? [card] : hands ? hands : weaponFrames(level.player, shade, () => Math.floor(Math.random() * 256)));
+  if (frozenView) for (const f of inHand) f.pal = 1;
+  const frames = mask.concat(inHand);
+  for (const f of frames) {
+    const t = assets.art.get(f.tile);
+    const c = gunTile(f.tile, f.flip, f.pal ?? floorPal, f.shade ?? 0);
+    if (!t) { parts.push(`${f.tile}:no tile`); continue; }
+    if (!c) { parts.push(`${f.tile}:blank in this GRP`); continue; }
+    const at = tilePlacement(f, t);
+    blit(framePx, viewW, 200, c, at.left + viewOx, at.top, { scale: at.scale || 1, translucent: !!f.translucent, clipH: renderer === barRenderer ? VIEW_HEIGHT : 200 });
+    parts.push(`${f.tile}${f.flip ? 'm' : ''}@${at.left},${at.top}`);
+  }
+  // For the HUD: what the weapon view put up this frame, or why nothing.
+  gunReport = parts.length ? parts.join(' ') : `none (weapon ${level.player.currWeapon}, last ${level.player.lastWeapon}, pos ${level.player.weaponPos})`;
+}
+
+/**
+ * coolgaugetext(): the status bar, from statusbar.js's placements. Tiles
+ * with shade and pal through the shade LUTs (the bar itself at shade 4,
+ * numbers at -16 = row 0, unowned ammo at 21), cached per tile/shade/pal.
+ */
+const barTiles = new Map();
+function barTile(num, shade, pal) {
+  const sh = Math.max(0, Math.min(31, shade | 0));
+  const key = (num * 32 + sh) * 32 + (pal & 31);
+  if (barTiles.has(key)) return barTiles.get(key);
+  const t = assets.art.get(num);
+  const luts = (pal && assets.palLuts?.get(pal)) || assets.shadeLuts;
+  const lut = luts ? luts.subarray(sh * 256, sh * 256 + 256) : assets.lut;
+  const px = t ? tileToRgba(t, lut) : null;
+  const c = px ? tileSource(px) : null;
+  barTiles.set(key, c);
+  return c;
+}
+// screen_size 4: the mini HUD at the bottom left — of the widened view's
+// left edge, not of the 320 screen in its middle.
+function drawMiniStatusBar() {
+  for (const o of miniStatusBar(assets.art, level.player, viewOx)) {
+    blit(framePx, viewW, 200, barTile(o.tile, o.shade, o.pal), o.x + viewOx, o.y);
+  }
+}
+function drawStatusBar() {
+  const ops = statusBar(assets.art, level.player, { shareware: assets.shareware || [] });
+  for (const o of ops) blit(framePx, viewW, 200, barTile(o.tile, o.shade, o.pal), o.x + viewOx, o.y);
+}
+
+/** Duke's crosshair tile, drawn pixel for pixel at the centre of the view. */
+let crossCanvas = null;
+function drawCrosshair() {
+  if (!crossCanvas) {
+    const rgba = tileToRgba(assets.art.get(2523), assets.lut);
+    if (!rgba) return;
+    crossCanvas = tileSource(rgba);
+  }
+  // At the centre of the VIEW, not of the screen: Duke draws it through
+  // rotatesprite scaled into the viewport (windowxy), so with the status
+  // bar's 166-row view it sits on row 83 — where the aim is. At 100 it was
+  // 17 rows under the bullet holes.
+  const cy = renderer === barRenderer ? (VIEW_HEIGHT >> 1) : 100;
+  blit(framePx, viewW, 200, crossCanvas, 160 - (crossCanvas.w >> 1) + viewOx, cy - (crossCanvas.h >> 1));
+}
+
+/**
+ * The fist has punched the button: the level is over. player.c 2469 picks
+ * the next level (a secret one for a button with a palette); the card
+ * shows the name, the time and the kills, and Enter starts the next.
+ */
+function endLevel() {
+  // E<vol>L<lev>.MAP, read by position (a user map is treated as E1L1's slot).
+  const nm = level.name.toUpperCase();
+  const isEL = nm[0] === 'E' && nm[2] === 'L';
+  const vol = isEL ? Number(nm[1]) - 1 : 0, lev = isEL ? (parseInt(nm.slice(3), 10) || 1) - 1 : 0;
+  const next = nextLevel(carry, lev, level.vm.buttonPal || 0, level.vm.secretLevel || 0);
+  const levels = assets.con.defs.levels;
+  const here = levels.get(vol * 11 + lev), there = levels.get(vol * 11 + next);
+  const nextFile = there ? there.file.toUpperCase() : `E${vol + 1}L${next + 1}.MAP`;
+  // ud.eog (the CON's `endofgame`, BOSS1's death): the episode ends here —
+  // no next level, whatever the GRP holds.
+  const have = !level.vm.eog && assets.grp.order.some((n) => n.toUpperCase() === nextFile);
+  eol = {
+    name: here ? here.name : level.name,
+    next: have ? nextFile : null,            // null: the episode is over — Enter goes to the menu
+    nextName: have ? (there ? there.name : nextFile) : null,
+    time: Math.round((level.vm.tic || 0) / 26),
+    par: here ? `${Math.floor(here.par / 26 / 60)}:${String(Math.floor(here.par / 26) % 60).padStart(2, '0')}` : '-',
+    kills: level.vm.kills || 0,
+  };
+  // ud.eog: the episode's ending (dobonus) plays before the tally. Its own
+  // sound system; the level's is silenced. The game shows under nothing.
+  if (level.vm.eog) {
+    const snap = ctx.getImageData(0, 0, els.frame.width, 200);
+    els.hud.classList.add('hidden');
+    front = { gen: endingSeqFrom(vol, snap), skip: false, escape: false, gate: false, sounds: buildSounds(assets),
+      onDone: () => { stopAllSounds(); els.hud.classList.remove('hidden'); lastTime = performance.now(); simDebt = 0; } };
+    if (audio) audio.sounds = front.sounds;
+  }
+}
+// dobonus opens with `for(t=0;t<64;t+=7) palto` over the game, then clears.
+function* endingSeqFrom(vol, snap) {
+  for (const e of FADE_OUT.slice(0, -1)) {
+    ctx.putImageData(snap, 0, 0);
+    ctx.fillStyle = `rgba(0,0,0,${Math.min(1, e / 64)})`;
+    ctx.fillRect(0, 0, els.frame.width, 200);
+    const t0 = yield 'now';
+    for (let now = t0; now - t0 < FADE_MS; now = yield) {}
+  }
+  black();
+  yield* endingSeq(vol);
+  black();
+}
+
+/** The player's health reached zero: the dying view runs (deathTic) until Space restarts. */
+function died() {
+  if (dead) return;
+  dead = true;
+  hurtTime = 1.0;
+}
+
+// GAME.CON 3683: killed by the freezer — SOMETHINGFROZE from the player's
+// sprite, `spritepal 1` (the old pal kept for getlastpal), action PFROZEN.
+// No red: the blue flash is already up (takePlayerDamage).
+function froze() {
+  if (dead) return;
+  dead = true;
+  const ps = level.map.sprites[level.vm?.playerSprite];
+  if (ps) { level.player.lastPal = ps.pal; ps.pal = 1; }
+  spriteSay('SOMETHINGFROZE', level.vm?.playerSprite);
+}
+// getlastpal on the player's sprite.
+function unfreezePal() {
+  const ps = level.map.sprites[level.vm?.playerSprite];
+  if (ps) ps.pal = level.player.lastPal ?? 0;
+}
+// `sound X` in the APLAYER script: spritesound from the player's sprite.
+function spriteSay(name, i) {
+  const num = assets.con?.labels.get(name);
+  const sp = level.map.sprites[i];
+  if (num === undefined || !level.sounds || !sp) { dukeSay(name); return; }
+  level.sounds.at(num, i, sp.x, sp.y, sp.z, level.cam, level.map);
+}
+
+function step(dt) {
+  if (dead) {
+    // processinput's dead branch, a tic at a time: the world goes on
+    // (effectors, actors), the body falls, the line is spoken, quote 13
+    // asks for Space, and Space is resetplayer: the level over again.
+    const { cam: dcam, map: dmap } = level;
+    simDebt = Math.min(simDebt + dt, MAX_TICS_PER_FRAME / SIM_HZ);
+    const tick = 1 / SIM_HZ;
+    while (simDebt >= tick) {
+      doAnimations(dmap, level.anims);
+      moveEffectors(dmap, level.effectors, dcam, false, level.anims);
+      level.vm.watching = false;
+      moveActors(dmap, level.vm, dcam, level.player, {});
+      if (level.sounds) level.sounds.tick();
+      if (level.player.pal?.time > 0) level.player.pal.time--;
+      if (level.player.quoteTime > 0) level.player.quoteTime--;
+      const zr = dcam.sectNum >= 0 ? getZRange(dmap, Math.round(dcam.x), Math.round(dcam.y), Math.round(dcam.z), dcam.sectNum, ZRANGE_DIST, CLIPMASK0, { art: assets.art }) : { florZ: dcam.z + 8192, ceilZ: dcam.z - 8192 };
+      const pl = level.player;
+      const frozenHit = pl.frozen && !pl.shattered ? takeFrozenHit(level.vm) : -1;
+      const r = deathTic(pl, dcam, zr, { use: action(keys, 'Open') || keys.has('Enter'), hit: frozenHit }, level.effectors);
+      if (r && r.sound) dukeSay(r.sound);
+      if (pl.frozen || r === 'thaw') {
+        const psi = level.vm.playerSprite;
+        if (r === 'shatter') {
+          // GAME.CON 3320: lotsofglass 60, ifrnd 84 a BLOODPOOL, GLASS_BREAKING,
+          // an ATOMICHEALTH, getlastpal, move 1.
+          spriteGlass(level.vm, dmap, psi, 60);
+          if (rnd(level.effectors, 84)) spawnFrom(level.vm, dmap, psi, 1226);
+          spriteSay('GLASS_BREAKING', psi);
+          spawnFrom(level.vm, dmap, psi, 100);
+          unfreezePal();
+        } else if (r?.drip) spawnFrom(level.vm, dmap, psi, 660);
+      }
+      if (r === 'thaw') {
+        // GAME.CON 3345: THAWTIME — getlastpal, strength 1, PSTAND: alive again.
+        unfreezePal();
+        dead = false;
+        simDebt = 0;
+        return;
+      }
+      if (r === 'restart' || level.vm?.resetPlayer) { dead = false; if (level.vm) level.vm.resetPlayer = false; keys.delete('Space'); keys.delete('Enter'); start(level.name); return; }
+      simDebt -= tick;
+    }
+    if (hurtTime > 0) hurtTime -= dt;
+    return;
+  }
+  if (eol) {
+    if (keys.has('Enter')) {
+      keys.delete('Enter');
+      const n = eol.next; eol = null;
+      // The end of an episode (the boss's endofgame, or no next map): Duke
+      // goes back to the main menu with no game running (game.c, ud.eog ->
+      // MODE_MENU).
+      if (n) start(n, true); else { level = null; toMenu(); }
+    }
+    return;
+  }
+  const { cam, map } = level;
+  // Duke's setup ships with auto run ON: Shift then WALKS (game.c getinput,
+  // `ud.auto_run ^ running`). Off, Shift runs. keymove 40 walking, 80
+  // running — E1L4's shrunk crawl (270 tics small at 39% speed) is cut for
+  // a runner; a walker dies in its last third.
+  const runKey = action(keys, 'Run');
+  const fast = autoRun ? !runKey : runKey;
+  // getinput: Strafe held turns the turn keys into sidesteps (svel -= ∓keymove,
+  // no turning); Strafe_Left/Right sidestep and — `angvel = mouse only` —
+  // cancel the keyboard turn for the tic.
+  const strafeMod = action(keys, 'Strafe');
+  const sideL = action(keys, 'Strafe_Left') || (strafeMod && action(keys, 'Turn_Left'));
+  const sideR = action(keys, 'Strafe_Right') || (strafeMod && action(keys, 'Turn_Right'));
+  const turnKeys = !strafeMod && !action(keys, 'Strafe_Left') && !action(keys, 'Strafe_Right');
+  // Movement is no longer here: it belongs to the tic loop below, because
+  // Duke's is an acceleration per tic and not a distance per second. Reading
+  // the keys is all that is left of it at frame rate.
+  const walk = {
+    // Alt+Up / Alt+Down aim (uDuke's chord) and do not walk.
+    forward: (action(keys, 'Move_Forward') && !chorded(keys, 'Move_Forward') ? 1 : 0)
+      - (action(keys, 'Move_Backward') && !chorded(keys, 'Move_Backward') ? 1 : 0),
+    strafe: (sideL ? 1 : 0) - (sideR ? 1 : 0),
+    running: fast,
+  };
+  const crouchKey = action(keys, 'Crouch'), jumpKey = action(keys, 'Jump');
+  const fireKey = firing || action(keys, 'Fire');
+
+  // The simulation advances in whole tics and never in elapsed seconds, capped
+  // so a backgrounded tab does not come back and run a minute of doors at once
+  // — and at MAX_TICS_PER_FRAME: when tics cost more than they last, running
+  // every owed one makes the next frame later still (E2L6: frames of over a
+  // second, sound starved). Past the cap the game slows instead of stalling.
+  simDebt = Math.min(simDebt + dt, MAX_TICS_PER_FRAME / SIM_HZ);
+  const tick = 1 / SIM_HZ;
+  while (simDebt >= tick) {
+    { const t = performance.now(); doAnimations(map, level.anims); perfLap('anims', t); }
+    // game.c runs movetransports() before moveeffectors(); same order here.
+    // It moves the camera itself rather than handing back a displacement — a
+    // teleport is a placement, not a movement, and must not be clipped.
+    moveTransports(map, level.effectors, cam, level.player,
+      { crouch: crouchKey });
+    // The delayed half of a switch: actors.c counts these down every tic.
+    // A plate fires the same three things a switch does, minus force fields.
+    moveTouchplates(map, level.effectors, level.anims, cam, level.player,
+      checkActivatorMotion,
+      (tag) => operateActivators(map, level.effectors, level.anims, tag,
+        operateSector, useExt));
+    moveMasterSwitches(map, level.effectors, level.anims, operateSector, useExt);
+    // animatewalls(): the force fields' shimmer (once a frame in Duke; a tic here).
+    animateForceFields(map, () => krand(level.effectors));
+    // moveactors(): the CON, one tic per scripted sprite, before the effectors
+    // as game.c orders it.
+    // `use` is the key held (sync bit 29, a level): ifhitspace reads it.
+    // `watching`: through a camera, Duke's ifcansee/ifcanseetarget cannot
+    // succeed (posx is the camera's, the sector the sprite's).
+    level.vm.watching = level.player.newOwner >= 0;
+    level.vm.heatOn = level.player.heatOn;
+    { const t = performance.now();
+      moveActors(map, level.vm, cam, level.player,
+        { crouch: crouchKey, running: fast, use: action(keys, 'Open') });
+      perfLap('actors', t); }
+    { const t = performance.now(); if (level.sounds) level.sounds.tick(); perfLap('sound', t); }
+    if (level.player.pal?.time > 0) level.player.pal.time--;
+    // player.c 2700/2703/3426: look_ang and rotscrnang fade out (rotscrnang
+    // tilts the screen, which this renderer does not do); return_to_center
+    // brings the pitch back while no look key is held (wackplayer).
+    if (level.player.rotScrnAng > 0) level.player.rotScrnAng -= (level.player.rotScrnAng >> 1) + 1;
+    else if (level.player.rotScrnAng < 0) level.player.rotScrnAng += ((-level.player.rotScrnAng) >> 1) + 1;
+    lookSideTic(level.player, action(keys, 'Look_Left'), action(keys, 'Look_Right'));
+    // player.c 3398: Look_Up/Down 12 a tic with the return to centre, Aim_Up/
+    // Down 6, both doubled by the Run key; Center_View; the snap to level
+    // only without mouse aiming.
+    cam.horiz = pitchTic(level.player, cam.horiz, {
+      lookUp: action(keys, 'Look_Up'), lookDown: action(keys, 'Look_Down'),
+      // heldKey(): Duke's Home/End, plus uDuke's Alt+Up / Alt+Down.
+      aimUp: heldKey(keys, 'Aim_Up'), aimDown: heldKey(keys, 'Aim_Down'),
+      center: action(keys, 'Center_View'), run: runKey, aimMode });
+    { const d = turnAroundTic(level.player); if (d) cam.ang = (cam.ang + d) % 2048; }
+    if (steroidsTic(level.player) === 'heartbeat') dukeSay('DUKE_HARTBEAT');
+    if (level.player.invDispTime > 0) level.player.invDispTime--;
+    interfaceTic(level, cam);
+    pissTic(level.player, dukeSay);
+    tipTic(level.player);
+    if (level.player.transporterHold > 0) level.player.transporterHold--;
+    if (fistTic(level.player, dukeSay) === 'eol') { endLevel(); simDebt = 0; return; }
+    // checksectors' sector lotags: a secret, an instant end (-1), the
+    // timed end (-2, E1L2's cage), a one-shot sound (10000+n).
+    {
+      const r = checkSectorLotag(map, level.player, cam.sectNum);
+      if (r === 'eol') { endLevel(); simDebt = 0; return; }
+      if (r && r.sound >= 0) { const ev = level.sounds?.at(r.sound, -2, cam.x, cam.y, cam.z, cam, map); if (!ev && level.sounds) level.sounds.global(r.sound); }
+      const x = exitTic(level.player);
+      if (x === 'eol') { endLevel(); simDebt = 0; return; }
+      if (x && x.stopAll) {
+        // FX_StopAllSounds + clearsoundlocks, then the custom exit sound and quote 102.
+        if (level.sounds) { for (const n of [...level.sounds.playing.keys()]) level.sounds.stop(n); }
+        if (x.sound >= 0 && level.sounds) level.sounds.global(x.sound);
+        if (x.quote >= 0) useExt.quote(x.quote);
+      }
+    }
+    {
+      // The card goes in: at 12 the switch it was started on fires.
+      const tgt = accessTic(level.player);
+      if (tgt) {
+        const pal = tgt.kind === 1 ? map.sprites[tgt.index].pal : map.walls[tgt.index].pal;
+        if (level.player.inventory) level.player.inventory.access &= ~(pal === 21 ? 2 : pal === 23 ? 4 : 1);
+        { const r2 = checkHitSwitch(map, level.effectors, level.anims, tgt.kind, tgt.index, operateSector, useExt); if (r2 && r2.sound) dukeSay(r2.sound); }
+      }
+    }
+    // The gun's raise/lower and its sway with the distance walked this tic.
+    weaponPosTic(level.player, Math.abs(cam.x - prevX) + Math.abs(cam.y - prevY));
+    // Duke's own sprite keeps step with him: what a mirror shows.
+    syncPlayerSprite(level.vm, map, cam, level.player, Math.hypot(cam.x - prevX, cam.y - prevY));
+    prevX = cam.x; prevY = cam.y;
+    if (level.player.quoteTime > 0) level.player.quoteTime--;
+    // The idle line: 26 seconds without moving, turning, firing, jumping or
+    // crouching, and Duke cracks his knuckles.
+    const active = ['Move_Forward', 'Move_Backward', 'Turn_Left', 'Turn_Right', 'Strafe_Left', 'Strafe_Right',
+      'Jump', 'Crouch', 'Fire', 'Look_Up', 'Look_Down', 'Aim_Up', 'Aim_Down'].some((fn) => action(keys, fn)) || firing || mouseMoved;
+    mouseMoved = false;
+    if (idleTic(level.player, active) === 'crack') {
+      dukeSay(Math.random() < 0.5 ? 'DUKE_CRACK' : 'DUKE_CRACK2');
+      dukeSay('DUKE_CRACK_FIRST');
+    }
+    // The pistol: fires on the first tic of its cycle, then five tics apart
+    // while held, with the twelve-round reload pause. Every shot goes where
+    // the view points; there is no auto-aim here.
+    if (level.vm) {
+      level.player.god = cheats.god;
+      // DNSTUFF: every weapon this build can fire, and full ammo for each —
+      // as a checkbox that only filled the magazines, the shotgun could not
+      // be selected because it was never owned.
+      // DNSTUFF is a one-shot in Duke (game.c 6262); here it is a standing
+      // option and refills every tic, which is what the checkbox promises.
+      // The one thing that costs: a thrown pipe bomb is only taken back
+      // while ammo_amount < max_ammo_amount (actors.c 1959), so with the
+      // magazine always full none could be. The player state carries the
+      // flag (stuffCheat) and the pickup takes the bomb regardless of room.
+      level.player.stuffCheat = cheats.ammo;
+      if (cheats.ammo) {
+        for (const w of [1, 2, 3, 4, 5, 6, 7, 8, 9, 11]) {
+          if (assets.shareware.includes(w)) continue;      // no picture in this GRP
+          level.player.gotWeapon[w] = 1;
+          level.player.ammoAmount[w] = level.player.maxAmmoAmount[w];
+        }
+        // game.c DNSTUFF: `got_access = 7` — all three key cards — and the
+        // inventory at its maxima (6272): jetpack 1600, scuba 6400, holoduke
+        // 2400, steroids 400, heat 1200, boots 200, medkit full, shield 100.
+        // Topped up, not set, so a used-up jetpack refills but a running one
+        // is not reset under you.
+        if (level.player.inventory) {
+          const inv = level.player.inventory;
+          inv.access = 7;
+          inv.jetpack = Math.max(inv.jetpack, 1600); inv.scuba = Math.max(inv.scuba, 6400);
+          inv.holoduke = Math.max(inv.holoduke, 2400); inv.steroids = Math.max(inv.steroids, 400);
+          inv.heat = Math.max(inv.heat, 1200); inv.boots = Math.max(inv.boots, 200);
+          inv.firstaid = Math.max(inv.firstaid, level.player.maxHealth);
+          level.player.shield = Math.max(level.player.shield, 100);
+        }
+      }
+      // The stomp on a shrunk actor and the quick kick run on their own
+      // counts, beside the weapon in hand.
+      {
+        const r = stompTic(level.vm, map, level.player, cam, () => playerShoot(level.vm, map, cam, cam.horiz, 2521));
+        if (r === 'squish') dukeSay('DUKE_GET');
+      }
+      level.player.crouching = crouchKey;
+      level.player.firing = fireKey;   // sync bits&4, for the slimer on the face
+      level.player.canPlaceTripbomb = () => canPlaceTripbomb(level.vm, map, cam);
+      level.player.ejectShell = (kind) => ejectShell(level.vm, map, kind);     // player.c: the spent cases
+      // A shot switch: through switch.js, as a use would, with the click.
+      // A shot switch: sector.c's checkhitswitch plays SWITCH_ON and, for a
+      // completed dip combination, END_OF_LEVEL_WARN — the same two as a
+      // pressed one. A first hook played only the first.
+      level.vm.hitSwitch = (kind, idx) => {
+        const r2 = checkHitSwitch(map, level.effectors, level.anims, kind, idx, operateSector, useExt);
+        if (r2 && r2.sound) dukeSay(r2.sound);
+        if (r2 && r2.extraSound) dukeSay(r2.extraSound);
+      };
+      // CON `operate`: an actor opening a closed door, through operatesectors as a use would.
+      level.vm.operateSector = (sn) => operateSector(map, level.anims, sn, useExt);
+      // SE 10 closing its door: activatebysector, through the same operateSector.
+      level.effectors.activateBySector = (sn) => activateBySector(map, level.effectors, level.anims, sn, operateSector, useExt);
+      level.effectors.callsound = (sn, whatsprite = -1) => useExt.callsound(sn, whatsprite);
+      // SE 30 (the two-way train) fires the activators of its ends and the
+      // force fields of its hitag; SE 36 shoots the sector's extra; SE 33
+      // throws a scrap; a train running over the player is quickkill.
+      level.effectors.operateActivatorsHook = (tag) => operateActivators(map, level.effectors, level.anims, tag, operateSector, useExt);
+      level.effectors.operateForceFields = (tag, fromSE30) => operateForceFields(map, tag, fromSE30);
+      level.effectors.operateRespawns = (tag) => operateRespawns(level.vm, map, tag);
+      level.effectors.shoot = (i, tile) => shootFrom(level.vm, map, i, tile);
+      level.effectors.randomScrap = (i) => randomScrap(level.vm, map, i);
+      level.effectors.playerSound = (name) => dukeSay(name);   // spritesound(x, ps[screenpeek].i): from the player
+      // actors.c 2908/2927: a dive stops every sound and plays DUKE_UNDERWATER; surfacing, DUKE_GASP.
+      level.effectors.dived = () => { if (level.sounds) for (const n of [...level.sounds.playing.keys()]) level.sounds.stop(n); dukeSay('DUKE_UNDERWATER'); };
+      level.effectors.surfaced = () => { if (level.sounds) for (const n of [...level.sounds.playing.keys()]) level.sounds.stop(n); dukeSay('DUKE_GASP'); };
+      level.effectors.quickKill = () => { if (quickKill(level.player)) { dukeSay('SQUISHED'); if (level.vm.playerSprite >= 0) guts(level.vm, map, level.vm.playerSprite, 2286, 8); } };
+      // SE 6/14: the subway's running sound — callsound's MUSICANDSFX of the
+      // sector, else SUBWAY (game.c 5273); stopped under 64 speed. SE 17: the
+      // elevator's ON/OFF. A badguy caught under the train is gibbed.
+      level.effectors.subwaySoundStart = (sn, i) => {
+        let num = -1;
+        for (const sp of map.sprites) if (!sp.removed && sp.sectNum === sn && sp.picNum === 5 && sp.lotag < 1000) { num = sp.lotag; break; }
+        if (num < 0) num = assets.con?.labels.get('SUBWAY') ?? -1;
+        if (num < 0 || !level.sounds) return null;
+        const sp = map.sprites[i];
+        level.sounds.at(num, i, sp.x, sp.y, sp.z, cam, map);
+        return num;
+      };
+      level.effectors.subwaySoundStop = (num) => { if (level.sounds) level.sounds.stop(num); };
+      level.effectors.spriteSound = (name, i) => { const n = assets.con?.labels.get(name); const sp = map.sprites[i]; if (n !== undefined && level.sounds && sp) level.sounds.at(n, i, sp.x, sp.y, sp.z, cam, map); };
+      level.effectors.isBadguy = (j) => isBadguy(level.vm, map.sprites[j]);
+      level.effectors.quote = (q) => useExt.quote(q);                          // FTA(n): SE 5 sinking, SE 19 shield down
+      // SE 28, a bolt within 768 (actors.c 1911): the pain line unless it is
+      // already playing, SHORT_CIRCUIT, 8..15 off the health, a red flash.
+      level.effectors.shortCircuit = (dmg) => {
+        const n = assets.con?.labels.get('DUKE_LONGTERM_PAIN');
+        if (n === undefined || !level.sounds?.isPlaying(n)) dukeSay('DUKE_LONGTERM_PAIN');
+        dukeSay('SHORT_CIRCUIT');
+        if (!cheats.god) level.player.health -= dmg;
+        level.player.pal = { time: 32, r: 16, g: 0, b: 0 };
+      };
+      level.effectors.squishActor = (j, i) => { guts(level.vm, map, j, 2286, 72); dukeSay('SQUISHED'); map.sprites[j].removed = true; level.vm.stat.delete(j); };
+      weaponTic(level.player, fireKey,
+        (atwith, opts) => playerShoot(level.vm, map, cam, cam.horiz, atwith, opts),
+        (name) => dukeSay(name));
+    }
+    // ifhitbyweapon() on the player's tic: filed damage comes off the health
+    // and shoves the player. The red flash is Duke's pals_time, 32 tics.
+    if (level.vm && level.player.health > 0) {
+      const hit = takePlayerDamage(level.vm, level.player);
+      // A SHRINKSPARK: the shrink starts (ACTOR_SHRINKING); the count runs
+      // on the player's sprite — shrinkTic below, every tic.
+      if (hit === 1646) dukeSay('ACTOR_SHRINKING');
+      {
+        const ps = map.sprites[level.vm.playerSprite];
+        // ifgapzl reads hittype floorz - ceilingz: the player's getzrange of the
+        // last tic (level.zr), not the sector's planes.
+        // ifgapzl on the player: the room's floor-to-ceiling at the player
+        // (its sector), not getzrange's — that one sees sprites as ceilings.
+        const own = map.sectors[cam.sectNum];
+        const sr = shrinkTic(level.player, ps, own ? Math.abs(own.floorZ - own.ceilingZ) : (1 << 30));
+        if (sr === 'crushed') { dukeSay('SQUISHED'); }
+      }
+      // The freezer's hit flashes blue (palfrom 48 0 0 48, takePlayerDamage),
+      // not red.
+      if (hit >= 0 && hit !== 1646) {
+        if (hit !== 1641) hurtTime = Math.max(hurtTime, 32 / SIM_HZ);
+        // spritesound(DUKE_GRUNT, pi) on a hit; PISTOL_BODYHIT is the impact.
+        const grunt = assets.con?.labels.get('DUKE_GRUNT');
+        if (grunt !== undefined) level.sounds?.at(grunt, -2, cam.x, cam.y, cam.z, cam, map, 20);
+      }
+    }
+    if (level.effectors.earthquakeTime > 0) level.effectors.earthquakeTime--;
+    // Any cause — a hit, the water, a floor, a field, the crush: health 0 is
+    // death. God mode is not an exception here: it keeps damage off (that is
+    // where the extra never reaches 0), but quickkill (the crush, a squash)
+    // zeroes the extra with ud.god on, and processinput's dead branch runs
+    // on extra alone. A first version skipped the branch for god, and a
+    // crushed god stayed "alive" at 0, re-squished every tic on Space.
+    if (level.player.health <= 0) {
+      const r = deathTic(level.player, cam, level.zr ?? { florZ: cam.z + 8192, ceilZ: cam.z - 8192 }, {}, level.effectors);
+      if (r === 'died') { died(); dukeSay(level.player.deadSquished ? 'SQUISHED' : 'DUKE_GRUNT'); simDebt = 0; return; }
+      if (r === 'frozen') { froze(); simDebt = 0; return; }
+    }
+    const effT0 = performance.now();
+    const fx = moveEffectors(map, level.effectors, level.cam, level.player.onGround,
+      level.anims);
+    perfLap('effectors', effT0);
+    // A moving sector may have carried the player (rotation, a bridge) or
+    // moved under them without carrying (a sector they were not counted in):
+    // the sector number follows the point. Duke's clipmove/pushmove refresh
+    // cursectnum only when they act; a stale sector drew a black frame on
+    // E1L3's turntable.
+    if (cam.sectNum >= 0 && !inside(map, cam.sectNum, cam.x, cam.y)) {
+      const sn = updateSector(map, cam.x, cam.y, cam.sectNum);
+      if (sn >= 0) cam.sectNum = sn;
+    }
+    // A conveyor does not move you: it fills fricxv/fricyv, and the player's
+    // own friction turns that into velocity. Through clipMove like any other
+    // movement, or a belt would push you through the wall at the end of it.
+    // Keys and conveyors are the same sum now, as they are in getinput: the
+    // belt arrives at fricxv and one friction carries both.
+    // Sector lotag 2 is under water, and it changes the friction, the turn
+    // rate and the whole vertical model. Read once a tic, from wherever the
+    // transporters have just put the camera.
+    const wet = (map.sectors[cam.sectNum]?.lotag & LOTAG_MASK) === 2;
+    // Lotag 1 is the surface you wade in — a third set of vertical rules.
+    const wading = (map.sectors[cam.sectNum]?.lotag & LOTAG_MASK) === 1;
+    // processinput 2678: watching a camera, the view is the camera and the
+    // player stands still — no movement, no turning. The actors have run
+    // above with the player where they are (Duke leaves the sprite there).
+    // checksectors 2967: |fvel| or |svel| over 768 is CLEARCAMERAS — a
+    // movement key walks you off the monitor. p->ang is the camera's here.
+    if (level.player.newOwner >= 0 && watchInputClears(map.sprites[level.player.newOwner]?.ang ?? cam.ang, walk, fx.fricX, fx.fricY)) {
+      leaveViewscreen(level.vm, map, level.player); useReport = 'camera off';
+    }
+    if (level.player.newOwner >= 0) {
+      const v = cameraViewTic(map, level.player);
+      if (v) { cameraView = v; simDebt -= tick; continue; }
+    }
+    cameraView = null;
+    cam.ang = (cam.ang + turnPlayer(level.player, {
+      left: turnKeys && action(keys, 'Turn_Left'), right: turnKeys && action(keys, 'Turn_Right'), running: fast,
+      water: wet,
+    }) + 2048) % 2048;
+    // transporter_hold (a toilet, a teleporter): two seconds without a step.
+    const held = level.player.transporterHold > 0;
+    const shrunk = isShrunk(map.sprites[level.vm?.playerSprite]);
+    level.player.shrunk = shrunk;   // player.c 3551: no firing while small
+    // player.c 2734: on a crane (on_crane >= 0) processinput goes straight
+    // to HORIZONLY — no walking, no falling; the crane's mover places the
+    // player each tic. Only the look stays.
+    const onCrane = level.player.onCrane >= 0 && !map.sprites[level.player.onCrane]?.removed;
+    if (onCrane) { level.player.xVel = 0; level.player.yVel = 0; level.player.zVel = 0; level.player.onGround = false; }
+    const move = onCrane ? { dx: 0, dy: 0 } : movePlayerXY(level.player, cam.ang, { ...walk, water: wet, shrunk, steroids: onSteroids(level.player), forward: held ? 0 : walk.forward, strafe: held ? 0 : walk.strafe },
+      fx.fricX, fx.fricY);
+    if (move.dx || move.dy) {
+      const p = { x: Math.round(cam.x), y: Math.round(cam.y), z: Math.round(cam.z),
+        sectNum: cam.sectNum };
+      const hit = clipMove(map, p, move.dx * 16384, move.dy * 16384,
+        WALL_DIST, CEIL_DIST, FLOR_DIST, CLIPMASK0, { art: assets.art });
+      cam.x = p.x; cam.y = p.y; cam.sectNum = p.sectNum;
+      // checkplayerhurt(p, clipmove's answer): a force field or a cactus.
+      const hurt = checkPlayerHurt(map, level.player, cam, hit);
+      if (hurt) {
+        if (hurt.kind !== 'bigforce') { dukeSay('DUKE_LONGTERM_PAIN'); hurtTime = Math.max(hurtTime, 0.3); }
+        if (hurt.wall !== undefined && level.vm) checkHitWall(level.vm, map, hurt.wall, hurt.x, hurt.y, hurt.z, -1, cam);
+      }
+    }
+    if (cam.sectNum >= 0) {
+      const zr = getZRange(map, Math.round(cam.x), Math.round(cam.y), Math.round(cam.z),
+        cam.sectNum, ZRANGE_DIST, CLIPMASK0, { art: assets.art });
+      const sec = map.sectors[cam.sectNum];
+      const pz = { z: Math.round(cam.z) };
+      // player.c 2207: the fuel goes first; a tank run dry switches off.
+      if (jetpackFuelTic(level.player)) dukeSay('DUKE_JETPACK_OFF');
+      // player.c 2184: the goggles' charge, one a tic; empty, they go off.
+      if (heatTic(level.player)) dukeSay('NITEVISION_ONOFF');
+      // player.c 2798: under water DUKE_UNDERWATER runs, one instance at a
+      // time; 2843: with the scuba on, one tic in 32 a bubble leaves the
+      // mask — a WATERBUBBLE off the player's sprite, 3x2, at posz + 8<<8,
+      // a little to one side of the facing.
+      if (wet) {
+        const uw = assets.con.labels.get('DUKE_UNDERWATER');
+        if (uw !== undefined && !level.sounds?.isPlaying(uw)) dukeSay('DUKE_UNDERWATER');
+        if (level.player.scubaOn && (krand(level.effectors) & 255) < 8 && level.vm.playerSprite >= 0) {
+          const b = spawnFrom(level.vm, map, level.vm.playerSprite, 661);
+          if (b >= 0) {
+            const bs = map.sprites[b], gr = level.effectors.globalRandom;
+            bs.x += bsinP(cam.ang + 512 + 64 - (gr & 128)) >> 6;
+            bs.y += bsinP(cam.ang + 64 - (gr & 128)) >> 6;
+            bs.xRepeat = 3; bs.yRepeat = 2;
+            bs.z = cam.z + (8 << 8);
+          }
+        }
+      }
+      // player.c 2265: the air under water, the scuba, and the drowning; the
+      // eighths owed come off through incur_damage.
+      {
+        const a = airTic(level.player, sec.lotag, level.player.maxHealth);
+        if (a === 'drowning' && !level.sounds?.isPlaying(assets.con.labels.get('DUKE_LONGTERM_PAIN'))) dukeSay('DUKE_LONGTERM_PAIN');
+        if (incurDamage(level.player, level.effectors) > 0) hurtTime = Math.max(hurtTime, 0.2);
+      }
+      // player.c 2790/2856: under water the swimming rules come first; the
+      // jetpack branch is the `else if` after them.
+      const r = level.player.jetpackOn && !wet
+        ? { landed: false, ...jetpackTic(pz, level.player, zr,
+            { jump: jumpKey, crouch: crouchKey }, sec.lotag) }
+        : movePlayerZ(pz, level.player, zr,
+          { jump: jumpKey, crouch: crouchKey, water: wet,
+            surface: wading, lotag: sec.lotag },
+          (sec.floorStat & 2) !== 0);
+      if (r.idle) dukeSay('DUKE_JETPACK_IDLE');
+      // player.c 2920/2939: wet footprints — loaded while wading, left on land.
+      if (level.vm && !level.player.jetpackOn && !wet) playerFootprints(level.vm, map, cam, level.player, wading, level.player.onGround);
+      // the hologram: its charge and its mover (actors.c 1264)
+      if (level.vm) holodukeTic(level.vm, map, cam, level.player, level.sounds);
+      // player.c 3332: shrunk, on foot and not in water, the eye sits 32<<8
+      // lower — the vertical then lifts it back toward its stand height and
+      // the two settle the eye near the floor.
+      // player.c 3332's `posz += 32<<8` settles the eye 6144 UNDER the floor
+      // (fz + 6144 is the fixed point of halving toward fz-40<<8 and adding
+      // 32<<8); Duke only shows it because displayrooms clamps the camera to
+      // floorz - 4<<8. An eye under the floor makes getzrange see every
+      // floor-standing sprite as a ceiling — gap 0, and ifgapzl crushes the
+      // growing body anywhere. Kept to the floor - 4<<8 here: the view Duke
+      // shows, and a getzrange that reads the room.
+      if (shrunk && !level.player.jetpackOn && !wet && !wading) pz.z = Math.min(pz.z + (32 << 8), zr.florZ - (4 << 8));
+      if (!onCrane) cam.z = pz.z;
+      level.zr = zr;
+      // player.c 3376: pushmove out of whatever wall the sector's motion
+      // pressed the player into; failing that, with no way out within 512
+      // of any angle (furthestangle), the player is crushed — quickkill. A
+      // door closing on the player (under 48<<8 of room) is reopened first.
+      if (level.vm && !level.player.deadFlag) {
+        const pp = { x: cam.x, y: cam.y, z: cam.z, sectNum: cam.sectNum };
+        const stuck = pushMove(map, pp, WALL_DIST, 4 << 8, 4 << 8, CLIPMASK0) < 0
+          && furthestAngle(level.vm, map, level.vm.playerSprite, 8) < 512;
+        cam.x = pp.x; cam.y = pp.y; if (pp.sectNum >= 0) cam.sectNum = pp.sectNum;
+        if (Math.abs(zr.florZ - zr.ceilZ) < (48 << 8) || stuck) {
+          const sl = map.sectors[cam.sectNum]?.lotag ?? 0;
+          if (!(sl & 0x8000) && (isUnderOperator(sl) || isNearOperator(sl))) activateBySector(map, level.effectors, level.anims, cam.sectNum, operateSector, useExt);
+          if (stuck && quickKill(level.player)) { dukeSay('SQUISHED'); if (level.vm.playerSprite >= 0) guts(level.vm, map, level.vm.playerSprite, 2286, 8); }
+        }
+      }
+      // player.c 2977/3009/2574, sector.c 2884: the scream of a long fall —
+      // started at fall count 38, stopped on the ground, at death (below)
+      // and when the jetpack comes on.
+      {
+        const scream = assets.con.labels.get('DUKE_SCREAM');
+        if (level.player.screamStart) { level.player.screamStart = false; dukeSay('DUKE_SCREAM'); level.player.screaming = true; }
+        if (level.player.screaming && (level.player.screamStop || level.player.jetpackOn || level.player.health <= 0)) {
+          if (scream !== undefined) level.sounds?.stop(scream);
+          level.player.screaming = false;
+        }
+        level.player.screamStop = false;
+      }
+      // A hard landing is the only feedback there is for now, and it is honest:
+      // Duke takes damage above a fall counter of 9, and this is where that
+      // would go.
+      if (r.landed && level.player.fallCounter > 9) hurtTime = 0.35;
+      // player.c 3001: a landing after a long fall says DUKE_LAND and
+      // DUKE_LAND_HURT; a shorter one at more than 2048 a tic just DUKE_LAND.
+      if (r.landed) {
+        if (level.player.fallCounter > 9) { dukeSay('DUKE_LAND'); dukeSay('DUKE_LAND_HURT'); }
+        else if ((level.player.landingVel ?? 0) > 2048) dukeSay('DUKE_LAND');
+      }
+      // player.c 3164: the floors that hurt, standing on them.
+      {
+        const fl = hurtFloorTic(map, level.player, level.effectors, cam.sectNum, level.player.onGround,
+          Math.abs(cam.z - getZsOfSlope(map, cam.sectNum, cam.x, cam.y).floorZ));
+        if (fl && fl.sounds) { for (const n of fl.sounds) if (!level.sounds?.isPlaying(assets.con.labels.get(n))) dukeSay(n); hurtTime = Math.max(hurtTime, 0.2); }
+      }
+    }
+    simDebt -= tick;
+  }
+  if (hurtTime > 0) hurtTime -= dt;
+}
+
+// The camera view of the current frame while a monitor is in use, else null.
+let cameraView = null;
+// sintable[a & 2047], for the bubbles' offset.
+const bsinP = (a) => Math.round(Math.sin(((a & 2047) * Math.PI) / 1024) * 16384);
+let lastFrameMs = 0;
+// --- the performance probe --------------------------------------------
+// Where the time goes is not visible from here, so every frame is timed by part —
+// the simulation (and in it moveActors' phases and each picnum of its actor loop,
+// via vm.prof), the renderer, the overlays, the audio pump — and the slowest
+// frame since the level started is kept with its breakdown and a census of the
+// sprites. The HUD shows it as `perf …`; a screenshot of a stall says what
+// stalled.
+const perf = { worst: null, frame: null };
+const MAX_TICS_PER_FRAME = 4;
+function perfLap(name, t0) { if (perf.frame) perf.frame[name] = (perf.frame[name] ?? 0) + performance.now() - t0; }
+function perfCensus(map, vm) {
+  const byPic = new Map();
+  let live = 0, actors = 0;
+  map.sprites.forEach((sp, i) => {
+    if (sp.removed) return;
+    live++;
+    if (vm?.stat.get(i) === 1) actors++;
+    byPic.set(sp.picNum, (byPic.get(sp.picNum) ?? 0) + 1);
+  });
+  const top = [...byPic].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([p, n]) => `${p}x${n}`).join(' ');
+  return `sprites ${live} live / ${map.sprites.length} slots, ${actors} actors, most: ${top}`;
+}
+function perfEnd(t0) {
+  const f = perf.frame; perf.frame = null;
+  if (!f || !level) return;
+  const total = performance.now() - t0;
+  if (perf.worst && total <= perf.worst.total) return;
+  const top = (entries, n) => entries.filter(([, v]) => v >= 0.5).sort((a, b) => b[1] - a[1]).slice(0, n).map(([k, v]) => `${k} ${v.toFixed(0)}`).join(', ');
+  const P = f.prof ?? {};
+  const byPic = P.byPic ? top([...P.byPic].map(([k, v]) => [`pic ${k}`, v]), 3) : '';
+  const phases = top(Object.entries(P).filter(([k]) => k !== 'byPic'), 3);
+  const parts = top(Object.entries(f).filter(([k]) => k !== 'prof'), 5);
+  perf.worst = { total, line: `perf worst ${total.toFixed(0)} ms at ${new Date().toTimeString().slice(0, 8)}: ${parts}`
+    + (phases || byPic ? ` [actors: ${[phases, byPic].filter(Boolean).join('; ')}]` : '')
+    + ` | ${perfCensus(level.map, level.vm)}` };
+}
+
+function loop(now) {
+  if (!running) return;
+  // The loading screen holds the game; nothing runs under it.
+  if (front && frontTick(now)) { lastTime = now; requestAnimationFrame(loop); return; }
+  const dt = Math.min((now - lastTime) / 1000, 0.1);
+  lastFrameMs = now - lastTime;
+  lastTime = now;
+  const perfT0 = performance.now();
+  perf.frame = { prof: {} };
+  if (level?.vm) level.vm.prof = perf.frame.prof;
+  { const t = performance.now(); step(dt); perfLap('sim', t); }
+  // step() may have ended the game (the episode is over: to the menu).
+  if (!running || !level) return;
+  // step() may have started a level (the next one, a restart): its loading
+  // screen takes the next frame; this one is not drawn.
+  if (front) { requestAnimationFrame(loop); return; }
+  gameCanvas();                                // the view as wide as the window
+
+  // `level.map`, never a bare `map`: this page has a <canvas id="map">, and a
+  // browser puts every element id in the global scope. A bare `map` here does
+  // not fail loudly — it silently resolves to the CANVAS, so `map.sectors` is
+  // undefined and the next index throws somewhere that looks unrelated. It
+  // cost a broken game page and no test could see it: outside a browser there
+  // is no window for an id to land in.
+  const { map: lvlMap, cam } = level;
+  { const t = performance.now(); if (audio) audio.pump(); else level.sounds?.drain(); perfLap('audio', t); }
+  // An earthquake shakes the PICTURE, not the player: the offsets go in here
+  // and nowhere near cam itself.
+  // animatesprites(): the drawn tile of every actor, from its action and the
+  // camera's angle, once per frame.
+  // displayrooms: animatecamsprite() first (sector.c 385), the monitor's picture.
+  if (level.vm) { const t0 = performance.now(); if (animateCamSprite(lvlMap, level.vm, level.player.newOwner, xyzMirror)) perfLap('monitor', t0); }
+  if (level.vm) animateSprites(lvlMap, level.vm, cam, level.radarang, level.res.art);
+  const q = earthquakeShake(level.effectors, level.player.onGround);
+  // The underwater sway is a view offset too — `cposz += pyoff` in game.c.
+  const secLotag = lvlMap.sectors[cam.sectNum]?.lotag & LOTAG_MASK;
+  const underwater = secLotag === 2;
+  const sway = swimSway(level.player, underwater, secLotag === 1, level.player.jetpackOn > 0);
+  // The projectile probe: every live weapon-stat sprite, with its sector,
+  // size and whether this frame drew it.
+  if (level.vm) {
+    // The probe follows the explosion of the LAST logged rocket (the one
+    // whose owner is that rocket's slot), not the lowest explosion index —
+    // that picked tank explosions on the deck.
+    let dbgIdx = -1; const lastRocket = level.vm.projLog?.length ? level.vm.projLog[level.vm.projLog.length - 1] : null;
+    if (lastRocket) lvlMap.sprites.forEach((sp, i) => { if (dbgIdx < 0 && !sp.removed && sp.picNum === 1890 && sp.owner === lastRocket.i) dbgIdx = i; });
+    renderer.debugSprite = dbgIdx;
+  }
+  // displayrooms clamps the drawing camera to the sector's slab (game.c
+  // 3373..3384): the player's posz may sit under a floor, the picture never
+  // does. See viewZ for the E1L2 shaft that needs it.
+  // Through a camera the view is the camera (cameraView); displayrooms
+  // clamps it to the camera's sector without the getzrange pair.
+  // drawrooms is handed cursectnum as is; a point outside it draws nothing.
+  // Resolve once more here so the picture never goes black for a number.
+  if (!cameraView && cam.sectNum >= 0 && !inside(lvlMap, cam.sectNum, cam.x, cam.y)) {
+    const sn = updateSector(lvlMap, cam.x, cam.y, cam.sectNum);
+    if (sn >= 0) cam.sectNum = sn;
+  }
+  const eye = cameraView
+    ? { x: cameraView.x, y: cameraView.y, z: viewZ(lvlMap, cameraView, null, cameraView.z), ang: cameraView.ang, horiz: cameraView.horiz, sectNum: cameraView.sectNum }
+    : { x: Math.round(cam.x), y: Math.round(cam.y),
+      z: viewZ(lvlMap, cam, level.zr, Math.round(cam.z) + q.z + sway),
+      ang: cam.ang + q.ang + (level.player.lookAng ?? 0), horiz: cam.horiz, sectNum: cam.sectNum };
+  const renderOpts =
+    // setpal(): the night vision's slimepal first, else under water the
+    // water palette — a whole-palette swap, same colour indices, different
+    // RGB. Spread last so it wins.
+    { ...level.res, ...(level.player.heatOn && level.res.slime ? level.res.slime : (underwater && level.res.water ? level.res.water : {})),
+      textures: true, clock: now * 0.12,
+      // SE 28's flash: ps.visibility = 0 — no distance fade while it lasts.
+      ...(level.effectors?.visibility === 0 ? { fadeRate: 0 } : {}),
+      // For mirrors: Duke's own sprite, and the actors' view frames for the reflected camera.
+      playerSprite: level.vm?.playerSprite ?? -1,
+      holoduke: level.vm?.holoduke ?? -1,
+      // game.c animatesprites (APLAYER): watching a camera (newowner > -1)
+      // the player's own sprite is not hidden — he stands at the monitor.
+      showPlayer: level.player.newOwner >= 0,
+      animateFor: level.vm ? (c) => animateSprites(lvlMap, level.vm, c, level.radarang, level.res.art) : null };
+  // rotscrnang: the view tilted (look aside, a knock). Not through a camera.
+  const tang = cameraView ? 0 : (level.player.rotScrnAng ?? 0);
+  const tilted = (tang & 2047) !== 0;
+  const renderT0 = performance.now();
+  const stats = tilted
+    ? tiltedView(eye, renderOpts, renderer === barRenderer ? VIEW_HEIGHT : 200, tang)
+    : renderer.render(eye, renderOpts);
+  perfLap('render', renderT0);
+  if (level.vm) {
+    const live = [];
+    lvlMap.sprites.forEach((sp, i) => { if (!sp.removed && level.vm.stat.get(i) === 4) live.push(i); });
+    const end = level.vm.lastProjEnd;
+    let exN = 0, exDrawn = 0;
+    lvlMap.sprites.forEach((sp, i) => { if (!sp.removed && (sp.picNum === 1890 || sp.picNum === 1891)) { exN++; if (stats.spriteIds.includes(i)) exDrawn++; } });
+    if (exN) level.vm.exSeen = (level.vm.exSeen || 0) + 1;
+    if (stats.spriteWhy) level.vm.lastWhy = stats.spriteWhy;
+    // Lifetimes: each explosion slot is watched from its first frame to its
+    // last; the shortest and longest life (in frames) tell whether one dies
+    // early. A slot is a new explosion when it was not alive last frame.
+    const live2 = level.vm.exLive || (level.vm.exLive = new Map());
+    const seenNow = new Set();
+    const drawn2 = level.vm.exDrawn || (level.vm.exDrawn = new Map());
+    lvlMap.sprites.forEach((sp, i) => { if (!sp.removed && (sp.picNum === 1890 || sp.picNum === 1891)) { seenNow.add(i); live2.set(i, (live2.get(i) || 0) + 1); if (stats.spriteIds.includes(i)) drawn2.set(i, (drawn2.get(i) || 0) + 1); } });
+    for (const [i, life] of live2) if (!seenNow.has(i)) {
+      level.vm.exMin = Math.min(level.vm.exMin ?? 1e9, life); level.vm.exMax = Math.max(level.vm.exMax ?? 0, life); level.vm.exCount = (level.vm.exCount || 0) + 1; live2.delete(i);
+      const d = drawn2.get(i) || 0; drawn2.delete(i);
+      level.vm.exDrawnMin = Math.min(level.vm.exDrawnMin ?? 1e9, d); level.vm.exDrawnMax = Math.max(level.vm.exDrawnMax ?? 0, d);
+      const e = level.vm.projLog?.find((q) => q.end && !q.expl); if (e) e.expl = `expl ${life}f drawn ${d}f`;
+    }
+    // Per rocket: its explosion's sector, whether the renderer visited that
+    // sector this frame, and the frames it was drawn.
+    for (const e of level.vm.projLog || []) {
+      if (!e.end) continue;
+      lvlMap.sprites.forEach((sp, i) => {
+        if (sp.removed || sp.picNum !== 1890 || sp.owner !== e.i) return;
+        const vis = stats.visited?.includes ? stats.visited.includes(sp.sectNum) : (stats.visited?.has ? stats.visited.has(sp.sectNum) : '?');
+        const nowMs = performance.now();
+        e.ex = { sect: sp.sectNum, z: sp.z, size: sp.xRepeat, vis, alive: (e.ex?.alive || 0) + 1, drawn: (e.ex?.drawn || 0) + (stats.spriteIds.includes(i) ? 1 : 0),
+          ticBorn: e.ex?.ticBorn ?? level.vm.tic, ticLast: level.vm.tic, msFirst: e.ex?.msFirst ?? nowMs, msLast: nowMs, worstFrame: Math.max(e.ex?.worstFrame || 0, lastFrameMs),
+          why: stats.spriteWhy && stats.spriteWhy.idx === i ? `${stats.spriteWhy.stage} px${stats.spriteWhy.px} wall${stats.spriteWhy.depthWall}(${stats.spriteWhy.lastWall ?? '-'}) flat${stats.spriteWhy.depthFlat}` : (e.ex?.why || '-') };
+      });
+    }
+    projReport = (live.length
+      ? live.slice(0, 4).map((i) => { const sp = lvlMap.sprites[i]; return `${sp.picNum}@s${sp.sectNum}/${sp.xRepeat}${stats.spriteIds.includes(i) ? '✓' : '✗'}`; }).join(' ')
+      : 'none') + (end ? `   last ${end.pic} ended: ${end.kind} after ${end.age} tic(s)` : '')
+      + `   expl ${exN}/${exDrawn} done ${level.vm.exCount || 0} life ${level.vm.exMin ?? '-'}..${level.vm.exMax ?? '-'} drawn ${level.vm.exDrawnMin ?? '-'}..${level.vm.exDrawnMax ?? '-'} frames`
+      + `   pos ${Math.round(cam.x)},${Math.round(cam.y)},${Math.round(cam.z)} a${cam.ang & 2047} h${Math.round(cam.horiz)} s${cam.sectNum}`
+      + (!stats.spriteWhy && level.vm.lastWhy ? `   lastwhy#${level.vm.lastWhy.idx}: ${level.vm.lastWhy.stage} cols ${level.vm.lastWhy.x1 ?? '-'}..${level.vm.lastWhy.x2 ?? '-'} px ${level.vm.lastWhy.px} flat ${level.vm.lastWhy.depthFlat} wall ${level.vm.lastWhy.depthWall}${level.vm.lastWhy.lastWall != null ? '(' + level.vm.lastWhy.lastWall + ')' : ''} cam ${level.vm.lastWhy.cam ?? '-'} there ${level.vm.lastWhy.there ?? '-'}` : '')
+      + (stats.spriteWhy ? `   why#${stats.spriteWhy.idx}: ${stats.spriteWhy.stage} d${Math.round(stats.spriteWhy.d)} s${stats.spriteWhy.sect} cols ${stats.spriteWhy.x1 ?? '-'}..${stats.spriteWhy.x2 ?? '-'} y ${stats.spriteWhy.yTop ?? '-'}..${stats.spriteWhy.yBot ?? '-'} px ${stats.spriteWhy.px} flat ${stats.spriteWhy.depthFlat} wall ${stats.spriteWhy.depthWall}${stats.spriteWhy.lastWall != null ? '(' + stats.spriteWhy.lastWall + ')' : ''} tr ${stats.spriteWhy.transparent}` : '')
+      + (level.vm.projLog?.length ? '   log: ' + level.vm.projLog.slice(-3).map((e) => { const sp = lvlMap.sprites[e.i]; const state = e.end ? e.end : (sp && !sp.removed && sp.picNum === e.pic ? `alive ${sp.picNum}@s${sp.sectNum}` : `VANISHED (slot ${e.i} now ${sp?.removed ? 'free' : 'pic ' + sp?.picNum + ' stat ' + level.vm.stat.get(e.i)})`); return `#${e.i} t${e.born} s${e.sect}: ${state}${e.ex ? ` → expl s${e.ex.sect} alive ${e.ex.alive}f/${e.ex.ticLast - e.ex.ticBorn + 1}t ${Math.round(e.ex.msLast - e.ex.msFirst)}ms drawn ${e.ex.drawn}f worst ${Math.round(e.ex.worstFrame)}ms [${e.ex.why}]` : ''}`; }).join(' | ') : '');
+  }
+  // renderer.pixels is already packed RGBA — the shade LUTs do the palette
+  // lookup inside the inner loop, which is why there is no second pass here.
+  // The frame in one array (js/blit.js): the view, then the tiles.
+  if (!tilted) framePx.set(renderer.pixels);
+  if (renderer === barRenderer) framePx.fill(0xff000000, viewW * VIEW_HEIGHT);   // under and beside the bar
+  // ud.crosshair: game.c 2856 draws tile CROSSHAIR at (160,100) at scale
+  // 65536 — one tile pixel per screen pixel, index 255 transparent. The
+  // canvas is 320x200, so the same numbers apply here unchanged.
+  // displayweapon(): the gun in hand, drawn tile by tile over the view.
+  { const t = performance.now();
+    // displayrooms/game.c 2757: watching a camera, cameratext() instead of
+    // the weapon and the masks — and no crosshair (game.c 2855).
+    if (level.vm && level.player.newOwner >= 0) drawCameraText();
+    else if (level.vm) drawWeapon();
+    if (renderer === barRenderer) drawStatusBar();
+    else if (screenSize === 4) drawMiniStatusBar();
+    if (cheats.cross && level.player.newOwner < 0) drawCrosshair();
+    ctx.putImageData(frameImage, 0, 0);
+    perfLap('overlay', t); }
+  // Everything below is the canvas's own drawing — colour fills and text —
+  // in Duke's 320x200 screen, centred in a widened view; full-screen fills
+  // use fullRect (the whole canvas).
+  ctx.save();
+  ctx.translate(viewOx, 0);
+  const fullRect = () => ctx.fillRect(-viewOx, 0, viewW, 200);
+  // palfrom: the CON's screen flash (an item picked up is green), fading
+  // with pals_time; and `quote N`, Duke's one-line messages, for 120 tics.
+  const pal = level.player.pal;
+  if (pal && pal.time > 0) {
+    ctx.fillStyle = `rgba(${pal.r * 4},${pal.g * 4},${pal.b * 4},${Math.min(0.5, pal.time / 48)})`;
+    fullRect();
+  }
+  if (level.player.quoteTime > 0 && assets.con) {
+    const q = assets.con.defs.quotes[level.player.quote];
+    if (q) {
+      ctx.fillStyle = '#ffd24a';
+      ctx.font = 'bold 8px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(q.toUpperCase(), 160, 12);
+    }
+  }
+  if (hurtTime > 0) {
+    ctx.fillStyle = `rgba(160,0,0,${Math.min(0.45, hurtTime)})`;
+    fullRect();
+  }
+
+  const zr = level.zr;
+  // The probe lines, built only while they are shown (Alt+D).
+  if (debugHud) {
+  els.status.textContent =
+    `uDuke ${STAGE}   ${level.name.replace(/\.MAP$/i, '')}\n`
+    + `sector ${level.cam.sectNum}   ${level.player.onGround ? 'on ground' : 'airborne'}`
+    + (useReport ? `   ${useReport}` : '')
+    + (zr ? `\nfloor ${zr.florZ}   ceiling ${zr.ceilZ}` : '')
+    + `\n${stats.visited.size} sectors, ${stats.walls} walls, ${stats.sprites} sprites`
+    + (level.vm ? `\nhealth ${level.player.health}` : '');
+  // The HUD's own line: health, weapons, the probes.
+  els.status.hidden = !!level.vm;               // the line below replaces it, as it always did
+  els.hudline.textContent = level.vm
+    ? `${STAGE}   HEALTH ${level.player.health}   ARMOR ${level.player.shield}`
+      + (level.player.currWeapon === 0 ? '   >FOOT' : '')
+      + [[1, 'PISTOL'], [2, 'SHOTGUN'], [3, 'CHAINGUN'], [4, 'RPG'], [5, 'PIPEBOMB'], [6, 'SHRINKER'], [11, 'EXPANDER'], [7, 'DEVASTATOR'], [8, 'TRIPBOMB'], [9, 'FREEZER']].map(([slot, name]) => level.player.gotWeapon[slot]
+        ? `   ${level.player.currWeapon === slot || (slot === 5 && level.player.currWeapon === 10) ? '>' : ''}${name} ${level.player.ammoAmount[slot]}` : '').join('')
+      + (level.player.currWeapon === 10 ? '   [DETONATOR]' : '')
+      + (level.player.inventory.firstaid ? `   MEDKIT ${level.player.inventory.firstaid}` : '')
+      + `   KILLS ${level.vm.kills}`
+      + (useReport ? `   use: ${useReport}` : '')
+      + nearestFieldReport()
+      + (level.player.currWeapon === 1 && level.player.kickback >= 5 ? '   reloading' : '')
+      + (level.player.ammoAmount[level.player.currWeapon] === 0 && level.player.kickback === 0 ? '   OUT OF AMMO' : '')
+      + (cheats.god ? '   GOD' : '') + (cheats.ammo ? '   AMMO' : '')
+      + (level.player.jetpackOn ? `   JETPACK ${level.player.inventory.jetpack}` : '')
+      + (level.player.heatOn ? `   NIGHTVISION ${level.player.inventory.heat}` : '')
+      + (level.player.inventory.boots > 0 ? `   BOOTS ${level.player.inventory.boots}` : '')
+      + (level.player.shrinkCount >= 0 ? `   SHRINK ${level.player.shrinkCount} ${level.map.sprites[level.vm?.playerSprite]?.xRepeat ?? '?'}x${level.map.sprites[level.vm?.playerSprite]?.yRepeat ?? '?'}` : '')
+      + ((() => {
+        // Standing in a rotate-rise sector (lotag 30): the state of its SE 0 and
+        // of every SE 0 on the same pivot — E1L3's revolving door is six of them.
+        const sec = level.map.sectors[level.cam.sectNum];
+        if (!sec || (sec.lotag & LOTAG_MASK) !== 30) return '';
+        const mine = level.map.sprites[sec.hitag];
+        if (!mine || mine.picNum !== 1) return '';
+        const sib = level.map.sprites.map((sp, i) => [sp, i]).filter(([sp]) => !sp.removed && sp.picNum === 1 && sp.lotag === 0 && sp.hitag === mine.hitag);
+        return '   rot30 ' + sib.map(([sp, i]) => `#${i}s${sp.sectNum}e${sp.extra}a${level.effectors.tempAng(i)}t${level.effectors.temp(i)[2] & 2047}`).join(' ');
+      })())
+      + (stats.walls === 0 ? `   BLANK FRAME (pos in s${level.cam.sectNum}: ${inside(level.map, level.cam.sectNum, level.cam.x, level.cam.y)}, updatesector says ${updateSector(level.map, level.cam.x, level.cam.y, level.cam.sectNum)})` : '')
+      + (level.player.scubaOn ? `   SCUBA ${level.player.inventory.scuba}` : '')
+      + (level.player.inventory?.holoduke > 0 ? `   HOLO ${level.player.inventory.holoduke}${level.vm?.holoduke >= 0 ? ' ON' : ''}` : '')
+      + (level.vm ? `   idle ${level.player.crackTime}   gun ${gunReport}   proj ${projReport}` : '')
+      + (assets.shareware.length ? `   [shareware data: weapons ${assets.shareware.map((w) => ({ 6: 'shrinker', 7: 'devastator', 8: 'tripbomb', 9: 'freezer' })[w]).join(', ')} not in this GRP]` : '')
+      + (lastSay ? `   say ${lastSay}` : '')
+      + (level.sounds ? (audio?.ready ? '' : `   [sound ${audio ? audio.ctx?.state ?? 'no context' : 'not started'} — click or press a key]`)
+        + (level.sounds.missing.size ? `   (${level.sounds.missing.size} sounds missing)` : '') : '')
+    : '';
+  }
+  if (dead && level.player.deadCount < 90) {
+    ctx.fillStyle = 'rgba(64,0,0,0.35)';
+    fullRect();
+  }
+  if (eol) {
+    // The bonus screen, in outline: the level, the time, the kills, what
+    // comes next.
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    fullRect();
+    ctx.fillStyle = '#ffd24a';
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(eol.name, 160, 64);
+    ctx.font = '10px monospace';
+    ctx.fillText('LEVEL COMPLETE', 160, 84);
+    const mm = Math.floor(eol.time / 60), ss = eol.time % 60;
+    ctx.fillText(`YOUR TIME ${mm}:${ss < 10 ? '0' : ''}${ss}   PAR ${eol.par}`, 160, 104);
+    ctx.fillText(`ENEMIES KILLED ${eol.kills}`, 160, 118);
+    ctx.font = '9px monospace';
+    ctx.fillText(eol.nextName ? `next: ${eol.nextName} — press Enter` : 'the end of the episode — press Enter', 160, 144);
+  }
+
+  ctx.restore();
+  if (mapOn) drawMap();
+  perfEnd(perfT0);
+  if (debugHud && perf.worst) els.hudline.textContent += `\n${perf.worst.line}`;
+  requestAnimationFrame(loop);
+}
+
+// --- the automap -------------------------------------------------------------
+//
+// Every wall of the level, with the player on it.
+
+function drawMap() {
+  const c = els.map;
+  const w = c.width = c.clientWidth || innerWidth;
+  const h = c.height = c.clientHeight || innerHeight;
+  const g = c.getContext('2d');
+  g.clearRect(0, 0, w, h);
+
+  const { map, cam } = level;
+  const scale = 1 / 48;
+  const cx = w / 2, cy = h / 2;
+  // Rotated so the player always faces up, which is the only orientation that
+  // needs no thinking while walking.
+  const a = -(cam.ang * Math.PI / 1024) - Math.PI / 2;
+  const cos = Math.cos(a), sin = Math.sin(a);
+  const to = (x, y) => {
+    const rx = (x - cam.x) * scale, ry = (y - cam.y) * scale;
+    return [cx + rx * cos - ry * sin, cy + rx * sin + ry * cos];
+  };
+
+  g.lineWidth = 1;
+  for (let i = 0; i < map.walls.length; i++) {
+    const wl = map.walls[i], p2 = map.walls[wl.point2];
+    if (!p2) continue;
+    const [x1, y1] = to(wl.x, wl.y);
+    const [x2, y2] = to(p2.x, p2.y);
+    if ((x1 < 0 && x2 < 0) || (x1 > w && x2 > w) || (y1 < 0 && y2 < 0) || (y1 > h && y2 > h)) continue;
+    g.strokeStyle = wl.nextSector < 0 ? '#d8a12a' : '#4a4436';
+    g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();
+  }
+
+  g.fillStyle = '#e8e2d4';
+  g.beginPath();
+  g.moveTo(cx, cy - 7); g.lineTo(cx - 5, cy + 6); g.lineTo(cx + 5, cy + 6);
+  g.closePath(); g.fill();
+}
+
+addEventListener('resize', () => { if (mapOn) drawMap(); });
+</script>
+</body>
+</html>
