@@ -16,7 +16,7 @@
 // shared zero are small { v } cells, and a modulator or channel output points
 // at one of them.
 
-export const MODULE_STAGE = 'stage12.194';
+export const MODULE_STAGE = 'stage12.195';
 
 const RSM_FRAC = 10;
 const WRITEBUF_SIZE = 1024, WRITEBUF_DELAY = 2;

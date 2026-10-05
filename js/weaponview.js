@@ -1,5 +1,5 @@
 // Cache tripwire: see version.js.
-export const MODULE_STAGE = 'stage12.194';
+export const MODULE_STAGE = 'stage12.195';
 
 // uDuke - displayweapon(): the gun in Duke's hands. player.c 1294..1630.
 //

@@ -3,7 +3,7 @@
 // from its cache showed up as 'HEALTH undefined' — a field the stale
 // player.js did not have. That is the third stale-cache report; this makes
 // the fourth say which file.
-export const MODULE_STAGE = 'stage12.194';
+export const MODULE_STAGE = 'stage12.195';
 
 // uDuke - TILESnnn.ART decoding.
 // See FORMATS.md section 3.

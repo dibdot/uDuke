@@ -1,5 +1,5 @@
 // Cache tripwire: see con.js.
-export const MODULE_STAGE = 'stage12.194';
+export const MODULE_STAGE = 'stage12.195';
 
 // uDuke - the status bar, game.c coolgaugetext() / weapon_amounts() /
 // digitalnumber() / invennum() / minitext(), for ud.screen_size 8: the full

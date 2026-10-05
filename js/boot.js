@@ -4,7 +4,7 @@
 // player.js did not have. That is the third stale-cache report; this makes
 // the fourth say which file.
 import { STAGE } from './version.js';
-export const MODULE_STAGE = 'stage12.194';
+export const MODULE_STAGE = 'stage12.195';
 
 // uDuke - loading a GRP and standing a level up.
 //
@@ -23,7 +23,7 @@ import { setupLevel, setupSprites, Animations } from './sector.js';
 import { ConCompiler, ConVM, canSee, spawnFrom, shootFrom, moveSprite, isBadguy } from './con.js';
 import { SoundSystem, parseVoc } from './sound.js';
 import { shotHitWall, blastWalls, hitBreakable, lotsOfGlass, BREAKABLE_TILES } from './hitwall.js';
-import { AFLAMABLE, spawnHead } from './con.js';
+import { AFLAMABLE, spawnHead, spawnDecor } from './con.js';
 import { isSwitchTile } from './switch.js';
 import { setClipArt } from './clip.js';
 import { setupEffectors } from './effector.js';
@@ -326,7 +326,8 @@ export function buildLevel(assets, name, opts = {}) {
       if (!spr.removed && (vm.hasScript(spr.picNum) || spr.picNum === 1247 || spr.picNum === 1079 || spr.picNum === 916 || spr.picNum === 1960 || spr.picNum === 901 || spr.picNum === 902 || (spr.picNum >= 621 && spr.picNum <= 625) || spr.picNum === 554 || spr.picNum === 502 || spr.picNum === 499 || spr.picNum === 660 || spr.picNum === 5 || (spr.picNum >= 634 && spr.picNum <= 637) || (spr.picNum >= 4525 && spr.picNum <= 4528) || spr.picNum === 925 || spr.picNum === 926 || (spr.picNum >= 1007 && spr.picNum <= 1009) || spr.picNum === 1046 || (spr.picNum >= 142 && spr.picNum <= 145) || (spr.picNum >= 546 && spr.picNum <= 549) || spr.picNum === 9 || spr.picNum === 1267 || spr.picNum === 940 || spr.picNum === 1222 || spr.picNum === 1232 || (spr.picNum >= 4580 && spr.picNum <= 4582) || (spr.picNum >= 2370 && spr.picNum <= 2377) || spr.picNum === 2491 || spr.picNum === 1346 || spr.picNum === 568 || spr.picNum === 577 || spr.picNum === 1088 || spr.picNum === 578 || spr.picNum === 1272 || BREAKABLE_TILES.has(spr.picNum) || AFLAMABLE.has(spr.picNum) || ((spr.cstat & 48) && (spr.hitag !== 0 || ((spr.cstat & 16) && (isSwitchTile(spr.picNum) || spr.picNum === 1155 || spr.picNum === 1156)))))) vm.spawnActor(spr, i, map);
       // Everything else still meets spawn()'s head (game.c 3671): a blocking
       // sprite is hitscan-solid too (`if (CS&1) CS |= 256`).
-      else if (!spr.removed) spawnHead(spr);
+      // ...and then their own case of spawn(), where they have one.
+      else if (!spr.removed && !spawnHead(spr)) spawnDecor(spr);
     });
   }
 

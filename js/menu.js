@@ -1,6 +1,6 @@
 // uDuke - what the menu page shows, as data: the levels by episode.
 
-export const MODULE_STAGE = 'stage12.194';
+export const MODULE_STAGE = 'stage12.195';
 
 const stem = (f) => f.replace(/\.MAP$/i, '');
 

@@ -3,7 +3,7 @@
 // from its cache showed up as 'HEALTH undefined' — a field the stale
 // player.js did not have. That is the third stale-cache report; this makes
 // the fourth say which file.
-export const MODULE_STAGE = 'stage12.194';
+export const MODULE_STAGE = 'stage12.195';
 
 // uDuke - CON: the tokenizer, the compiler and the interpreter, from gamedef.c.
 import { krand } from './effector.js';
@@ -892,6 +892,8 @@ export class ConVM {
     // never come here.
     if (!fromSprite) {
       if (spawnHead(spr)) { this.stat.set(i, 0); return false; }
+      // game.c 4194: a BLIMP (a CON actor) is solid and hittable, clipdist 128.
+      if (spr.picNum === 3400) { spr.cstat |= 257; spr.clipDist = 128; }
       const th = this.fx.temp(i);
       th.fill(0);
       const hh = this.actorScr.get(spr.picNum);
@@ -2639,6 +2641,38 @@ export const CON_STANDABLES = new Set([1238, 904, 1026, 2333, 1240, 1390, 1227, 
 const BARREL_TILES = new Set([1238, 1239, 1062, 1232, 4580, 4581, 4582, 1026, 1240, 1227, 1228, 1229, 1390, 904]);
 const CAN_TILES = new Set([1062, 1232, 4580, 4581, 4582]);
 /** game.c 3637: the tiles a hitag does NOT make a faller (plus CRACK1..4). */
+/** MASKWALL1..MASKWALL15 (names.h): bars, grilles, see-through panels. */
+export const MASKWALLS = new Set([285, 913, 914, 915, 514, 1059, 1174, 1124, 255, 387, 391, 609, 830, 988, 1024]);
+
+/**
+ * spawn()'s case for a MASKWALL sprite, game.c 4083: `cstat = (cstat&60)|1`
+ * and statnum 0 — the flips and the alignment kept, BLOCKING set, and
+ * everything else cleared: the hitscan bit (256), one-sidedness (64),
+ * centring, translucency. Bars stop the player but not the bullets; a
+ * turret or a ceiling switch behind them can be shot through the grille.
+ */
+export function spawnMaskWall(spr) {
+  spr.cstat = (spr.cstat & 60) | 1;
+}
+
+/**
+ * The rest of spawn()'s cases for map sprites that need no actor (game.c),
+ * applied after the head for the sprites boot does not hand to spawnActor:
+ * MASKWALL1..15 as above; NATURALLIGHTNING invisible and not solid
+ * (`cstat &= ~257; cstat |= 32768`); BLIMP solid and hittable with clipdist
+ * 128; DUKETAG, SIGN1, SIGN2 and GENERICPOLE with a pal are multiplayer
+ * props — gone in single player, otherwise pal 0.
+ */
+export function spawnDecor(spr) {
+  const pn = spr.picNum;
+  if (MASKWALLS.has(pn)) spawnMaskWall(spr);
+  else if (pn === 4890) { spr.cstat = (spr.cstat & ~257) | 32768; }                 // NATURALLIGHTNING
+  else if (pn === 3400) { spr.cstat |= 257; spr.clipDist = 128; }                    // BLIMP
+  else if (pn === 4900 || pn === 4909 || pn === 4912 || pn === 977) {               // DUKETAG, SIGN1, SIGN2, GENERICPOLE
+    if (spr.pal) { spr.xRepeat = 0; spr.yRepeat = 0; spr.removed = true; } else spr.pal = 0;
+  }
+}
+
 /**
  * The part of spawn()'s head (game.c 3637) that every map sprite meets,
  * scripted or not. A wall/floor sprite (cstat&48) other than SPEAKER,

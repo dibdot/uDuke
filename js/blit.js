@@ -1,5 +1,5 @@
 // Cache tripwire: see con.js.
-export const MODULE_STAGE = 'stage12.194';
+export const MODULE_STAGE = 'stage12.195';
 
 // uDuke - the 2D layer in software: tiles written straight into the frame's
 // pixels, as Build's rotatesprite writes into the frame buffer.
