@@ -15,7 +15,7 @@
 
 import { MusicRenderer } from './music.js';
 
-export const MODULE_STAGE = 'stage12.195';
+export const MODULE_STAGE = 'stage12.196';
 
 const BLOCK = 4096;          // frames per block (~85 ms at 48 kHz)
 const LEAD = 0.4;            // seconds kept queued ahead of the clock

@@ -3,7 +3,7 @@
 // from its cache showed up as 'HEALTH undefined' — a field the stale
 // player.js did not have. That is the third stale-cache report; this makes
 // the fourth say which file.
-export const MODULE_STAGE = 'stage12.195';
+export const MODULE_STAGE = 'stage12.196';
 
 // uDuke - CON: the tokenizer, the compiler and the interpreter, from gamedef.c.
 import { krand } from './effector.js';

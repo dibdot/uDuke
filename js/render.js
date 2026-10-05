@@ -3,7 +3,7 @@
 // from its cache showed up as 'HEALTH undefined' — a field the stale
 // player.js did not have. That is the third stale-cache report; this makes
 // the fourth say which file.
-export const MODULE_STAGE = 'stage12.195';
+export const MODULE_STAGE = 'stage12.196';
 
 /**
  * How far behind the stored depth a sprite may be and still be drawn.
@@ -589,6 +589,11 @@ export class Renderer {
     // tall: a viewport larger than its reference screen is allowed — the
     // tilted view (rotscrnang) renders a margin around the screen to rotate.
     this.tall = !!opts.tall;
+    // horPlus: a view widened beyond 4:3 (the page in a wide window). The
+    // wider field of view zooms the HORIZONTAL axis only; rows keep the 4:3
+    // screen's focal length, so the picture is not squashed and the
+    // crosshair stays where the shot goes.
+    this.horPlus = !!opts.horPlus;
     this.resize(width, height);
   }
 
@@ -603,7 +608,7 @@ export class Renderer {
     // between the axes is fixed by the resolution alone — not a knob.
     const zoom = Math.tan(REF_FOV * Math.PI / 360) / Math.tan(this.fov * Math.PI / 360);
     this.focalX = this.halfW * zoom;                                  // xdim/2
-    this.focalY = this.refHeight * VERT_FOCAL / VERT_FOCAL_ROWS * zoom;   // 0.64*ydim — the screen's, not the viewport's
+    this.focalY = this.refHeight * VERT_FOCAL / VERT_FOCAL_ROWS * (this.horPlus ? 1 : zoom);   // 0.64*ydim — the screen's, not the viewport's
     this.spriteFocalX = this.focalX * SPRITE_FOCAL_RATIO;             // 0.4*xdim
 
     this.pixels = new Uint32Array(width * height);

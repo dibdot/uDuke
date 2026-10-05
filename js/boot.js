@@ -4,7 +4,7 @@
 // player.js did not have. That is the third stale-cache report; this makes
 // the fourth say which file.
 import { STAGE } from './version.js';
-export const MODULE_STAGE = 'stage12.195';
+export const MODULE_STAGE = 'stage12.196';
 
 // uDuke - loading a GRP and standing a level up.
 //

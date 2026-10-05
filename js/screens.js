@@ -11,7 +11,7 @@
 // screen is `drealms` and the title `titlepal`, both from LOOKUP.DAT, the
 // loading screen the game's — so indices first, colours last.
 
-export const MODULE_STAGE = 'stage12.195';
+export const MODULE_STAGE = 'stage12.196';
 
 /** names.h */
 export const T = {

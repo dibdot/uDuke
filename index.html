@@ -367,8 +367,8 @@ function setViewWidth(w) {
   if (w === viewW) return;
   const wasBar = renderer === barRenderer;
   const fov = 2 * Math.atan(w / 320) * 180 / Math.PI;
-  fullRenderer = new Renderer(w, 200, fov);
-  barRenderer = new Renderer(w, VIEW_HEIGHT, fov, { refHeight: 200 });
+  fullRenderer = new Renderer(w, 200, fov, { horPlus: true });
+  barRenderer = new Renderer(w, VIEW_HEIGHT, fov, { refHeight: 200, horPlus: true });
   renderer = wasBar ? barRenderer : fullRenderer;
   frameImage = ctx.createImageData(w, 200); framePx = new Uint32Array(frameImage.data.buffer);
   viewW = w;
@@ -410,30 +410,30 @@ function xyzMirror(camIdx, tileNum) {
 // 380x380 square, which covers the window's corners (188 from its centre)
 // at every angle.
 const TILTS = [];
-function tiltBuffer(w, h, ref = w) {
-  let t = TILTS.find((b) => b.w === w && b.h === h && b.ref === ref);
+function tiltBuffer(w, h) {
+  let t = TILTS.find((b) => b.w === w && b.h === h);
   if (!t) {
-    // focalX 160 at any width (fov from w); focalY from the 320 view's buffer (ref).
-    t = { w, h, ref,
-      renderer: new Renderer(w, h, 2 * Math.atan(w / 320) * 180 / Math.PI, { refHeight: 200 * ref / 320, tall: true }) };
+    // focalX 160 and focalY 128 at any width: fov from w, refHeight w*200/320.
+    t = { w, h,
+      renderer: new Renderer(w, h, 2 * Math.atan(w / 320) * 180 / Math.PI, { refHeight: 200 * w / 320, tall: true }) };
     TILTS.push(t);
   }
   return t;
 }
 function tiltedView(eye, opts, viewH, tang) {
   const a = ((tang + 1024) & 2047) - 1024;          // -1024..1023
-  // A widened view: the same picture scale (the 320 view's buffer, ref),
-  // the buffer as much wider as the view, and tall enough to cover the
-  // wider window turned (W*sin + 200*cos at 11.25 degrees; the square
-  // covers its diagonal).
+  // A widened view: the buffer as much wider as the view, and tall enough to
+  // cover the wider window turned (W*sin + 200*cos at 11.25 degrees; the
+  // square covers its diagonal). The buffer's renderer keeps the screen's
+  // focal lengths at any width (focalX 160, focalY 128 — refHeight and the
+  // horiz unit scaled with the width, see tiltBuffer).
   const small = Math.abs(a) <= 64;
-  const ref = small ? 356 : 380;
   const extra = viewW - 320;
   const t = small
-    ? tiltBuffer(356 + extra, Math.max(260, Math.ceil(viewW * 0.1951 + 200 * 0.9808) + 4), ref)
-    : (() => { const d = Math.max(380, Math.ceil(Math.hypot(viewW, 200)) + 4); return tiltBuffer(d, d, ref); })();
+    ? tiltBuffer(356 + extra, Math.max(260, Math.ceil(viewW * 0.1951 + 200 * 0.9808) + 4))
+    : (() => { const d = Math.max(380, Math.ceil(Math.hypot(viewW, 200)) + 4); return tiltBuffer(d, d); })();
   const TILT_W = t.w, TILT_H = t.h;
-  const stats = t.renderer.render({ ...eye, horiz: 100 + (eye.horiz - 100) * 320 / ref }, opts);
+  const stats = t.renderer.render({ ...eye, horiz: 100 + (eye.horiz - 100) * 320 / TILT_W }, opts);
   // rotatesprite's angle: clockwise on screen, about the window's centre.
   rotateInto(framePx, viewW, viewH, t.renderer.pixels, TILT_W, TILT_H, tang);
   return stats;

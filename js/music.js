@@ -18,7 +18,7 @@
 
 import { Opl3 } from './opl3.js';
 
-export const MODULE_STAGE = 'stage12.195';
+export const MODULE_STAGE = 'stage12.196';
 
 // --- the timbre bank (AL_RegisterTimbreBank) --------------------------------
 

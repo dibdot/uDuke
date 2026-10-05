@@ -1,5 +1,5 @@
 // Cache tripwire: see version.js.
-export const MODULE_STAGE = 'stage12.195';
+export const MODULE_STAGE = 'stage12.196';
 
 // uDuke - checkhitwall(): what a shot does to a wall. sector.c 1567.
 //

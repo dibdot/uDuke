@@ -1,5 +1,5 @@
 // Cache tripwire: see version.js.
-export const MODULE_STAGE = 'stage12.195';
+export const MODULE_STAGE = 'stage12.196';
 
 // uDuke - sound: Creative VOC files and Duke's positional sound model.
 //

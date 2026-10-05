@@ -23,7 +23,7 @@
 // (multiplayer messages, the co-op view, the console). They bind nothing here;
 // they are listed so the table stays the table.
 
-export const MODULE_STAGE = 'stage12.195';
+export const MODULE_STAGE = 'stage12.196';
 
 /** _functio.h keydefaults[]: [function, primary, secondary], Duke's spelling. */
 export const KEY_DEFAULTS = [

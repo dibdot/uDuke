@@ -1,6 +1,6 @@
 // Cache tripwire: every module carries the stage it shipped with, and boot.js
 // refuses to run a mix.
-export const MODULE_STAGE = 'stage12.195';
+export const MODULE_STAGE = 'stage12.196';
 
 // uDuke - the camera monitors' picture: xyzmirror(), premap.c 342.
 //
