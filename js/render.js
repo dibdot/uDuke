@@ -3,7 +3,7 @@
 // from its cache showed up as 'HEALTH undefined' — a field the stale
 // player.js did not have. That is the third stale-cache report; this makes
 // the fourth say which file.
-export const MODULE_STAGE = 'stage12.196';
+export const MODULE_STAGE = 'stage12.200';
 
 /**
  * How far behind the stored depth a sprite may be and still be drawn.
@@ -1100,7 +1100,11 @@ export class Renderer {
     // has to wait until the geometry behind it exists — it goes in with the
     // sprites rather than into a bunch. Build's test is (cstat&48)==16: the
     // one-way bit wins over the mask bit rather than combining with it.
-    if (w.nextSector >= 0 && (w.cstat & 48) === 16) this.masked.push(entry);
+    // ...except one carrying MIRROR (560): Duke zeroes that tile's size at
+    // start-up (game.c 7772), so a mirror's masked side draws nothing and the
+    // reflection behind it shows clean — drawn, the 10x10 tile laid a grid
+    // over the bathroom mirror of E1L1.
+    if (w.nextSector >= 0 && (w.cstat & 48) === 16 && w.overPicNum !== 560) this.masked.push(entry);
     return entry;
   }
 
@@ -1311,6 +1315,10 @@ export class Renderer {
     const skipLower = !!nsec && (sec.floorStat & 1) !== 0 && (nsec.floorStat & 1) !== 0;
 
     for (let x = entry.x1; x <= entry.x2; x++) {
+      // The probe's bookkeeping (#mark, the band detail) only where the probe
+      // pixel is: building it for every column allocated per column and frame.
+      const pc = this.probeIdx >= 0 && this.probeIdx % this.width === x;
+      this.pc = pc;
       const top = umost[x], bot = dmost[x];
       if (top > bot) continue;
 
@@ -1345,7 +1353,7 @@ export class Renderer {
       // or against each other. heinum alone cannot: its sign is relative to
       // each sector's own first wall, so equal heinums on oppositely aimed
       // reference walls tilt in opposite directions.
-      this.#mark('ceiling', entry.sect, sec.ceilingPicNum, sec.ceilingShade, {
+      if (pc) this.#mark('ceiling', entry.sect, sec.ceilingPicNum, sec.ceilingShade, {
         stat: sec.ceilingStat, heinum: sec.ceilingHeinum,
         across: ceilFlat.align ? ceilFlat.align.across : null,
         flatZ: sec.ceilingZ, slopeZ: Math.round(zCeil), refWall: sec.wallPtr,
@@ -1358,7 +1366,7 @@ export class Renderer {
         tileH: ceilFlat.tile ? ceilFlat.tile.height : 0,
       });
       this.#flatSpan(x, top, rowCeil - 1, ceilFlat);
-      this.#mark('floor', entry.sect, sec.floorPicNum, sec.floorShade, {
+      if (pc) this.#mark('floor', entry.sect, sec.floorPicNum, sec.floorShade, {
         stat: sec.floorStat, heinum: sec.floorHeinum,
         across: floorFlat.align ? floorFlat.align.across : null,
         flatZ: sec.floorZ, slopeZ: Math.round(zFloor), refWall: sec.wallPtr,
@@ -1378,7 +1386,7 @@ export class Renderer {
       });
 
       if (!portal) {
-        this.#mark('wall', entry.sect, w.picNum, w.shade,
+        if (pc) this.#mark('wall', entry.sect, w.picNum, w.shade,
           detail(mainTile, alignBottom ? 'floor' : 'ceiling'));
         this.#surface(x, rowCeil, rowFloor, mainTile, uOff, w.xPanning, w.yPanning,
           zCeil, zFloor, yCeil, yFloor, oSolid, vScale,
@@ -1421,7 +1429,7 @@ export class Renderer {
       // lower step's first meet — is the upper step's too.
       const upperEnd = entry.closed && !skipLower ? Math.max(rowNCeil - 1, rowNFloor) : rowNCeil - 1;
       if (!skipUpper) {
-        this.#mark('upper', entry.sect, w.picNum, w.shade,
+        if (pc) this.#mark('upper', entry.sect, w.picNum, w.shade,
           detail(mainTile, alignBottom ? 'ceiling' : 'nextCeil'));
         this.#surface(x, rowCeil, upperEnd, mainTile, uOff, w.xPanning, w.yPanning,
           zCeil, zNCeil, yCeil, yNCeil, oUpper, vScale,
@@ -1432,7 +1440,7 @@ export class Renderer {
       // ceiling anchoring the same continuity is what Build's quirk buys by
       // reaching all the way up to the sector ceiling for the origin.
       if (!skipLower) {
-        this.#mark('lower', entry.sect, lowerWall.picNum, w.shade,
+        if (pc) this.#mark('lower', entry.sect, lowerWall.picNum, w.shade,
           { ...detail(lowerTile, alignBottom ? 'ceiling' : 'nextFloor'), swapped: swapLower });
         this.#surface(x, rowNFloor + 1, rowFloor, lowerTile, uOff, w.xPanning, w.yPanning,
           zNFloor, zFloor, yNFloor, yFloor, oLower, vScale,
@@ -1503,7 +1511,7 @@ export class Renderer {
     // wrong" is usually a question about which slice — and that is not
     // readable from panning and repeat without doing the arithmetic. Added to
     // the probe detail here, after #mark has run and before #hit can fire.
-    {
+    if (this.pc) {
       const vBot = (botZ - originZ) * vScale + pan;
       this.pDetail = { ...(this.pDetail ?? {}), vTop, vBot };
     }
@@ -1520,6 +1528,8 @@ export class Renderer {
 
     if (y1 > height - 1) y1 = height - 1;
 
+    const tpx = tile.pixels, wallOf = this.wallOf, cw = this.curWall;
+    const probeCol = this.probeIdx >= 0 && this.probeIdx % width === x;
     for (let y = y0; y <= y1; y++, v += vStep) {
       const i = y * width + x;
       if (zbuf[i] !== 0) {
@@ -1529,10 +1539,9 @@ export class Renderer {
       let iv = v % h;
       if (iv < 0) iv += h;
       zbuf[i] = invZ;
-      this.wallOf[i] = this.curWall;
-      pixels[i] = shadeLuts[lut + tile.pixels[col + (iv | 0)]];
-      this.#uvAt(i, u, iv | 0);
-      this.#hit(i);
+      wallOf[i] = cw;
+      pixels[i] = shadeLuts[lut + tpx[col + (iv | 0)]];
+      if (probeCol) { this.#uvAt(i, u, iv | 0); this.#hit(i); }
     }
   }
 
@@ -1965,6 +1974,10 @@ export class Renderer {
     const lutBase = 256;
     const spriteLuts = this.#luts(spr.dispPal ?? spr.pal);
     let drawn = false;
+    // Per sprite: the texels, and the last wall-side verdict — runs of pixels
+    // share their nearer wall, and the side test is geometry, not a lookup.
+    const tpx = tile.pixels, wallOf = this.wallOf, probeOn = this.probeIdx >= 0;
+    let sideW = -2, sideFront = false;
 
     for (let x = x1; x <= x2; x++) {
       const f = (x + 0.5 - sxa) / (sxb - sxa);
@@ -1989,17 +2002,19 @@ export class Renderer {
           // pixel. E2L1's SECURITY poster (#109, tile 499) hangs eight
           // units in front of its own back wall 1523, slightly skewed; by
           // depth the wall won the poster's left half.
-          const w = this.wallOf[i];
-          if (w < 0 || !this.#spriteInFrontOfWall(spr, w)) continue;
+          const w = wallOf[i];
+          if (w < 0) continue;
+          if (w !== sideW) { sideW = w; sideFront = this.#spriteInFrontOfWall(spr, w); }
+          if (!sideFront) continue;
         }
         let v = (y + 0.5 - yTop) * vScale;
         if (yflip) v = th - v;
-        const texel = tile.pixels[u + clamp(Math.floor(v), 0, th - 1)];
+        const texel = tpx[u + clamp(Math.floor(v), 0, th - 1)];
         if (texel === 255) continue;
         zbuf[i] = invZ;
-        this.wallOf[i] = -1;
+        wallOf[i] = -1;
         pixels[i] = trans ? Renderer.blend(pixels[i], spriteLuts[shade + texel], transRev) : spriteLuts[shade + texel];
-        this.#hit(i);
+        if (probeOn) this.#hit(i);
         drawn = true;
       }
     }
@@ -2547,6 +2562,16 @@ export class Renderer {
     const tile = d.tile;
     const th = tile ? tile.height : 0;
     const tw = tile ? tile.width : 0;
+    // Per span, not per pixel: the shade table of the pal, power-of-two masks
+    // (flats always are; mod() stays for the rest), the fade factor, and
+    // whether the probe pixel lies in this column at all.
+    const luts = this.#luts(d.pal);
+    const twm = (tw & (tw - 1)) === 0 ? tw - 1 : -1, thm = (th & (th - 1)) === 0 ? th - 1 : -1;
+    const fading = this.mode < MODE_FULLBRIGHT && this.mode !== MODE_NO_FADE;
+    const fadeK = fading ? this.fadeRate * foldVisibility(d.visibility) : 0;
+    const maxShade = this.res.numShades - 1;
+    const probeCol = this.probeIdx >= 0 && this.probeIdx % width === x;
+    const tpx = tile ? tile.pixels : null;
 
     for (let y = y0; y <= y1; y++) {
       const i = y * width + x;
@@ -2609,11 +2634,14 @@ export class Renderer {
       if (d.xflip) tu = -tu;
       if (d.yflip) tv = -tv;
 
-      const u = mod(Math.floor(tu + d.xPan), tw);
-      const v = mod(Math.floor(tv + d.yPan), th);
-      this.#uvAt(i, u, v);
-      pixels[i] = this.#luts(d.pal)[this.shade(d.shade, dist, d.visibility) * 256 + tile.pixels[u * th + v]];
-      this.#hit(i);   // after #uvAt — see the sloped span
+      const fu = Math.floor(tu + d.xPan), fv = Math.floor(tv + d.yPan);
+      const u = twm >= 0 ? fu & twm : mod(fu, tw);
+      const v = thm >= 0 ? fv & thm : mod(fv, th);
+      let sh;
+      if (fading) { sh = Math.floor(d.shade + dist * fadeK); sh = sh < 0 ? 0 : sh > maxShade ? maxShade : sh; }
+      else sh = this.shade(d.shade, dist, d.visibility);
+      pixels[i] = luts[sh * 256 + tpx[u * th + v]];
+      if (probeCol) { this.#uvAt(i, u, v); this.#hit(i); }   // #hit after #uvAt — see the sloped span
     }
   }
 }

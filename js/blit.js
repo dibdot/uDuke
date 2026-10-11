@@ -1,5 +1,5 @@
 // Cache tripwire: see con.js.
-export const MODULE_STAGE = 'stage12.196';
+export const MODULE_STAGE = 'stage12.200';
 
 // uDuke - the 2D layer in software: tiles written straight into the frame's
 // pixels, as Build's rotatesprite writes into the frame buffer.
@@ -48,6 +48,26 @@ export function blit(dst, dw, dh, src, x, y, { scale = 1, translucent = false, c
     }
     return;
   }
+  if (Number.isInteger(scale) && scale > 1 && Number.isInteger(x) && Number.isInteger(y)) {
+    // An integer factor (the resolution slider): each source pixel a
+    // scale x scale block, no division per pixel.
+    for (let v = 0; v < sh; v++) {
+      const y0 = y + v * scale;
+      if (y0 >= clipH || y0 + scale <= 0) continue;
+      const row = v * sw;
+      for (let u = 0; u < sw; u++) {
+        const p = sp[row + u];
+        if (!(p >>> 24)) continue;
+        const x0 = x + u * scale;
+        if (x0 >= dw || x0 + scale <= 0) continue;
+        for (let yy = Math.max(0, y0), ye = Math.min(clipH, y0 + scale); yy < ye; yy++) {
+          const o = yy * dw;
+          for (let xx = Math.max(0, x0), xe = Math.min(dw, x0 + scale); xx < xe; xx++) dst[o + xx] = translucent ? blend66(p, dst[o + xx]) : p;
+        }
+      }
+    }
+    return;
+  }
   const W = sw * scale, H = sh * scale;
   const ya = Math.max(0, Math.ceil(y - 0.5)), yb = Math.min(clipH, Math.ceil(y + H - 0.5));
   const xa = Math.max(0, Math.ceil(x - 0.5)), xb = Math.min(dw, Math.ceil(x + W - 0.5));
@@ -68,7 +88,7 @@ export function blit(dst, dw, dh, src, x, y, { scale = 1, translucent = false, c
  * offset (left, top) and the upside-down flag. Each source pixel is moved
  * forward; a quarter turn leaves no holes.
  */
-export function blitPlaced(dst, dw, dh, src, at, clipH = dh) {
+export function blitPlaced(dst, dw, dh, src, at, clipH = dh, scale = 1) {
   if (!src) return;
   const c = Math.round(Math.cos(at.rot)), s = Math.round(Math.sin(at.rot));
   const sw = src.w, sh = src.h, sp = src.px;
@@ -78,8 +98,12 @@ export function blitPlaced(dst, dw, dh, src, at, clipH = dh) {
       const p = sp[v * sw + u];
       if (!(p >>> 24)) continue;
       const lx = u + at.left, ly = r + at.top;
-      const X = Math.round(at.x + lx * c - ly * s), Y = Math.round(at.y + lx * s + ly * c);
-      if (X >= 0 && X < dw && Y >= 0 && Y < clipH) dst[Y * dw + X] = p;
+      // the pixel's place in 320x200 units, then a scale x scale block
+      const X = Math.round(at.x + lx * c - ly * s) * scale, Y = Math.round(at.y + lx * s + ly * c) * scale;
+      for (let yy = Y; yy < Y + scale; yy++) {
+        if (yy < 0 || yy >= clipH) continue;
+        for (let xx = X; xx < X + scale; xx++) if (xx >= 0 && xx < dw) dst[yy * dw + xx] = p;
+      }
     }
   }
 }

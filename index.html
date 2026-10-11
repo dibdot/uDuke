@@ -52,6 +52,13 @@
   .warn { color: var(--warn); }
   kbd { border: 1px solid var(--line); padding: 0 4px; color: var(--ink); }
   select { font: inherit; }
+  /* Native controls in the page's colours: dark (color-scheme), checked and
+     filled parts in the gold of the headings (accent-color), and the slider
+     sitting on the text's middle like the checkboxes. */
+  :root { color-scheme: dark; accent-color: var(--hot); }
+  input[type=checkbox], input[type=range] { vertical-align: middle; margin-top: 0; margin-bottom: 0; }
+  input[type=range] { width: 140px; }
+  #resInfo { color: var(--dim); }
   #saveInfo { white-space: pre-line; line-height: 1.6; margin-top: 6px; }
   select, input[type=text] { color: var(--ink); background: #221e16; border: 1px solid var(--line); padding: 3px 6px; }
   .btn { padding: 4px 10px; }
@@ -180,6 +187,7 @@
         <option value="3">Come Get Some</option>
         <option value="4">Damn I'm Good</option>
       </select></label><br>
+      <label>resolution <input id="optRes" type="range" min="1" max="3" step="1" value="1"> <span id="resInfo">1× (320×200)</span></label><br>
       <label><input id="optCross" type="checkbox"> crosshair</label><br>
       <label><input id="optGod" type="checkbox"> god mode</label><br>
       <label><input id="optAmmo" type="checkbox"> all weapons, full ammo and all key cards</label><br>
@@ -344,7 +352,7 @@ const ZRANGE_DIST = 163;
 
 const els = {};
 for (const id of ['menu', 'screen', 'hud', 'frame', 'map', 'status', 'hudline', 'hint',
-  'grpInfo', 'levels', 'btnMap', 'btnMenu', 'touch', 'optGod', 'optAmmo', 'optCross', 'optSkill', 'optMusic', 'optMobile', 'pad', 'btnResume', 'optSlot', 'btnSave', 'btnLoad', 'saveInfo']) {
+  'grpInfo', 'levels', 'btnMap', 'btnMenu', 'touch', 'optGod', 'optAmmo', 'optCross', 'optSkill', 'optMusic', 'optMobile', 'optRes', 'resInfo', 'pad', 'btnResume', 'optSlot', 'btnSave', 'btnLoad', 'saveInfo']) {
   els[id] = document.getElementById(id);
 }
 
@@ -355,6 +363,11 @@ for (const id of ['menu', 'screen', 'hud', 'frame', 'map', 'status', 'hudline', 
 // length (160 columns per unit of tan) and the same 200 rows — more to the
 // left and right, nothing stretched. fov = 2*atan(W/320); at 320, 90 degrees.
 let viewW = 320, viewOx = 0;                 // the view's width, and where the 320 overlays sit in it
+// The resolution factor (the menu's slider): the frame is rendered at
+// viewS times Duke's 320x200 — Build's renderer scales with xdim/ydim (the
+// focal lengths and the horiz unit grow with it) — and every 320x200 piece
+// of the 2D layer is drawn viewS times larger, as rotatesprite scales it.
+let viewS = 1;
 let fullRenderer = new Renderer(320, 200, 90);
 let barRenderer = new Renderer(320, VIEW_HEIGHT, 90, { refHeight: 200 });
 /** The view's width for the window: 4:3 or narrower keeps 320 (portrait letterboxes); wider, 240 columns per unit of height. */
@@ -363,26 +376,35 @@ function viewWidthFor(w, h) {
   if (!(a > 4 / 3 + 1e-3)) return 320;
   return Math.min(1024, Math.round(240 * a / 2) * 2);
 }
-function setViewWidth(w) {
-  if (w === viewW) return;
+let builtW = 320, builtS = 1;
+function setViewWidth(w, sc = viewS) {
+  if (w === builtW && sc === builtS) return;
   const wasBar = renderer === barRenderer;
   const fov = 2 * Math.atan(w / 320) * 180 / Math.PI;
-  fullRenderer = new Renderer(w, 200, fov, { horPlus: true });
-  barRenderer = new Renderer(w, VIEW_HEIGHT, fov, { refHeight: 200, horPlus: true });
+  fullRenderer = new Renderer(w * sc, 200 * sc, fov, { refHeight: 200 * sc, horPlus: true });
+  barRenderer = new Renderer(w * sc, VIEW_HEIGHT * sc, fov, { refHeight: 200 * sc, horPlus: true });
   renderer = wasBar ? barRenderer : fullRenderer;
-  frameImage = ctx.createImageData(w, 200); framePx = new Uint32Array(frameImage.data.buffer);
-  viewW = w;
+  frameImage = ctx.createImageData(w * sc, 200 * sc); framePx = new Uint32Array(frameImage.data.buffer);
+  viewW = w; builtW = w; builtS = sc;
+}
+// The frame buffer's size: the view's logical size times the factor.
+const bufW = () => viewW * viewS;
+const bufH = () => 200 * viewS;
+// A 320x200-space tile into the frame: position and size times viewS.
+function put(src, x, y, opts = {}) {
+  blit(framePx, bufW(), bufH(), src, x * viewS, y * viewS,
+    { scale: (opts.scale || 1) * viewS, translucent: !!opts.translucent, clipH: (opts.clipH ?? 200) * viewS });
 }
 // The canvas in play (widened to the window) and for the full screens
 // (the start-up, the loading screen, the endings: 320x200 at 4:3, centred).
 function gameCanvas() {
-  setViewWidth(viewWidthFor(innerWidth, innerHeight));
-  setFrameWidth(viewW);
+  setViewWidth(viewWidthFor(innerWidth, innerHeight), viewS);
+  setFrameWidth(viewW * viewS, 200 * viewS);
   els.frame.classList.toggle('wide', viewW > 320);
   viewOx = (viewW - 320) >> 1;
 }
 function screenCanvas() {
-  setFrameWidth(320);
+  setFrameWidth(320, 200);
   els.frame.classList.remove('wide');
   viewOx = 0;
 }
@@ -410,12 +432,13 @@ function xyzMirror(camIdx, tileNum) {
 // 380x380 square, which covers the window's corners (188 from its centre)
 // at every angle.
 const TILTS = [];
-function tiltBuffer(w, h) {
-  let t = TILTS.find((b) => b.w === w && b.h === h);
+function tiltBuffer(w, h, sc = 1) {
+  let t = TILTS.find((b) => b.w === w && b.h === h && b.sc === sc);
   if (!t) {
-    // focalX 160 and focalY 128 at any width: fov from w, refHeight w*200/320.
-    t = { w, h,
-      renderer: new Renderer(w, h, 2 * Math.atan(w / 320) * 180 / Math.PI, { refHeight: 200 * w / 320, tall: true }) };
+    // focalX 160 and focalY 128 at any width (times the factor): fov from w,
+    // refHeight w*200/320 times sc.
+    t = { w, h, sc,
+      renderer: new Renderer(w * sc, h * sc, 2 * Math.atan(w / 320) * 180 / Math.PI, { refHeight: 200 * w * sc / 320, tall: true }) };
     TILTS.push(t);
   }
   return t;
@@ -430,12 +453,12 @@ function tiltedView(eye, opts, viewH, tang) {
   const small = Math.abs(a) <= 64;
   const extra = viewW - 320;
   const t = small
-    ? tiltBuffer(356 + extra, Math.max(260, Math.ceil(viewW * 0.1951 + 200 * 0.9808) + 4))
-    : (() => { const d = Math.max(380, Math.ceil(Math.hypot(viewW, 200)) + 4); return tiltBuffer(d, d); })();
+    ? tiltBuffer(356 + extra, Math.max(260, Math.ceil(viewW * 0.1951 + 200 * 0.9808) + 4), viewS)
+    : (() => { const d = Math.max(380, Math.ceil(Math.hypot(viewW, 200)) + 4); return tiltBuffer(d, d, viewS); })();
   const TILT_W = t.w, TILT_H = t.h;
   const stats = t.renderer.render({ ...eye, horiz: 100 + (eye.horiz - 100) * 320 / TILT_W }, opts);
   // rotatesprite's angle: clockwise on screen, about the window's centre.
-  rotateInto(framePx, viewW, viewH, t.renderer.pixels, TILT_W, TILT_H, tang);
+  rotateInto(framePx, bufW(), viewH * viewS, t.renderer.pixels, TILT_W * viewS, TILT_H * viewS, tang);
   return stats;
 }
 let renderer = barRenderer;
@@ -447,8 +470,9 @@ const ctx = els.frame.getContext('2d', { alpha: false });
 // canvas gets ONE putImageData per frame (js/blit.js).
 let frameImage = ctx.createImageData(320, 200);
 let framePx = new Uint32Array(frameImage.data.buffer);
-function setFrameWidth(w) {
+function setFrameWidth(w, h = 200) {
   if (els.frame.width !== w) els.frame.width = w;
+  if (els.frame.height !== h) els.frame.height = h;
 }
 
 let assets = null, level = null, running = false, lastTime = 0;
@@ -858,11 +882,11 @@ function* loadingSeq(name, fromGame) {
   // dofrontscreens: the game fades to black (only when it was on screen),
   // LOADSCREEN with ENTERING and the name, fading in with the game palette.
   if (fromGame) {
-    const snap = ctx.getImageData(0, 0, els.frame.width, 200);
+    const snap = ctx.getImageData(0, 0, els.frame.width, els.frame.height);
     for (const e of FADE_OUT.slice(0, -1)) {
       ctx.putImageData(snap, 0, 0);
       ctx.fillStyle = `rgba(0,0,0,${Math.min(1, e / 64)})`;
-      ctx.fillRect(0, 0, els.frame.width, 200);
+      ctx.fillRect(0, 0, els.frame.width, els.frame.height);
       const t0 = yield 'now';
       for (let now = t0; now - t0 < FADE_MS; now = yield) {}
     }
@@ -1320,6 +1344,10 @@ addEventListener('blur', () => { touchHeld.clear(); padPointer = null; setPadZon
   // tablet, off otherwise; ticking it holds for this visit.
   try { globalThis.localStorage.removeItem('uduke.mobileControls'); } catch { /* private mode */ }
   els.optMobile.checked = touchDevice();
+  // The resolution factor: 1 is Duke's 320x200; it holds for the visit.
+  const resLabel = () => { els.resInfo.textContent = `${viewS}× (${320 * viewS}×${200 * viewS})`; };
+  els.optRes.value = '1'; viewS = 1; resLabel();
+  els.optRes.addEventListener('input', () => { viewS = Math.max(1, Math.min(3, Number(els.optRes.value) || 1)); resLabel(); });
   applyMobile(els.optMobile.checked);
   els.optMobile.addEventListener('change', () => applyMobile(els.optMobile.checked));
 }
@@ -1523,7 +1551,7 @@ function drawCameraText() {
     const c = gunTile(f.tile, false, 0);
     if (!t || !c) continue;
     const at = rotatedPlacement(f, t);
-    blitPlaced(framePx, viewW, 200, c, { ...at, x: at.x + viewOx }, viewH);
+    blitPlaced(framePx, bufW(), bufH(), c, { ...at, x: at.x + viewOx }, viewH * viewS, viewS);
   }
 }
 
@@ -1571,7 +1599,7 @@ function drawWeapon() {
     if (!t) { parts.push(`${f.tile}:no tile`); continue; }
     if (!c) { parts.push(`${f.tile}:blank in this GRP`); continue; }
     const at = tilePlacement(f, t);
-    blit(framePx, viewW, 200, c, at.left + viewOx, at.top, { scale: at.scale || 1, translucent: !!f.translucent, clipH: renderer === barRenderer ? VIEW_HEIGHT : 200 });
+    put(c, at.left + viewOx, at.top, { scale: at.scale || 1, translucent: !!f.translucent, clipH: renderer === barRenderer ? VIEW_HEIGHT : 200 });
     parts.push(`${f.tile}${f.flip ? 'm' : ''}@${at.left},${at.top}`);
   }
   // For the HUD: what the weapon view put up this frame, or why nothing.
@@ -1600,12 +1628,12 @@ function barTile(num, shade, pal) {
 // left edge, not of the 320 screen in its middle.
 function drawMiniStatusBar() {
   for (const o of miniStatusBar(assets.art, level.player, viewOx)) {
-    blit(framePx, viewW, 200, barTile(o.tile, o.shade, o.pal), o.x + viewOx, o.y);
+    put(barTile(o.tile, o.shade, o.pal), o.x + viewOx, o.y);
   }
 }
 function drawStatusBar() {
   const ops = statusBar(assets.art, level.player, { shareware: assets.shareware || [] });
-  for (const o of ops) blit(framePx, viewW, 200, barTile(o.tile, o.shade, o.pal), o.x + viewOx, o.y);
+  for (const o of ops) put(barTile(o.tile, o.shade, o.pal), o.x + viewOx, o.y);
 }
 
 /** Duke's crosshair tile, drawn pixel for pixel at the centre of the view. */
@@ -1621,7 +1649,7 @@ function drawCrosshair() {
   // bar's 166-row view it sits on row 83 — where the aim is. At 100 it was
   // 17 rows under the bullet holes.
   const cy = renderer === barRenderer ? (VIEW_HEIGHT >> 1) : 100;
-  blit(framePx, viewW, 200, crossCanvas, 160 - (crossCanvas.w >> 1) + viewOx, cy - (crossCanvas.h >> 1));
+  put(crossCanvas, 160 - (crossCanvas.w >> 1) + viewOx, cy - (crossCanvas.h >> 1));
 }
 
 /**
@@ -1652,7 +1680,7 @@ function endLevel() {
   // ud.eog: the episode's ending (dobonus) plays before the tally. Its own
   // sound system; the level's is silenced. The game shows under nothing.
   if (level.vm.eog) {
-    const snap = ctx.getImageData(0, 0, els.frame.width, 200);
+    const snap = ctx.getImageData(0, 0, els.frame.width, els.frame.height);
     els.hud.classList.add('hidden');
     front = { gen: endingSeqFrom(vol, snap), skip: false, escape: false, gate: false, sounds: buildSounds(assets),
       onDone: () => { stopAllSounds(); els.hud.classList.remove('hidden'); lastTime = performance.now(); simDebt = 0; } };
@@ -1664,7 +1692,7 @@ function* endingSeqFrom(vol, snap) {
   for (const e of FADE_OUT.slice(0, -1)) {
     ctx.putImageData(snap, 0, 0);
     ctx.fillStyle = `rgba(0,0,0,${Math.min(1, e / 64)})`;
-    ctx.fillRect(0, 0, els.frame.width, 200);
+    ctx.fillRect(0, 0, els.frame.width, els.frame.height);
     const t0 = yield 'now';
     for (let now = t0; now - t0 < FADE_MS; now = yield) {}
   }
@@ -2376,7 +2404,7 @@ function loop(now) {
   // lookup inside the inner loop, which is why there is no second pass here.
   // The frame in one array (js/blit.js): the view, then the tiles.
   if (!tilted) framePx.set(renderer.pixels);
-  if (renderer === barRenderer) framePx.fill(0xff000000, viewW * VIEW_HEIGHT);   // under and beside the bar
+  if (renderer === barRenderer) framePx.fill(0xff000000, bufW() * VIEW_HEIGHT * viewS);   // under and beside the bar
   // ud.crosshair: game.c 2856 draws tile CROSSHAIR at (160,100) at scale
   // 65536 — one tile pixel per screen pixel, index 255 transparent. The
   // canvas is 320x200, so the same numbers apply here unchanged.
@@ -2395,6 +2423,7 @@ function loop(now) {
   // in Duke's 320x200 screen, centred in a widened view; full-screen fills
   // use fullRect (the whole canvas).
   ctx.save();
+  ctx.scale(viewS, viewS);
   ctx.translate(viewOx, 0);
   const fullRect = () => ctx.fillRect(-viewOx, 0, viewW, 200);
   // palfrom: the CON's screen flash (an item picked up is green), fading

@@ -46,7 +46,7 @@ Two additions of uDuke's own: **Alt+↑/↓** aim like Home/End, for keyboards w
 
 Touch: tick **mobile controls** on the menu — on by default on a phone or tablet (the browser reports a finger as its main pointer), off otherwise; a change holds for the visit, not across reloads. A **d-pad** bottom left: up/down walk, left/right turn, the centre opens and uses. The pad is one capture surface, so your thumb can slide from "forward" straight into "turn" without lifting. Bottom right: **FIRE** (hold it), **JMP**, **CRO**, **WPN** (next weapon), **USE ITEM** and **ITEM ›**. A drag anywhere else on the view turns and looks, like the mouse. **MENU** and **MAP** sit top right. Every touch control feeds the same keys as the keyboard, so the two cannot behave differently. Landscape fits best — the view then fills the whole screen; in portrait it is letterboxed and the controls sit under it.
 
-On the menu you pick the level by episode and set the difficulty, the crosshair, **god mode**, **all weapons, full ammo and all key cards**, the mobile controls and the music.
+On the menu you pick the level by episode and set the difficulty, the resolution (a slider: 1× is Duke's 320×200, 2× and 3× render at twice and three times that — sharper edges and distance, the same textures; 3× wants a fast machine), the crosshair, **god mode**, **all weapons, full ammo and all key cards**, the mobile controls and the music.
 
 ## Saved games
 

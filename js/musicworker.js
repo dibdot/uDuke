@@ -14,7 +14,7 @@
 import { MusicRenderer, parseTimbres, MODULE_STAGE as MUSIC_STAGE } from './music.js';
 import { MODULE_STAGE as OPL3_STAGE } from './opl3.js';
 
-export const MODULE_STAGE = 'stage12.196';
+export const MODULE_STAGE = 'stage12.200';
 
 let renderer = null;
 self.onmessage = ({ data: m }) => {

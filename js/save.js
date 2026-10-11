@@ -1,5 +1,5 @@
 // Cache tripwire: see con.js.
-export const MODULE_STAGE = 'stage12.196';
+export const MODULE_STAGE = 'stage12.200';
 
 // uDuke - saving and loading a game.
 //
