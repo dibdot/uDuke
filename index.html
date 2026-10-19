@@ -2309,8 +2309,11 @@ function loop(now) {
   const underwater = secLotag === 2;
   const sway = swimSway(level.player, underwater, secLotag === 1, level.player.jetpackOn > 0);
   // The projectile probe: every live weapon-stat sprite, with its sector,
-  // size and whether this frame drew it.
-  if (level.vm) {
+  // size and whether this frame drew it. Only while the probe lines are
+  // shown (Alt+D): it walks every sprite slot several times a frame, and a
+  // firefight is exactly when the slots fill.
+  renderer.debugSprite = -1;
+  if (level.vm && debugHud) {
     // The probe follows the explosion of the LAST logged rocket (the one
     // whose owner is that rocket's slot), not the lowest explosion index —
     // that picked tank explosions on the deck.
@@ -2357,7 +2360,7 @@ function loop(now) {
     ? tiltedView(eye, renderOpts, renderer === barRenderer ? VIEW_HEIGHT : 200, tang)
     : renderer.render(eye, renderOpts);
   perfLap('render', renderT0);
-  if (level.vm) {
+  if (level.vm && debugHud) {
     const live = [];
     lvlMap.sprites.forEach((sp, i) => { if (!sp.removed && level.vm.stat.get(i) === 4) live.push(i); });
     const end = level.vm.lastProjEnd;

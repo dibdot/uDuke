@@ -3,7 +3,7 @@
 // from its cache showed up as 'HEALTH undefined' — a field the stale
 // player.js did not have. That is the third stale-cache report; this makes
 // the fourth say which file.
-export const MODULE_STAGE = 'stage12.200';
+export const MODULE_STAGE = 'stage12.201';
 
 /**
  * How far behind the stored depth a sprite may be and still be drawn.
@@ -800,6 +800,15 @@ export class Renderer {
     this.curWall = -1;
     this.umost.fill(0);
     this.dmost.fill(height - 1);
+    // The columns this pass has to deliver: all of them, except for the
+    // mirror's scratch pass, which is asked for the mirror's columns only
+    // (#drawMirror sets clipLo/clipHi). Outside them the clip arrays start
+    // closed, so walls and flats skip those columns, and the sprite and
+    // masked-wall loops are cut to the window.
+    this.colLo = Math.max(0, this.clipLo ?? 0);
+    this.colHi = Math.min(width - 1, this.clipHi ?? width - 1);
+    for (let x = 0; x < this.colLo; x++) { this.umost[x] = 1; this.dmost[x] = 0; }
+    for (let x = this.colHi + 1; x < width; x++) { this.umost[x] = 1; this.dmost[x] = 0; }
 
     // Opt-in: one byte per pixel, cleared per frame. Off by default so the
     // interactive path pays nothing for it.
@@ -864,9 +873,14 @@ export class Renderer {
     // a zero there means nothing was ever drawn. This separates "the
     // traversal missed geometry" from "the geometry is there but shaded to
     // black", which look identical on screen and have nothing in common.
-    let blank = 0;
-    for (let i = 0; i < this.depth.length; i++) if (this.depth[i] === 0) blank++;
-    this.stats.unpainted = blank;
+    //
+    // A whole pass over the depth buffer, so on request only (res.countUnpainted,
+    // or with the drop tracking that needs it anyway); otherwise null.
+    if (res.countUnpainted || this.trackDrops) {
+      let blank = 0;
+      for (let i = 0; i < this.depth.length; i++) if (this.depth[i] === 0) blank++;
+      this.stats.unpainted = blank;
+    } else this.stats.unpainted = null;
 
     // Attribute the survivors. A reason stamped on a pixel that some later
     // span covered is not a gap and is not counted here.
@@ -986,6 +1000,12 @@ export class Renderer {
       this.scratch = new Renderer(this.width, this.height, this.fov);
     }
     const sc = this.scratch;
+    // Only the mirror's own columns are copied back, flipped, so only those
+    // are rendered: the main pass's projection of the mirror wall gives them.
+    const W = this.width, H = this.height;
+    const me = this.wallSeen[wi] === this.stamp ? this.scanned[this.wallSlot[wi]] : null;
+    const mx1 = me ? Math.max(0, me.x1) : 0, mx2 = me ? Math.min(W - 1, me.x2) : W - 1;
+    sc.clipLo = W - 1 - mx2; sc.clipHi = W - 1 - mx1;
     const mcam = { x: tx, y: ty, z: cam.z, ang: tang, horiz: cam.horiz, sectNum: w.nextSector };
     // The actors' view frames are chosen for the camera that looks at them:
     // for the mirror that is the reflected one (Duke calls animatesprites
@@ -995,10 +1015,9 @@ export class Renderer {
     sc.render(mcam, this.res);
     sc.inMirrorPass = false;
     if (this.res.animateFor) this.res.animateFor(cam);
-    const W = this.width, H = this.height;
     for (let y = 0; y < H; y++) {
       const row = y * W;
-      for (let x = 0; x < W; x++) {
+      for (let x = mx1; x <= mx2; x++) {
         const i = row + x;
         if (this.wallOf[i] !== wi) continue;
         this.pixels[i] = sc.pixels[row + (W - 1 - x)];
@@ -1314,7 +1333,18 @@ export class Renderer {
     const skipUpper = !!nsec && (sec.ceilingStat & 1) !== 0 && (nsec.ceilingStat & 1) !== 0;
     const skipLower = !!nsec && (sec.floorStat & 1) !== 0 && (nsec.floorStat & 1) !== 0;
 
-    for (let x = entry.x1; x <= entry.x2; x++) {
+    // The probe's detail record, built only when the probe column asks for
+    // it. Defined once per wall: as a closure inside the column loop it was a
+    // fresh function object per column and frame, for the collector to sweep.
+    const detail = (tile, anchor) => ({
+      wall: entry.wall, cstat: w.cstat,
+      yPan: w.yPanning, yRep: w.yRepeat, xPan: w.xPanning, xRep: w.xRepeat,
+      tileH: tile ? tile.height : null, tileW: tile ? tile.width : null,
+      anchor,
+    });
+
+    const xa = Math.max(entry.x1, this.colLo), xb = Math.min(entry.x2, this.colHi);
+    for (let x = xa; x <= xb; x++) {
       // The probe's bookkeeping (#mark, the band detail) only where the probe
       // pixel is: building it for every column allocated per column and frame.
       const pc = this.probeIdx >= 0 && this.probeIdx % this.width === x;
@@ -1378,12 +1408,6 @@ export class Renderer {
       this.#flatSpan(x, rowFloor + 1, bot, floorFlat);
 
       const shade = this.shade(w.shade, dist, sec.visibility);
-      const detail = (tile, anchor) => ({
-        wall: entry.wall, cstat: w.cstat,
-        yPan: w.yPanning, yRep: w.yRepeat, xPan: w.xPanning, xRep: w.xRepeat,
-        tileH: tile ? tile.height : null, tileW: tile ? tile.width : null,
-        anchor,
-      });
 
       if (!portal) {
         if (pc) this.#mark('wall', entry.sect, w.picNum, w.shade,
@@ -1530,14 +1554,20 @@ export class Renderer {
 
     const tpx = tile.pixels, wallOf = this.wallOf, cw = this.curWall;
     const probeCol = this.probeIdx >= 0 && this.probeIdx % width === x;
+    // Nearly every wall tile is a power of two tall. For v >= 0 the float
+    // remainder truncated is the truncated v masked — fmod is exact — so the
+    // mask is the same texel, without a floating-point division per pixel.
+    // Negative v and other heights keep the remainder.
+    const hm = (h & (h - 1)) === 0 ? h - 1 : -1;
     for (let y = y0; y <= y1; y++, v += vStep) {
       const i = y * width + x;
       if (zbuf[i] !== 0) {
         if (invZ > zbuf[i]) this.stats.sortErrors++;
         else continue;
       }
-      let iv = v % h;
-      if (iv < 0) iv += h;
+      let iv;
+      if (hm >= 0 && v >= 0 && v < 2147483648) iv = (v | 0) & hm;
+      else { iv = v % h; if (iv < 0) iv += h; }
       zbuf[i] = invZ;
       wallOf[i] = cw;
       pixels[i] = shadeLuts[lut + tpx[col + (iv | 0)]];
@@ -1615,6 +1645,8 @@ export class Renderer {
     // that this is the wrong way round.
     const alignTop = (w.cstat & 4) === 0;
     const th = tile.height, tw = tile.width;
+    const thm = (th & (th - 1)) === 0 ? th - 1 : -1;
+    const tpx = tile.pixels, wallOf = this.wallOf, cw = this.curWall;
     const maskPan = panTexels(w.yPanning, th, vScale);
     // A grate or a force field carries its own pal like any other surface.
     const maskedLuts = this.#luts(w.pal);
@@ -1640,7 +1672,8 @@ export class Renderer {
     });
     let drawn = false;
 
-    for (let x = entry.x1; x <= entry.x2; x++) {
+    const xa = Math.max(entry.x1, this.colLo), xb = Math.min(entry.x2, this.colHi);
+    for (let x = xa; x <= xb; x++) {
       const f = (x + 0.5 - entry.sxa) / span;
       const invZ = invZ1 + (invZ2 - invZ1) * f;
       const dist = 1 / invZ;
@@ -1666,19 +1699,22 @@ export class Renderer {
       const ya = Math.max(0, Math.ceil(yTop - 0.5));
       const yb = Math.min(height - 1, Math.floor(yBot - 0.5));
       let v = vTop + (ya + 0.5 - yTop) * vStep;
+      const probeCol = this.probeIdx >= 0 && this.probeIdx % width === x;
 
       for (let y = ya; y <= yb; y++, v += vStep) {
         const i = y * width + x;
         if (invZ < zbuf[i] * (1 - SPRITE_DEPTH_TIE)) continue;
-        let iv = v % th;
-        if (iv < 0) iv += th;
-        const texel = tile.pixels[col + (iv | 0)];
+        // The mask instead of the remainder where they agree; see #texColumn.
+        let iv;
+        if (thm >= 0 && v >= 0 && v < 2147483648) iv = (v | 0) & thm;
+        else { iv = v % th; if (iv < 0) iv += th; }
+        const texel = tpx[col + (iv | 0)];
         if (texel === 255) continue;
         zbuf[i] = invZ;
-        this.wallOf[i] = this.curWall;
+        wallOf[i] = cw;
         // Wall cstat 128: translucent (512 reverses it).
         pixels[i] = trans ? Renderer.blend(pixels[i], maskedLuts[shade + texel], transRev) : maskedLuts[shade + texel];
-        this.#hit(i);
+        if (probeCol) this.#hit(i);
         drawn = true;
       }
     }
@@ -1835,8 +1871,8 @@ export class Renderer {
     const yTop = horizon + (topZ - cam.z) / 16 * focalY * invZ;
     if (yBot - yTop < 1e-6 || sxb - sxa < 1e-6) { if (dbg) dbg.stage = 'degenerate'; return; }
 
-    const x1 = Math.max(0, Math.ceil(sxa - 0.5));
-    const x2 = Math.min(width - 1, Math.floor(sxb - 0.5));
+    const x1 = Math.max(this.colLo, Math.ceil(sxa - 0.5));
+    const x2 = Math.min(this.colHi, Math.floor(sxb - 0.5));
     if (x1 > x2) { if (dbg) dbg.stage = 'off screen x'; return; }
     if (dbg) {
       dbg.stage = 'columns'; dbg.x1 = x1; dbg.x2 = x2; dbg.yTop = Math.round(yTop); dbg.yBot = Math.round(yBot);
@@ -1860,32 +1896,41 @@ export class Renderer {
     const vScale = th / (yBot - yTop);
 
     let drawn = false;
+    const tpx = tile.pixels, wallOf = this.wallOf;
+    const tie = 1 - SPRITE_DEPTH_TIE;
+    // spritewallfront() depends on the sprite and the wall only, and a run of
+    // pixels behind one wall asks it of the same wall again and again — a
+    // close explosion asked it for every pixel it covered. Kept per wall, as
+    // the wall-sprite path does.
+    let sideW = -2, sideFront = false;
+    const y1 = Math.max(0, Math.ceil(yTop - 0.5));
+    const y2 = Math.min(height - 1, Math.floor(yBot - 0.5));
     for (let x = x1; x <= x2; x++) {
       let uf = (x + 0.5 - sxa) / (sxb - sxa);
       if (xflip) uf = 1 - uf;
       const u = clamp(Math.floor(uf * tw), 0, tw - 1);
       const col = u * th;
+      const probeCol = this.probeIdx >= 0 && this.probeIdx % width === x;
 
-      const y1 = Math.max(0, Math.ceil(yTop - 0.5));
-      const y2 = Math.min(height - 1, Math.floor(yBot - 0.5));
       for (let y = y1; y <= y2; y++) {
         const i = y * width + x;
-        if (invZ < zbuf[i] * (1 - SPRITE_DEPTH_TIE)) {           // something nearer
+        if (invZ < zbuf[i] * tie) {           // something nearer
           // A nearer WALL hides the billboard only when its centre lies
           // behind that wall's line (spritewallfront); a nearer flat or
           // sprite hides it outright.
-          const w = this.wallOf[i];
-          if (w < 0 || !this.#spriteInFrontOfWall(spr, w)) { if (dbg) { if (w < 0) dbg.depthFlat++; else { dbg.depthWall++; dbg.lastWall = w; } } continue; }
+          const w = wallOf[i];
+          if (w >= 0 && w !== sideW) { sideW = w; sideFront = this.#spriteInFrontOfWall(spr, w); }
+          if (w < 0 || !sideFront) { if (dbg) { if (w < 0) dbg.depthFlat++; else { dbg.depthWall++; dbg.lastWall = w; } } continue; }
         }
         let v = (y + 0.5 - yTop) * vScale;
         if (yflip) v = th - v;
-        const texel = tile.pixels[col + clamp(Math.floor(v), 0, th - 1)];
+        const texel = tpx[col + clamp(Math.floor(v), 0, th - 1)];
         if (texel === 255) { if (dbg) dbg.transparent++; continue; }             // transparent
         zbuf[i] = invZ;
-        this.wallOf[i] = -1;
+        wallOf[i] = -1;
         if (dbg) dbg.px++;
         pixels[i] = trans ? Renderer.blend(pixels[i], spriteLuts[lut + texel], transRev) : spriteLuts[lut + texel];
-        this.#hit(i);
+        if (probeCol) this.#hit(i);
         drawn = true;
       }
     }
@@ -1963,8 +2008,8 @@ export class Renderer {
     }
     if (sxb - sxa < 1e-6) return;
 
-    const x1 = Math.max(0, Math.ceil(sxa - 0.5));
-    const x2 = Math.min(width - 1, Math.floor(sxb - 0.5));
+    const x1 = Math.max(this.colLo, Math.ceil(sxa - 0.5));
+    const x2 = Math.min(this.colHi, Math.floor(sxb - 0.5));
     if (x1 > x2) return;
 
     const tOverZ1 = t1 * iz1, tOverZ2 = t2 * iz2;
@@ -2077,8 +2122,8 @@ export class Renderer {
       if (px2 < minX) minX = px2; if (px2 > maxX) maxX = px2;
       if (py2 < minY) minY = py2; if (py2 > maxY) maxY = py2;
     }
-    const x1 = safe ? Math.max(0, Math.floor(minX)) : 0;
-    const x2 = safe ? Math.min(width - 1, Math.ceil(maxX)) : width - 1;
+    const x1 = safe ? Math.max(this.colLo, Math.floor(minX)) : this.colLo;
+    const x2 = safe ? Math.min(this.colHi, Math.ceil(maxX)) : this.colHi;
     const y1 = safe ? Math.max(0, Math.floor(minY)) : 0;
     const y2 = safe ? Math.min(height - 1, Math.ceil(maxY)) : height - 1;
     if (x1 > x2 || y1 > y2) return;
@@ -2087,36 +2132,45 @@ export class Renderer {
     const spriteLuts = this.#luts(spr.dispPal ?? spr.pal);
     let drawn = false;
 
-    for (let x = x1; x <= x2; x++) {
-      const lat = x + 0.5 - halfW;
-      for (let y = y1; y <= y2; y++) {
-        const inv = invRow[y];
-        if (inv === 0) continue;
-        const dist = k * inv;
-        if (dist <= 0) continue;
-        const invZ = 1 / dist;
-        const i = y * width + x;
-        if (invZ < zbuf[i] * (1 - SPRITE_DEPTH_TIE)) continue;
+    // Row by row: every pixel here reads and writes only itself, so the order
+    // is free, and along a row the depth, the shade and half of the world
+    // point are constant. Column by column the same work strode through the
+    // frame a row apart — and an unsafe bounding box is the whole frame.
+    const tpx = tile.pixels, worldW = m.worldW, worldH = m.worldH;
+    const baseShade = spr.dispShade ?? spr.shade, tie = 1 - SPRITE_DEPTH_TIE;
+    const { fx, fy, rx, ry } = this;
+    const probeRow = this.probeIdx >= 0 ? Math.floor(this.probeIdx / width) : -1;
+    for (let y = y1; y <= y2; y++) {
+      const inv = invRow[y];
+      if (inv === 0) continue;
+      const dist = k * inv;
+      if (dist <= 0) continue;
+      const invZ = 1 / dist;
+      const ky = invRowF[y];
+      const bx = cam.x + fx * dist, by = cam.y + fy * dist;
+      const lut = this.shade(baseShade, dist, sec.visibility) * 256;
+      const o = y * width;
+      for (let x = x1; x <= x2; x++) {
+        const i = o + x;
+        if (invZ < zbuf[i] * tie) continue;
 
-        const off = lat * k * invRowF[y];
-        const relx = cam.x + this.fx * dist + this.rx * off - cx;
-        const rely = cam.y + this.fy * dist + this.ry * off - cy;
+        const off = (x + 0.5 - halfW) * k * ky;
+        const relx = bx + rx * off - cx;
+        const rely = by + ry * off - cy;
 
         const tu = relx * ux + rely * uy;
-        if (tu < 0 || tu >= m.worldW) continue;
+        if (tu < 0 || tu >= worldW) continue;
         const tv = relx * vx + rely * vy;
-        if (tv < 0 || tv >= m.worldH) continue;
+        if (tv < 0 || tv >= worldH) continue;
 
-        const texel = tile.pixels[
-          clamp(Math.floor(tu / m.worldW * tw), 0, tw - 1) * th +
-          clamp(Math.floor(tv / m.worldH * th), 0, th - 1)];
+        const texel = tpx[
+          clamp(Math.floor(tu / worldW * tw), 0, tw - 1) * th +
+          clamp(Math.floor(tv / worldH * th), 0, th - 1)];
         if (texel === 255) continue;
         zbuf[i] = invZ;
-        {
-          const c = spriteLuts[this.shade(spr.dispShade ?? spr.shade, dist, sec.visibility) * 256 + texel];
-          pixels[i] = trans ? Renderer.blend(pixels[i], c, transRev) : c;
-        }
-        this.#hit(i);
+        const c = spriteLuts[lut + texel];
+        pixels[i] = trans ? Renderer.blend(pixels[i], c, transRev) : c;
+        if (y === probeRow) this.#hit(i);
         drawn = true;
       }
     }
@@ -2483,6 +2537,22 @@ export class Renderer {
     const th = tile ? tile.height : 0;
     const tw = tile ? tile.width : 0;
 
+    // Per span, as in #flatSpan: the pal's table, the masks, the probe
+    // column, and shade() unrolled into its three modes with its factors
+    // read once — the same expression in the same order, so the same shade.
+    const luts = this.#luts(d.pal);
+    const twm = (tw & (tw - 1)) === 0 ? tw - 1 : -1, thm = (th & (th - 1)) === 0 ? th - 1 : -1;
+    const probeCol = this.probeIdx >= 0 && this.probeIdx % width === x;
+    const tpx = tile ? tile.pixels : null;
+    const mode = this.mode, maxShade = this.res.numShades - 1;
+    const fadeRate = this.fadeRate, fold = foldVisibility(d.visibility);
+    const fixedShade = mode >= MODE_FULLBRIGHT ? 0
+      : mode === MODE_NO_FADE ? clamp(Math.round(d.shade), 0, maxShade) : -1;
+    const al = d.align;
+    const uScale = d.uScale, vScale = d.vScale, xPan = d.xPan, yPan = d.yPan;
+    const swapXY = d.swapXY, xflip = d.xflip, yflip = d.yflip;
+    const cx = cam.x, cy = cam.y;
+
     for (let y = y0; y <= y1; y++) {
       const i = y * width + x;
       const den = den1 - 16 * rowK[y];
@@ -2501,28 +2571,30 @@ export class Renderer {
         continue;
       }
 
-      const wx = cam.x + hx * dist;
-      const wy = cam.y + hy * dist;
+      const wx = cx + hx * dist;
+      const wy = cy + hy * dist;
       let tu, tv;
-      if (d.align) {
-        const rx = wx - d.align.ox, ry = wy - d.align.oy;
-        tu = rx * d.align.ux + ry * d.align.uy;
-        tv = (ry * d.align.ux - rx * d.align.uy) * d.align.across;
+      if (al) {
+        const rx = wx - al.ox, ry = wy - al.oy;
+        tu = rx * al.ux + ry * al.uy;
+        tv = (ry * al.ux - rx * al.uy) * al.across;
       } else { tu = wx; tv = -wy; }   // world axes: v runs against world y
-      tu *= d.uScale; tv *= d.vScale;
-      if (d.swapXY) { const t = tu; tu = tv; tv = t; }
-      if (d.xflip) tu = -tu;
-      if (d.yflip) tv = -tv;
+      tu *= uScale; tv *= vScale;
+      if (swapXY) { const t = tu; tu = tv; tv = t; }
+      if (xflip) tu = -tu;
+      if (yflip) tv = -tv;
 
-      const fu = mod(Math.floor(tu + d.xPan), tw), fv = mod(Math.floor(tv + d.yPan), th);
-      this.#uvAt(i, fu, fv);
-      const texel = tile.pixels[fu * th + fv];
-      pixels[i] = this.#luts(d.pal)[this.shade(d.shade, dist, d.visibility) * 256 + texel];
-      // After #uvAt, never before: #hit folds the pending texel into the
+      const gu = Math.floor(tu + xPan), gv = Math.floor(tv + yPan);
+      const fu = twm >= 0 ? gu & twm : mod(gu, tw), fv = thm >= 0 ? gv & thm : mod(gv, th);
+      const texel = tpx[fu * th + fv];
+      const sh = fixedShade >= 0 ? fixedShade
+        : clamp(Math.floor(d.shade + dist * fadeRate * fold), 0, maxShade);
+      pixels[i] = luts[sh * 256 + texel];
+      // #hit after #uvAt, never before: #hit folds the pending texel into the
       // report and clears it. Called first it would fold in whatever #uvAt
       // left behind last — the previous frame's, since nothing else consumes
       // it. The wall path has always had this order.
-      this.#hit(i);
+      if (probeCol) { this.#uvAt(i, fu, fv); this.#hit(i); }
     }
   }
 
@@ -2573,6 +2645,12 @@ export class Renderer {
     const probeCol = this.probeIdx >= 0 && this.probeIdx % width === x;
     const tpx = tile ? tile.pixels : null;
 
+    const k = d.k, al = d.align;
+    const uScale = d.uScale, vScale = d.vScale, xPan = d.xPan, yPan = d.yPan;
+    const swapXY = d.swapXY, xflip = d.xflip, yflip = d.yflip, dShade = d.shade;
+    const { fx, fy, rx, ry } = this;
+    const cx = cam.x, cy = cam.y, latK = lat * k;
+
     for (let y = y0; y <= y1; y++) {
       const i = y * width + x;
       const inv = invRow[y];
@@ -2592,30 +2670,31 @@ export class Renderer {
       // unpainted too, which is where Build's famous hall-of-mirrors comes
       // from. They turn up in a sweep at vantage points a player never
       // occupies and are invisible in normal play.
-      const dist = d.k * inv;
+      const dist = k * inv;
       if (dist <= 0) { this.#dropAt(i, DROP_FLAT_BEHIND, d.sect); continue; }
 
       if (zbuf[i] !== 0) continue;
       zbuf[i] = 1 / dist;
 
       if (!tile) {
-        pixels[i] = this.#pick(d.kind, d.sect, d.base, this.shade(d.shade, dist, d.visibility));
+        pixels[i] = this.#pick(d.kind, d.sect, d.base, this.shade(dShade, dist, d.visibility));
         this.#hit(i);
         continue;
       }
 
       // World point under this pixel. Depth is fixed for the row, and the
       // sideways offset scales with it, so both fall out of the tabulated
-      // reciprocal without a division.
-      const off = lat * d.k * invRowF[y];
-      const wx = cam.x + this.fx * dist + this.rx * off;
-      const wy = cam.y + this.fy * dist + this.ry * off;
+      // reciprocal without a division. (lat * k is lat * d.k * ..., read
+      // left to right — hoisted, not reassociated.)
+      const off = latK * invRowF[y];
+      const wx = cx + fx * dist + rx * off;
+      const wy = cy + fy * dist + ry * off;
 
       let tu, tv;
-      if (d.align) {
-        const rx = wx - d.align.ox, ry = wy - d.align.oy;
-        tu = rx * d.align.ux + ry * d.align.uy;
-        tv = (ry * d.align.ux - rx * d.align.uy) * d.align.across;
+      if (al) {
+        const ax = wx - al.ox, ay = wy - al.oy;
+        tu = ax * al.ux + ay * al.uy;
+        tv = (ay * al.ux - ax * al.uy) * al.across;
       } else {
         // World axes. Build's v runs against world y: ceilscan sets
         //
@@ -2629,17 +2708,17 @@ export class Renderer {
         // in opposite directions. That relation is pinned in the tests.
         tu = wx; tv = -wy;
       }
-      tu *= d.uScale; tv *= d.vScale;
-      if (d.swapXY) { const t = tu; tu = tv; tv = t; }
-      if (d.xflip) tu = -tu;
-      if (d.yflip) tv = -tv;
+      tu *= uScale; tv *= vScale;
+      if (swapXY) { const t = tu; tu = tv; tv = t; }
+      if (xflip) tu = -tu;
+      if (yflip) tv = -tv;
 
-      const fu = Math.floor(tu + d.xPan), fv = Math.floor(tv + d.yPan);
+      const fu = Math.floor(tu + xPan), fv = Math.floor(tv + yPan);
       const u = twm >= 0 ? fu & twm : mod(fu, tw);
       const v = thm >= 0 ? fv & thm : mod(fv, th);
       let sh;
-      if (fading) { sh = Math.floor(d.shade + dist * fadeK); sh = sh < 0 ? 0 : sh > maxShade ? maxShade : sh; }
-      else sh = this.shade(d.shade, dist, d.visibility);
+      if (fading) { sh = Math.floor(dShade + dist * fadeK); sh = sh < 0 ? 0 : sh > maxShade ? maxShade : sh; }
+      else sh = this.shade(dShade, dist, d.visibility);
       pixels[i] = luts[sh * 256 + tpx[u * th + v]];
       if (probeCol) { this.#uvAt(i, u, v); this.#hit(i); }   // #hit after #uvAt — see the sloped span
     }
