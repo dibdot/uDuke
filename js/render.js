@@ -3,7 +3,7 @@
 // from its cache showed up as 'HEALTH undefined' — a field the stale
 // player.js did not have. That is the third stale-cache report; this makes
 // the fourth say which file.
-export const MODULE_STAGE = 'stage12.201';
+export const MODULE_STAGE = 'stage12.202';
 
 /**
  * How far behind the stored depth a sprite may be and still be drawn.
@@ -140,9 +140,9 @@ const FLAT_TEXELS_PER_UNIT = 1 / 16;
  * pan reverses along with the texture; vScale already carries that sign.
  */
 function panTexels(yPan, height, vScale) {
-  if (!yPan) return 0;
-  const l = 1 << Math.ceil(Math.log2(height));
-  return yPan * l / 256 * (vScale < 0 ? -1 : 1);
+	if (!yPan) return 0;
+	const l = 1 << Math.ceil(Math.log2(height));
+	return yPan * l / 256 * (vScale < 0 ? -1 : 1);
 }
 
 /**
@@ -251,11 +251,11 @@ export const HORIZ_MIN = -99, HORIZ_MAX = 299;
 
 /** The screen row the horizon sits on, as a float. */
 export function horizonRow(horiz, height, refHeight = height) {
-  // drawrooms: globalhoriz = mulscale16(horiz-100, xdimenscale) + (ydimen>>1)
-  // — the unit comes from the FULL screen height (xdimenscale ∝ ydim), the
-  // centre from the viewport (ydimen). Equal unless a status bar shortens
-  // the view (premap.c vscrn).
-  return height / 2 + (horiz - HORIZ_LEVEL) * refHeight / BUILD_REF_HEIGHT;
+	// drawrooms: globalhoriz = mulscale16(horiz-100, xdimenscale) + (ydimen>>1)
+	// — the unit comes from the FULL screen height (xdimenscale ∝ ydim), the
+	// centre from the viewport (ydimen). Equal unless a status bar shortens
+	// the view (premap.c vscrn).
+	return height / 2 + (horiz - HORIZ_LEVEL) * refHeight / BUILD_REF_HEIGHT;
 }
 
 const SKY_BITS = 3;                       // pskybits, constant across Duke3D
@@ -284,10 +284,10 @@ const SKY_SEGMENTS = 1 << SKY_BITS;
 // and only newgame() clears it. uDuke shows one map at a time, so each sky gets
 // the value a freshly started level would give it.
 const SKY_TABLE = new Map([
-  [78, { off: [0, 0, 0, 0, 0, 0, 0, 0], yScale: 1 }],           // CLOUDYOCEAN, 65536
-  [80, { off: [0, 2, 3, 0, 2, 0, 1, 0], yScale: 1 / 2 }],       // MOONSKY1
-  [84, { off: [0, 0, 4, 0, 0, 1, 2, 3], yScale: 1 / 2 }],       // BIGORBIT1
-  [89, { off: [1, 2, 1, 3, 4, 0, 2, 3], yScale: 17408 / 65536 }], // LA, 16384+1024
+	[78, { off: [0, 0, 0, 0, 0, 0, 0, 0], yScale: 1 }],           // CLOUDYOCEAN, 65536
+	[80, { off: [0, 2, 3, 0, 2, 0, 1, 0], yScale: 1 / 2 }],       // MOONSKY1
+	[84, { off: [0, 0, 4, 0, 0, 1, 2, 3], yScale: 1 / 2 }],       // BIGORBIT1
+	[89, { off: [1, 2, 1, 3, 4, 0, 2, 3], yScale: 17408 / 65536 }], // LA, 16384+1024
 ]);
 const SKY_DEFAULT = { off: [0, 0, 0, 0, 0, 0, 0, 0], yScale: 1 / 2 };
 
@@ -349,8 +349,8 @@ const DEFAULT_FADE_RATE = BUILD_VISIBILITY / 2 ** 19;   // = 1/1024
  * truncation changes everything.
  */
 function foldVisibility(visibility) {
-  if (!visibility) return 1;
-  return ((visibility + 16) & 0xff) / 16;
+	if (!visibility) return 1;
+	return ((visibility + 16) & 0xff) / 16;
 }
 
 // Build units per texel of a sprite, per unit of xrepeat/yrepeat.
@@ -381,7 +381,7 @@ const MARKER_TILE_MIN = 1, MARKER_TILE_MAX = 10;
 const TILE_APLAYER = 1405;
 
 function isHiddenSprite(picNum) {
-  return (picNum >= MARKER_TILE_MIN && picNum <= MARKER_TILE_MAX) || picNum === TILE_APLAYER;
+	return (picNum >= MARKER_TILE_MIN && picNum <= MARKER_TILE_MAX) || picNum === TILE_APLAYER;
 }
 
 export const MODE_FULL = 0;
@@ -402,11 +402,11 @@ export const KIND_NAMES = ['wall', 'upper', 'lower', 'ceiling', 'floor'];
 
 // Packed 0xAABBGGRR to match buildLut() on a little-endian machine.
 export const KIND_COLOURS = new Uint32Array([
-  0xffd08040, // wall        blue
-  0xffd0d040, // upper step  cyan
-  0xff40c040, // lower step  green
-  0xff4040d0, // ceiling     red
-  0xff40d0d0, // floor       yellow
+	0xffd08040, // wall        blue
+	0xffd0d040, // upper step  cyan
+	0xff40c040, // lower step  green
+	0xff4040d0, // ceiling     red
+	0xff40d0d0, // floor       yellow
 ]);
 
 /**
@@ -427,8 +427,8 @@ export const DROP_FLAT_BEHIND = 2;     // flat plane behind the eye — see belo
 export const DROP_SLOPE_PARALLEL = 3;  // ray parallel to a sloped plane
 export const DROP_SLOPE_BEHIND = 4;    // sloped plane behind the eye — see below
 export const DROP_NAMES = [
-  'never considered', 'horizon row', 'flat behind eye',
-  'ray parallel to slope', 'slope behind eye',
+	'never considered', 'horizon row', 'flat behind eye',
+	'ray parallel to slope', 'slope behind eye',
 ];
 
 const UNPAINTED = 0xffff00ff;
@@ -448,52 +448,52 @@ const BACKGROUND = 0xff101014;
  * starts a bunch when its predecessor around the loop is not visible.
  */
 export function prepareMap(map) {
-  const facing = new Int8Array(map.sectors.length);
-  const prevWall = new Int32Array(map.walls.length).fill(-1);
-  const stats = { negativeWinding: 0, outerNotFirst: 0, holeSameWinding: 0, ambiguous: 0, sloped: 0 };
+	const facing = new Int8Array(map.sectors.length);
+	const prevWall = new Int32Array(map.walls.length).fill(-1);
+	const stats = { negativeWinding: 0, outerNotFirst: 0, holeSameWinding: 0, ambiguous: 0, sloped: 0 };
 
-  for (let i = 0; i < map.walls.length; i++) {
-    const p2 = map.walls[i].point2;
-    if (p2 >= 0 && p2 < map.walls.length) prevWall[p2] = i;
-  }
+	for (let i = 0; i < map.walls.length; i++) {
+		const p2 = map.walls[i].point2;
+		if (p2 >= 0 && p2 < map.walls.length) prevWall[p2] = i;
+	}
 
-  for (let i = 0; i < map.sectors.length; i++) {
-    const loops = sectorLoops(map, i);
-    const cls = classifyLoops(map, loops);
+	for (let i = 0; i < map.sectors.length; i++) {
+		const loops = sectorLoops(map, i);
+		const cls = classifyLoops(map, loops);
 
-    if (cls.ambiguous) stats.ambiguous++;
-    if (loops.length > 1 && cls.outer !== loops[0]) stats.outerNotFirst++;
+		if (cls.ambiguous) stats.ambiguous++;
+		if (loops.length > 1 && cls.outer !== loops[0]) stats.outerNotFirst++;
 
-    const sign = Math.sign(loopSignedArea(map, cls.outer)) || 1;
-    facing[i] = sign;
-    if (sign < 0) stats.negativeWinding++;
+		const sign = Math.sign(loopSignedArea(map, cls.outer)) || 1;
+		facing[i] = sign;
+		if (sign < 0) stats.negativeWinding++;
 
-    for (const hole of cls.holes) {
-      if (Math.sign(loopSignedArea(map, hole)) === sign) stats.holeSameWinding++;
-    }
-  }
+		for (const hole of cls.holes) {
+			if (Math.sign(loopSignedArea(map, hole)) === sign) stats.holeSameWinding++;
+		}
+	}
 
-  // A load-time census only. These planes are NOT handed to the renderer, which
-  // rebuilds them per frame: a plane carries the sector's z as its constant
-  // term, so a stored one is a snapshot that goes wrong the first time a door
-  // moves. Kept because "how many sloped sectors are in this level" is a
-  // question about the file, and the file does not move.
-  const planes = new Array(map.sectors.length);
-  for (let i = 0; i < map.sectors.length; i++) {
-    planes[i] = { ceil: slopePlane(map, i, true), floor: slopePlane(map, i, false) };
-    if (planes[i].ceil.sloped || planes[i].floor.sloped) stats.sloped++;
-  }
+	// A load-time census only. These planes are NOT handed to the renderer, which
+	// rebuilds them per frame: a plane carries the sector's z as its constant
+	// term, so a stored one is a snapshot that goes wrong the first time a door
+	// moves. Kept because "how many sloped sectors are in this level" is a
+	// question about the file, and the file does not move.
+	const planes = new Array(map.sectors.length);
+	for (let i = 0; i < map.sectors.length; i++) {
+		planes[i] = { ceil: slopePlane(map, i, true), floor: slopePlane(map, i, false) };
+		if (planes[i].ceil.sloped || planes[i].floor.sloped) stats.sloped++;
+	}
 
-  // Sprites are stored in one flat list; the renderer wants them per sector so
-  // it can walk only the sectors the flood actually reached.
-  const spritesBySector = new Array(map.sectors.length);
-  for (let i = 0; i < map.sprites.length; i++) {
-    const n = map.sprites[i].sectNum;
-    if (n < 0 || n >= map.sectors.length) continue;
-    (spritesBySector[n] ??= []).push(i);
-  }
+	// Sprites are stored in one flat list; the renderer wants them per sector so
+	// it can walk only the sectors the flood actually reached.
+	const spritesBySector = new Array(map.sectors.length);
+	for (let i = 0; i < map.sprites.length; i++) {
+		const n = map.sprites[i].sectNum;
+		if (n < 0 || n >= map.sectors.length) continue;
+		(spritesBySector[n] ??= []).push(i);
+	}
 
-  return { facing, prevWall, planes, spritesBySector, stats };
+	return { facing, prevWall, planes, spritesBySector, stats };
 }
 
 /**
@@ -503,30 +503,30 @@ export function prepareMap(map) {
  * palette index so shading still runs through the game's own shade tables.
  */
 export function buildSurfaceColours(map, artSet, palette) {
-  const wanted = new Set();
-  for (const s of map.sectors) { wanted.add(s.floorPicNum); wanted.add(s.ceilingPicNum); }
-  for (const w of map.walls) { wanted.add(w.picNum); wanted.add(w.overPicNum); }
+	const wanted = new Set();
+	for (const s of map.sectors) { wanted.add(s.floorPicNum); wanted.add(s.ceilingPicNum); }
+	for (const w of map.walls) { wanted.add(w.picNum); wanted.add(w.overPicNum); }
 
-  let max = 0;
-  for (const n of wanted) if (n > max) max = n;
-  const colours = new Uint8Array(max + 1).fill(96);
+	let max = 0;
+	for (const n of wanted) if (n > max) max = n;
+	const colours = new Uint8Array(max + 1).fill(96);
 
-  for (const n of wanted) {
-    const tile = artSet.get(n);
-    if (!tile?.pixels) continue;
+	for (const n of wanted) {
+		const tile = artSet.get(n);
+		if (!tile?.pixels) continue;
 
-    let r = 0, g = 0, b = 0, count = 0;
-    const stride = Math.max(1, Math.floor(tile.pixels.length / 4096));
-    for (let i = 0; i < tile.pixels.length; i += stride) {
-      const c = tile.pixels[i];
-      if (c === 255) continue;
-      r += palette.rgb[c * 3]; g += palette.rgb[c * 3 + 1]; b += palette.rgb[c * 3 + 2];
-      count++;
-    }
-    if (count) colours[n] = nearestIndex(palette.rgb, r / count, g / count, b / count);
-  }
+		let r = 0, g = 0, b = 0, count = 0;
+		const stride = Math.max(1, Math.floor(tile.pixels.length / 4096));
+		for (let i = 0; i < tile.pixels.length; i += stride) {
+			const c = tile.pixels[i];
+			if (c === 255) continue;
+			r += palette.rgb[c * 3]; g += palette.rgb[c * 3 + 1]; b += palette.rgb[c * 3 + 2];
+			count++;
+		}
+		if (count) colours[n] = nearestIndex(palette.rgb, r / count, g / count, b / count);
+	}
 
-  return colours;
+	return colours;
 }
 
 /**
@@ -548,2181 +548,2306 @@ export function buildSurfaceColours(map, artSet, palette) {
  * See the Renderer's #plane().
  */
 export function slopePlane(map, sectorIndex, ceiling) {
-  const sec = map.sectors[sectorIndex];
-  const z = ceiling ? sec.ceilingZ : sec.floorZ;
-  const stat = ceiling ? sec.ceilingStat : sec.floorStat;
-  const heinum = ceiling ? sec.ceilingHeinum : sec.floorHeinum;
+	const sec = map.sectors[sectorIndex];
+	const z = ceiling ? sec.ceilingZ : sec.floorZ;
+	const stat = ceiling ? sec.ceilingStat : sec.floorStat;
+	const heinum = ceiling ? sec.ceilingHeinum : sec.floorHeinum;
 
-  const flat = { sloped: false, A: 0, B: 0, C: z };
-  if (!(stat & 2) || heinum === 0) return flat;
+	const flat = { sloped: false, A: 0, B: 0, C: z };
+	if (!(stat & 2) || heinum === 0) return flat;
 
-  const w1 = map.walls[sec.wallPtr];
-  const w2 = w1 ? map.walls[w1.point2] : null;
-  if (!w1 || !w2) return flat;
+	const w1 = map.walls[sec.wallPtr];
+	const w2 = w1 ? map.walls[w1.point2] : null;
+	if (!w1 || !w2) return flat;
 
-  const dx = w2.x - w1.x, dy = w2.y - w1.y;
-  const len = Math.hypot(dx, dy);
-  if (len === 0) return flat;
+	const dx = w2.x - w1.x, dy = w2.y - w1.y;
+	const len = Math.hypot(dx, dy);
+	if (len === 0) return flat;
 
-  const k = heinum / (256 * len);
-  return {
-    sloped: true,
-    A: -k * dy,
-    B: k * dx,
-    C: z + k * (dy * w1.x - dx * w1.y),
-  };
+	const k = heinum / (256 * len);
+	return {
+		sloped: true,
+		A: -k * dy,
+		B: k * dx,
+		C: z + k * (dy * w1.x - dx * w1.y),
+	};
 }
 
 /** Signed side of the line a1->a2 that the point (px, py) falls on. */
 function side(a1, a2, px, py) {
-  return (a2.x - a1.x) * (py - a1.y) - (px - a1.x) * (a2.y - a1.y);
+	return (a2.x - a1.x) * (py - a1.y) - (px - a1.x) * (a2.y - a1.y);
 }
 
 export class Renderer {
-  constructor(width = 320, height = 200, fov = 90, opts = {}) {
-    this.fov = fov;
-    // refHeight: the screen's full height (Build's ydim) when the view is a
-    // shorter viewport of it — with the status bar, 166 of 200 rows. The
-    // focal length and the horiz unit belong to the screen, the centre row
-    // to the viewport (setview / vscrn).
-    this.refHeight = opts.refHeight ?? height;
-    // tall: a viewport larger than its reference screen is allowed — the
-    // tilted view (rotscrnang) renders a margin around the screen to rotate.
-    this.tall = !!opts.tall;
-    // horPlus: a view widened beyond 4:3 (the page in a wide window). The
-    // wider field of view zooms the HORIZONTAL axis only; rows keep the 4:3
-    // screen's focal length, so the picture is not squashed and the
-    // crosshair stays where the shot goes.
-    this.horPlus = !!opts.horPlus;
-    this.resize(width, height);
-  }
-
-  resize(width, height) {
-    this.width = width;
-    this.height = height;
-    if (!this.refHeight || (this.refHeight < height && !this.tall)) this.refHeight = height;
-    this.halfW = width / 2;
-    this.halfH = height / 2;
-    // viewingrange is a zoom on BOTH axes: it enters through yp, the depth
-    // denominator every projection divides by. So one factor, and the ratio
-    // between the axes is fixed by the resolution alone — not a knob.
-    const zoom = Math.tan(REF_FOV * Math.PI / 360) / Math.tan(this.fov * Math.PI / 360);
-    this.focalX = this.halfW * zoom;                                  // xdim/2
-    this.focalY = this.refHeight * VERT_FOCAL / VERT_FOCAL_ROWS * (this.horPlus ? 1 : zoom);   // 0.64*ydim — the screen's, not the viewport's
-    this.spriteFocalX = this.focalX * SPRITE_FOCAL_RATIO;             // 0.4*xdim
-
-    this.pixels = new Uint32Array(width * height);
-    this.depth = new Float32Array(width * height);
-    // Which wall drew each pixel (-1: a flat, a sprite, or nothing yet).
-    // Build clips a face sprite against a wall by SIDE, not by depth —
-    // spritewallfront(): the sprite's centre must lie behind the wall's
-    // line for the wall to hide it. A billboard's far corner dipping behind
-    // an oblique facade is not hidden in Build; a per-pixel depth test cut
-    // the left half off an explosion on E1L1's street. This buffer lets
-    // the sprite drawer ask the wall instead of the depth.
-    this.wallOf = new Int16Array(width * height);
-    this.umost = new Int16Array(width);
-    this.dmost = new Int16Array(width);
-
-    // For a horizontal surface the depth at a screen row is constant, so the
-    // reciprocal can be tabulated once. That is what makes per-pixel flat
-    // texturing cheap enough to skip Build's span bookkeeping: no division in
-    // the inner loop, just multiplies.
-    //
-    // All three are measured from the HORIZON, not from the middle of the
-    // frame — the two only coincide at horiz 100. Build's own tables are
-    // indexed as `yp-globalhoriz+horizycent`, i.e. relative to the same row.
-    this.invRow = new Float32Array(height);
-    this.invRowF = new Float32Array(height);
-    this.rowK = new Float32Array(height);
-    this.horizon = this.halfH;
-    this.tabHorizon = NaN;
-    this.#retable(this.halfH);
-
-    // Horizontal angle each column looks along, in Build's 2048-unit turn.
-    // The sky depends on view direction only, so this is all it needs.
-    // Unaffected by pitch: a shear moves no column.
-    this.colAng = new Float32Array(width);
-    for (let x = 0; x < width; x++) {
-      this.colAng[x] = Math.atan((x + 0.5 - this.halfW) / this.focalX) * 1024 / Math.PI;
-    }
-
-    // How fast the sky runs past vertically, in texels per screen row.
-    // DERIVED, and it belongs to the vertical axis — this used to be tied to
-    // the frame WIDTH, the same mistake as the shared focal length and
-    // invisible for the same reason: at 320x200 both readings are 1.
-    //
-    // parascan hands wallscan a constant span, swplc = mulscale16(xdimscale,
-    // viewingrange), and wallscan turns it into
-    //
-    //   vince = swal * globalyscale,  texel = vplce >> globalshiftval
-    //
-    // with globalyscale = 8 << (globalshiftval-19). The tile's height cancels
-    // out of that pair, leaving swal/2^16 texels per row — a 300-tall sky
-    // steps exactly like a 128-tall one. Unfolding
-    //
-    //   xdimscale = scale(320,xyaspect,xdimen),  xyaspect = divscale32(1,yxaspect)
-    //   yxaspect  = divscale16(ydim*320, xdim*200)
-    //
-    // collapses the whole thing to 200/ydim at the default viewingrange, and
-    // the zoom divides it as it multiplies every focal length. That is exactly
-    // VERT_FOCAL/focalY: the sky advances one texel per 1/128 of the vertical
-    // focal length, which is also one unit of horiz. The panorama and the
-    // pitch move in the same currency, as they must, since parascan reaches
-    // the panorama through globalhoriz.
-    this.skyStep = VERT_FOCAL / this.focalY;
-  }
-
-  /**
-   * Refill the row tables for a horizon row, if it has moved.
-   *
-   * A frame costs one pass over `height` entries when the pitch changes and
-   * nothing at all when it does not, so holding still is as cheap as it was
-   * before pitch existed. Keeping the tables indexed by absolute row instead —
-   * offsetting at each lookup — would put an add and a bounds question in the
-   * innermost loop of every flat span, which is the one place this renderer
-   * has bothered to keep free of them.
-   */
-  #retable(horizon) {
-    if (this.tabHorizon === horizon) return;
-    this.tabHorizon = horizon;
-    const { height, focalY } = this;
-    for (let y = 0; y < height; y++) {
-      const dy = y + 0.5 - horizon;
-      const inv = Math.abs(dy) < 1e-6 ? 0 : 1 / dy;
-      this.invRow[y] = inv;
-      // Both convert a row offset into a world quantity, so both are vertical.
-      this.invRowF[y] = inv / focalY;
-      this.rowK[y] = dy / focalY;
-    }
-  }
-
-  /**
-   * @param {object} cam {x, y, z, ang, sectNum} — z in Build z units (1/16)
-   * @param {object} res {map, prep, colours, shadeLuts, numShades, mode}
-   */
-  /** This frame's planes, by sector index. Rebuilt every render(); see #plane. */
-  #planeCache = [];
-
-  /**
-   * The sector's floor or ceiling plane, as it stands RIGHT NOW.
-   *
-   * prepareMap() used to hand these out, computed once when the level loaded.
-   * That was correct for exactly as long as nothing in a level moved, which
-   * stopped being true when the doors arrived and was not noticed because the
-   * two halves of the error look like different problems: the rows a wall is
-   * clipped to came from the frozen plane, while #flatDesc took the surface's
-   * own height live from sec.floorZ. A moved floor was therefore drawn in the
-   * old place and textured for the new one — read as a texture bug in E1L3,
-   * with 590 sort errors in the frame because the depth comparison was being
-   * made against a surface that was not there.
-   *
-   * Rebuilt per frame rather than invalidated per move: a floor can be moved by
-   * doAnimations, moveEffectors or a test poking sec.floorZ directly, and a
-   * cache that three callers have to remember to dirty is a cache that will be
-   * stale again. One slopePlane call per visited sector per frame is nothing
-   * next to the per-pixel work it feeds.
-   */
-  #plane(sectIdx) {
-    let p = this.#planeCache[sectIdx];
-    if (p === undefined) {
-      p = {
-        ceil: slopePlane(this.res.map, sectIdx, true),
-        floor: slopePlane(this.res.map, sectIdx, false),
-      };
-      this.#planeCache[sectIdx] = p;
-    }
-    return p;
-  }
-
-  render(cam, res) {
-    const { width, height } = this;
-    this.mode = res.mode ?? res.shadeMode ?? MODE_FULL;
-    // fadeScale is the HUD knob. Now that the rate is derived rather than
-    // dialled in, the knob is a pure multiplier defaulting to 1: if it has to
-    // be moved to make a scene look right, that is a finding about the
-    // derivation, not a setting. fadeRate stays a separate override so tests
-    // can pin a rate without depending on this default.
-    this.fadeRate = (res.fadeRate ?? DEFAULT_FADE_RATE) * (res.fadeScale ?? 1);
-    this.clock = res.clock ?? 0;
-    this.wallV = res.wallVScale ?? V_PER_YREPEAT;
-
-    // Pitch. Level by default, so a caller that knows nothing about horiz gets
-    // exactly the frame it got before. See HORIZ_LEVEL for why this is the
-    // only place the value is consulted: from here on the horizon is a row,
-    // and every path adds it.
-    this.horiz = cam.horiz ?? HORIZ_LEVEL;
-    this.horizon = horizonRow(this.horiz, this.height, this.refHeight);
-    this.#retable(this.horizon);
-    // Two conventions the format alone did not settle, stated as values
-    // rather than as flips — the flip form had already inverted meaning twice
-    // and each inversion silently rewrote what the tests were asserting.
-    //
-    // 'ceiling' anchors the texture at the sector ceiling, 'floor' at its
-    // floor; cstat bit 2 swaps whichever is in force. 'down' runs v the way
-    // the tile is drawn, 'up' mirrors it; cstat bit 8 swaps that.
-    // No wallAnchor switch: Build has no single anchor rule to switch. Each
-    // wall part picks its own pair of origins, keyed on cstat bit 2 alone.
-
-    // Masked walls anchor independently of solid ones. Tying the two together
-    // was a mistake: a setting that put brickwork right on one level threw the
-    // grates off on another, because they answer to different conventions.
-    // Likewise for masked walls: bit clear anchors to the top of the opening.
-
-    // What ends up under the middle of the screen. Answering "which tile am I
-    // looking at" turns questions like whether a texture is upside down from
-    // an argument into a lookup in the tile browser.
-    //
-    // `probeAt` overrides it. Reading a seam means reading the texel just
-    // above and just below one edge, and the crosshair cannot be in two places
-    // at once; moving the camera instead changes the very thing being
-    // measured. Out of range falls back to the centre rather than silently
-    // probing nothing.
-    const centre = (this.halfH | 0) * width + (this.halfW | 0);
-    const at = res.probeAt;
-    this.probeIdx = (Number.isInteger(at) && at >= 0 && at < width * height) ? at : centre;
-    this.probe = null;
-    // The pending texel too, not just the report. Left standing it survives
-    // into the next frame and turns a stale reading into a plausible one.
-    this.pUV = null;
-    this.res = res;
-    this.cam = cam;
-    // Planes are rebuilt for this frame on first use. They cannot be prepared
-    // once and kept: a plane's constant term IS the sector's z, so a stored
-    // plane is only true until a door, a drop floor or a rise bridge moves —
-    // and then the rows a wall is clipped to come from the old height while
-    // the flat's own height comes from the new one. See #plane().
-    this.#planeCache = new Array(res.map.sectors.length);
-
-    this.pixels.fill(this.mode >= MODE_FULLBRIGHT ? UNPAINTED : BACKGROUND);
-    this.depth.fill(0);
-    this.wallOf.fill(-1);
-    this.curWall = -1;
-    this.umost.fill(0);
-    this.dmost.fill(height - 1);
-    // The columns this pass has to deliver: all of them, except for the
-    // mirror's scratch pass, which is asked for the mirror's columns only
-    // (#drawMirror sets clipLo/clipHi). Outside them the clip arrays start
-    // closed, so walls and flats skip those columns, and the sprite and
-    // masked-wall loops are cut to the window.
-    this.colLo = Math.max(0, this.clipLo ?? 0);
-    this.colHi = Math.min(width - 1, this.clipHi ?? width - 1);
-    for (let x = 0; x < this.colLo; x++) { this.umost[x] = 1; this.dmost[x] = 0; }
-    for (let x = this.colHi + 1; x < width; x++) { this.umost[x] = 1; this.dmost[x] = 0; }
-
-    // Opt-in: one byte per pixel, cleared per frame. Off by default so the
-    // interactive path pays nothing for it.
-    this.trackDrops = !!res.trackDrops;
-    if (this.trackDrops) {
-      if (!this.drops || this.drops.length !== width * height) {
-        this.drops = new Uint8Array(width * height);
-        this.dropSect = new Int32Array(width * height);
-      }
-      this.drops.fill(DROP_NONE);
-      this.dropSect.fill(-1);
-    }
-
-    const a = cam.ang * Math.PI / 1024;
-    this.fx = Math.cos(a); this.fy = Math.sin(a);
-    this.rx = -this.fy; this.ry = this.fx;
-
-    const map = res.map;
-    // Both dimensions have to be checked, not just the sector count. Two maps
-    // can agree on sectors and differ in walls, and then the wall arrays stay
-    // at the old length: writes past the end of a TypedArray are silently
-    // dropped and reads come back undefined, so `wallSeen[wi] === stamp` is
-    // false for every wall beyond the old bound. Nothing throws — the frame
-    // just comes back with no bunches at all, which reads as a traversal
-    // failure rather than as the stale buffer it is.
-    if (!this.got || this.got.length !== map.sectors.length
-        || this.wallSeen.length !== map.walls.length) {
-      this.got = new Uint8Array(map.sectors.length);
-      this.wallSeen = new Int32Array(map.walls.length);
-      this.wallSlot = new Int32Array(map.walls.length);
-      this.wallTaken = new Int32Array(map.walls.length);
-      this.stamp = 0;
-    }
-    this.got.fill(0);
-    this.stamp++;
-
-    this.scanned = [];
-    this.bunches = [];
-    this.masked = [];
-    this.stats = {
-      sectors: 0, walls: 0, portals: 0,
-      bunches: 0, sortErrors: 0, incomparable: 0, disjoint: 0, untextured: 0, unpainted: 0,
-      sprites: 0, spritesSkipped: 0, spritesHidden: 0, spriteIds: [], markers: 0, masked: 0, maskedSkipped: 0,
-      // Retained so callers written against stage 3a keep working; the
-      // architecture no longer has anything to report here.
-      reentered: 0, capped: 0, truncated: 0, maxDepth: 0, maxVisits: 1,
-      visited: new Set(),
-    };
-
-    this.mirrorSeen = -1;
-    if (cam.sectNum >= 0 && cam.sectNum < map.sectors.length) {
-      this.#scan(cam.sectNum);
-      // A camera standing on a portal's line: engine.c scansector takes the
-      // sector across it by its own rule (#scan).
-      this.#drawBunches();
-      this.#drawMaskedWalls();
-      this.#drawSprites();
-      if (this.mirrorSeen >= 0 && !this.inMirrorPass) this.#drawMirror(this.mirrorSeen);
-    }
-
-    // Coverage, measured from the depth buffer rather than from pixel colour:
-    // a zero there means nothing was ever drawn. This separates "the
-    // traversal missed geometry" from "the geometry is there but shaded to
-    // black", which look identical on screen and have nothing in common.
-    //
-    // A whole pass over the depth buffer, so on request only (res.countUnpainted,
-    // or with the drop tracking that needs it anyway); otherwise null.
-    if (res.countUnpainted || this.trackDrops) {
-      let blank = 0;
-      for (let i = 0; i < this.depth.length; i++) if (this.depth[i] === 0) blank++;
-      this.stats.unpainted = blank;
-    } else this.stats.unpainted = null;
-
-    // Attribute the survivors. A reason stamped on a pixel that some later
-    // span covered is not a gap and is not counted here.
-    if (this.trackDrops) {
-      const why = new Uint32Array(DROP_NAMES.length);
-      const bySect = new Map();
-      for (let i = 0; i < this.depth.length; i++) {
-        if (this.depth[i] !== 0) continue;
-        why[this.drops[i]]++;
-        const sect = this.dropSect[i];
-        if (sect >= 0) {
-          const key = `${sect}:${this.drops[i]}`;
-          bySect.set(key, (bySect.get(key) ?? 0) + 1);
-        }
-      }
-      this.stats.drops = why;
-      this.stats.dropsBySector = bySect;
-    }
-
-    return this.stats;
-  }
-
-  // --- scanning -------------------------------------------------------------
-
-  /** Flood sectors once each, projecting their visible walls into bunches. */
-  #scan(startSector) {
-    const { map, prep } = this.res;
-    const queue = [startSector];
-    this.got[startSector] = 1;
-
-    while (queue.length) {
-      const sectIdx = queue.shift();
-      const sec = map.sectors[sectIdx];
-      const sign = prep.facing[sectIdx];
-      const end = sec.wallPtr + sec.wallNum;
-
-      this.stats.sectors++;
-      this.stats.visited.add(sectIdx);
-
-      const visible = [];
-      for (let wi = sec.wallPtr; wi < end; wi++) {
-        // engine.c scansector: a portal whose line passes within a hair of
-        // the camera takes its sector along whatever the projection says —
-        // `tempint = x1*y2-x2*y1` (twice the triangle camera/wall) below
-        // 262144 in magnitude, and tempint^2>>5 no more than the wall's
-        // squared length, i.e. the camera within about sqrt(32) units of the
-        // line. A camera standing ON a portal (E4L10, sector 644 on the
-        // diagonal into 643) sees that portal edge-on and culled, and the
-        // sector behind it — which fills the view — was never scanned.
-        {
-          const w = map.walls[wi];
-          if (w.nextSector >= 0 && (w.cstat & 32) === 0 && !this.got[w.nextSector]) {
-            const p2 = map.walls[w.point2];
-            const cx = Math.trunc(this.cam.x), cy = Math.trunc(this.cam.y);
-            const x1 = w.x - cx, y1 = w.y - cy, x2 = p2.x - cx, y2 = p2.y - cy;
-            const t = x1 * y2 - x2 * y1;
-            if (t + 262144 >= 0 && t + 262144 < 524288 && Math.floor(t * t / 32) <= (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)) {
-              this.got[w.nextSector] = 1;
-              queue.push(w.nextSector);
-              this.stats.nearPortals = (this.stats.nearPortals ?? 0) + 1;
-            }
-          }
-        }
-        const entry = this.#project(wi, sectIdx, sign);
-        if (!entry) continue;
-
-        this.wallSeen[wi] = this.stamp;
-        this.wallSlot[wi] = this.scanned.length;
-        this.scanned.push(entry);
-        visible.push(wi);
-        this.stats.walls++;
-
-        if (entry.portal) {
-          this.stats.portals++;
-          entry.closed = this.#closedPortal(sectIdx, entry.next, wi);
-          if (!this.got[entry.next] && !entry.closed) {
-            this.got[entry.next] = 1;
-            queue.push(entry.next);
-          }
-        }
-      }
-
-      this.#formBunches(sectIdx, visible);
-    }
-  }
-
-  /**
-   * Cull, clip and project one wall. Returns null when the wall cannot
-   * contribute: facing away, entirely behind the near plane, or off screen.
-   */
-  /**
-   * game.c displayrooms + engine.c preparemirror/completemirror: a mirror
-   * is a one-way wall (cstat 32) carrying MIRROR (560) as its overpicnum,
-   * with a sector behind it. The scene is drawn a second time from the
-   * REFLECTED camera — the position mirrored across the wall's line, the
-   * angle 2*wallangle - ang, starting in the mirror sector and looking back
-   * out through the wall — and that image, flipped left to right, is what
-   * the mirror shows. Here the main pass has already painted the mirror
-   * wall (tagging its pixels in wallOf); the second pass renders into a
-   * scratch renderer of the same size, and every tagged pixel takes the
-   * scratch pixel of the mirrored column. Duke draws the player's own
-   * sprite in the mirror; uDuke has no player sprite yet.
-   */
-  #drawMirror(wi) {
-    const { map } = this.res;
-    const w = map.walls[wi], w2 = map.walls[w.point2];
-    const dx = w2.x - w.x, dy = w2.y - w.y;
-    const jj = dx * dx + dy * dy;
-    if (jj === 0 || w.nextSector < 0) return;
-    const cam = this.cam;
-    const ii = ((cam.x - w.x) * dx + (cam.y - w.y) * dy) * 2;
-    const tx = (w.x * 2) + Math.floor(dx * ii / jj) - cam.x;
-    const ty = (w.y * 2) + Math.floor(dy * ii / jj) - cam.y;
-    const wallAng = Math.round(Math.atan2(dy, dx) * 1024 / Math.PI) & 2047;
-    const tang = ((wallAng << 1) - cam.ang) & 2047;
-    if (!this.scratch || this.scratch.width !== this.width || this.scratch.height !== this.height) {
-      this.scratch = new Renderer(this.width, this.height, this.fov);
-    }
-    const sc = this.scratch;
-    // Only the mirror's own columns are copied back, flipped, so only those
-    // are rendered: the main pass's projection of the mirror wall gives them.
-    const W = this.width, H = this.height;
-    const me = this.wallSeen[wi] === this.stamp ? this.scanned[this.wallSlot[wi]] : null;
-    const mx1 = me ? Math.max(0, me.x1) : 0, mx2 = me ? Math.min(W - 1, me.x2) : W - 1;
-    sc.clipLo = W - 1 - mx2; sc.clipHi = W - 1 - mx1;
-    const mcam = { x: tx, y: ty, z: cam.z, ang: tang, horiz: cam.horiz, sectNum: w.nextSector };
-    // The actors' view frames are chosen for the camera that looks at them:
-    // for the mirror that is the reflected one (Duke calls animatesprites
-    // again with tposx/tposy/tang). The page hands the call in.
-    if (this.res.animateFor) this.res.animateFor(mcam);
-    sc.inMirrorPass = true;
-    sc.render(mcam, this.res);
-    sc.inMirrorPass = false;
-    if (this.res.animateFor) this.res.animateFor(cam);
-    for (let y = 0; y < H; y++) {
-      const row = y * W;
-      for (let x = mx1; x <= mx2; x++) {
-        const i = row + x;
-        if (this.wallOf[i] !== wi) continue;
-        this.pixels[i] = sc.pixels[row + (W - 1 - x)];
-      }
-    }
-    this.stats.mirror = { wall: wi, sector: w.nextSector, tx, ty, tang };
-  }
-
-  /**
-   * A portal whose window is empty at both ends of the wall — the higher
-   * ceiling at or below the lower floor — shows nothing beyond it, so the
-   * neighbour is not scanned through it (a closed ceiling door, a shut lift
-   * shaft). It matters for sprites: E1L1's cinema hides a secret niche
-   * whose sector OVERLAPS the lobby in the map; reached through the shut
-   * door it was "visited", and its goggles floated in the lobby's air. The
-   * wall itself is still projected and drawn per edge as before; parallax
-   * ceilings are left alone, since the sky beyond a wall is drawn by the
-   * far sector.
-   */
-  #closedPortal(sectIdx, next, wi) {
-    const { map } = this.res;
-    const a = map.sectors[sectIdx], b = map.sectors[next];
-    if ((a.ceilingStat & 1) || (b.ceilingStat & 1)) return false;
-    const w1 = map.walls[wi], w2 = map.walls[w1.point2];
-    for (const p of [w1, w2]) {
-      const za = getZsOfSlope(map, sectIdx, p.x, p.y), zb = getZsOfSlope(map, next, p.x, p.y);
-      const top = Math.max(za.ceilZ, zb.ceilZ), bot = Math.min(za.floorZ, zb.floorZ);
-      if (top < bot) return false;
-    }
-    return true;
-  }
-
-  #project(wi, sectIdx, sign) {
-    const { map } = this.res;
-    const cam = this.cam;
-    const w = map.walls[wi];
-    const p2 = map.walls[w.point2];
-    if (!p2) return null;
-
-    // The camera must be on the sector side of the wall.
-    if (side(w, p2, cam.x, cam.y) * sign <= 0) return null;
-
-    // In a sector whose outer loop winds the other way, the walls run the
-    // other way round too and would project right-to-left.
-    let ax = w.x - cam.x, ay = w.y - cam.y;
-    let bx = p2.x - cam.x, by = p2.y - cam.y;
-    if (sign < 0) { const tx = ax, ty = ay; ax = bx; ay = by; bx = tx; by = ty; }
-
-    let d1 = ax * this.fx + ay * this.fy;
-    let l1 = ax * this.rx + ay * this.ry;
-    let d2 = bx * this.fx + by * this.fy;
-    let l2 = bx * this.rx + by * this.ry;
-
-    // Texture parameter at each end, following the wall's own direction. The
-    // swap above reverses it, and near-plane clipping moves an endpoint along
-    // the wall, so both have to be tracked rather than assumed 0 and 1.
-    let t1 = sign < 0 ? 1 : 0;
-    let t2 = sign < 0 ? 0 : 1;
-
-    if (d1 < NEAR && d2 < NEAR) return null;
-    if (d1 < NEAR) {
-      const c = (NEAR - d1) / (d2 - d1);
-      l1 += (l2 - l1) * c; t1 += (t2 - t1) * c; d1 = NEAR;
-    } else if (d2 < NEAR) {
-      const c = (NEAR - d2) / (d1 - d2);
-      l2 += (l1 - l2) * c; t2 += (t1 - t2) * c; d2 = NEAR;
-    }
-
-    const sxa = this.halfW + l1 / d1 * this.focalX;
-    const sxb = this.halfW + l2 / d2 * this.focalX;
-    if (sxb - sxa < 1e-6) return null;
-
-    const x1 = Math.max(0, Math.ceil(sxa - 0.5));
-    const x2 = Math.min(this.width - 1, Math.floor(sxb - 0.5));
-    if (x1 > x2) return null;
-
-    // Build enters the solid ("white wall") path on exactly two conditions:
-    // no neighbour, or the one-way bit. There is no test for whether the
-    // neighbour has vertical extent — a degenerate neighbour is still a
-    // portal, and what shows through it is decided per edge further down.
-    // uDuke used to treat a zero-height neighbour as a closed door, which
-    // painted picnum 0 over every sky opening in the level.
-    let portal = null, next = -1;
-    if (w.nextSector >= 0 && (w.cstat & 32) === 0) {
-      portal = map.sectors[w.nextSector];
-      next = w.nextSector;
-    } else if (w.nextSector >= 0 && (w.cstat & 32) && w.overPicNum === 560 && !this.inMirrorPass) {
-      // A mirror in view: the nearest one (game.c takes the nearest by
-      // Manhattan distance) gets the second pass after this one.
-      const d = Math.abs(w.x - this.cam.x) + Math.abs(w.y - this.cam.y);
-      if (this.mirrorSeen < 0 || d < this.mirrorDist) { this.mirrorSeen = wi; this.mirrorDist = d; }
-    }
-
-    const entry = {
-      wall: wi, sect: sectIdx, d1, d2, sxa, sxb, x1, x2, portal, next,
-      tOverZ1: t1 / d1, tOverZ2: t2 / d2,
-    };
-    // A masked wall hangs a transparent texture in the portal opening, so it
-    // has to wait until the geometry behind it exists — it goes in with the
-    // sprites rather than into a bunch. Build's test is (cstat&48)==16: the
-    // one-way bit wins over the mask bit rather than combining with it.
-    // ...except one carrying MIRROR (560): Duke zeroes that tile's size at
-    // start-up (game.c 7772), so a mirror's masked side draws nothing and the
-    // reflection behind it shows clean — drawn, the 10x10 tile laid a grid
-    // over the bathroom mirror of E1L1.
-    if (w.nextSector >= 0 && (w.cstat & 48) === 16 && w.overPicNum !== 560) this.masked.push(entry);
-    return entry;
-  }
-
-  /**
-   * Group a sector's visible walls into bunches: maximal runs joined by
-   * point2. A run starts where the predecessor around the loop is invisible.
-   */
-  #formBunches(sectIdx, visible) {
-    const { prep } = this.res;
-
-    for (const wi of visible) {
-      const prev = prep.prevWall[wi];
-      if (prev >= 0 && this.wallSeen[prev] === this.stamp) continue;
-      this.#collectBunch(sectIdx, wi);
-    }
-    // A loop entirely on screen has no invisible predecessor to start from.
-    for (const wi of visible) {
-      if (this.wallTaken[wi] !== this.stamp) this.#collectBunch(sectIdx, wi);
-    }
-  }
-
-  #collectBunch(sectIdx, first) {
-    const { map } = this.res;
-    if (this.wallTaken[first] === this.stamp) return;
-    if (this.bunches.length >= BUNCH_BUDGET) return;
-
-    const walls = [];
-    let x1 = Infinity, x2 = -Infinity;
-    let wi = first;
-
-    while (wi >= 0 && this.wallSeen[wi] === this.stamp && this.wallTaken[wi] !== this.stamp) {
-      this.wallTaken[wi] = this.stamp;
-      const entry = this.scanned[this.wallSlot[wi]];
-      walls.push(entry);
-      if (entry.x1 < x1) x1 = entry.x1;
-      if (entry.x2 > x2) x2 = entry.x2;
-      wi = map.walls[wi].point2;
-    }
-
-    if (walls.length) {
-      this.bunches.push({ sect: sectIdx, walls, x1, x2 });
-      this.stats.bunches++;
-    }
-  }
-
-  // --- ordering -------------------------------------------------------------
-
-  /**
-   * Is wall `a` in front of wall `b`, seen from the camera?
-   *
-   * If b lies wholly on one side of a's line, then a is in front exactly when
-   * the camera is on the other side — otherwise b sits between the camera and
-   * a. If b straddles a's line, the same test is applied the other way round.
-   * Walls that straddle each other would have to cross in plan view, which
-   * Build geometry does not do.
-   *
-   * @returns {boolean|null} null when the two cannot be ordered
-   */
-  #wallInFront(ea, eb) {
-    const W = this.res.map.walls;
-    const cam = this.cam;
-    const a1 = W[ea.wall], a2 = W[a1.point2];
-    const b1 = W[eb.wall], b2 = W[b1.point2];
-
-    let t1 = side(a1, a2, b1.x, b1.y);
-    let t2 = side(a1, a2, b2.x, b2.y);
-    if (t1 === 0) t1 = t2;
-    if (t2 === 0) t2 = t1;
-    if (t1 !== 0 && (t1 > 0) === (t2 > 0)) {
-      const tc = side(a1, a2, cam.x, cam.y);
-      if (tc === 0) return null;
-      return (tc > 0) !== (t1 > 0);
-    }
-
-    let s1 = side(b1, b2, a1.x, a1.y);
-    let s2 = side(b1, b2, a2.x, a2.y);
-    if (s1 === 0) s1 = s2;
-    if (s2 === 0) s2 = s1;
-    if (s1 !== 0 && (s1 > 0) === (s2 > 0)) {
-      const sc = side(b1, b2, cam.x, cam.y);
-      if (sc === 0) return null;
-      return (sc > 0) === (s1 > 0);
-    }
-
-    return null;
-  }
-
-  /**
-   * Order two bunches by the first wall pair that overlaps on screen.
-   *
-   * Two outcomes share the return value null and must not share a counter.
-   * Bunches that do not overlap on screen need no ordering at all — Build's
-   * bunchfront() returns -1 for exactly this and it is the common case, one
-   * per pair of bunches looking in different directions. Bunches that DO
-   * overlap and still yield no decision are the ones worth knowing about,
-   * because an undetermined order is what comes back later as a sort error.
-   */
-  #bunchInFront(a, b) {
-    if (a.x1 > b.x2 || b.x1 > a.x2) { this.stats.disjoint++; return null; }
-    for (const ea of a.walls) {
-      for (const eb of b.walls) {
-        if (ea.x1 > eb.x2 || eb.x1 > ea.x2) continue;
-        const r = this.#wallInFront(ea, eb);
-        if (r !== null) return r;
-      }
-    }
-    this.stats.incomparable++;
-    return null;
-  }
-
-  // --- drawing --------------------------------------------------------------
-
-  #drawBunches() {
-    const pending = this.bunches;
-    while (pending.length) {
-      const closest = closestBunch(pending.length,
-        (i, j) => this.#bunchInFront(pending[i], pending[j]));
-
-      const bunch = pending[closest];
-      pending[closest] = pending[pending.length - 1];
-      pending.pop();
-
-      for (const entry of bunch.walls) this.#drawWall(entry);
-    }
-  }
-
-  #drawWall(entry) {
-    const { map, textures } = this.res;
-    const { horizon, focalY, cam, umost, dmost, width, depth: zbuf } = this;
-    this.curWall = entry.wall;
-
-    const sec = map.sectors[entry.sect];
-    const w = map.walls[entry.wall];
-    const portal = entry.portal;
-
-    const invZ1 = 1 / entry.d1, invZ2 = 1 / entry.d2;
-
-    // Floor and ceiling heights along the wall. A slope is affine in world
-    // position and the wall is a straight line, so z is linear in the wall
-    // parameter t — the same t the texture already uses, so a sloped edge
-    // costs two multiplies per column and no special case.
-    const p2w = map.walls[w.point2];
-    const zLine = (plane) => ({
-      z0: plane.A * w.x + plane.B * w.y + plane.C,
-      zs: plane.A * (p2w.x - w.x) + plane.B * (p2w.y - w.y),
-    });
-    const planes = this.#plane(entry.sect);
-    const lc = zLine(planes.ceil);
-    const lf = zLine(planes.floor);
-    const nplanes = entry.next >= 0 ? this.#plane(entry.next) : null;
-    const lnc = nplanes ? zLine(nplanes.ceil) : null;
-    const lnf = nplanes ? zLine(nplanes.floor) : null;
-
-    const span = entry.sxb - entry.sxa;
-    const ceilFlat = this.#flatDesc(entry.sect, sec, true);
-    const floorFlat = this.#flatDesc(entry.sect, sec, false);
-
-    // Bit 1 sends the lower step to the neighbour's wall for its texture, so
-    // a step reads as part of the room it steps down into.
-    const swapLower = (w.cstat & 2) !== 0 && w.nextWall >= 0;
-    const lowerWall = swapLower ? map.walls[w.nextWall] : w;
-
-    const xflip = (w.cstat & 8) !== 0;
-    const vUp = (w.cstat & 0x100) !== 0;
-    const vScale = w.yRepeat * this.wallV * (vUp ? -1 : 1);
-    const uSpan = w.xRepeat * U_PER_XREPEAT;
-
-    const flat = !textures || this.mode === MODE_SURFACE || this.mode === MODE_SECTOR;
-    // engine.c 2516: a one-way wall WITH a neighbour is textured with its
-    // overpicnum (a mirror, and MIRRORBROKE once it is shot), a true one-
-    // sided wall with its picnum.
-    const oneWayOver = w.nextSector >= 0 && (w.cstat & 32) !== 0;
-    const mainTile = flat ? null : this.#tile(oneWayOver ? w.overPicNum : w.picNum);
-    const lowerTile = flat ? null : this.#tile(lowerWall.picNum);
-
-    // Build's vertical origin, one row of the table per wall part. Bit 2 of
-    // cstat is the only input; there is deliberately no global override,
-    // because no single choice can satisfy all three rows at once:
-    //
-    //   part    bit clear            bit set
-    //   solid   sec.ceilingz         sec.floorz
-    //   upper   nextsec.ceilingz     sec.ceilingz
-    //   lower   nextsec.floorz       sec.ceilingz
-    //
-    // Note the lower step: its default origin is its OWN top edge, the
-    // neighbour's floor, not the sector floor. Reaching up to the sector
-    // ceiling is what the bit buys, and that is the quirk which lets a step
-    // continue the texture of the wall above it.
-    const alignBottom = (w.cstat & 4) !== 0;
-
-    const nsec = entry.next >= 0 ? map.sectors[entry.next] : null;
-
-    // Every origin below is a raw sector field — ceilingz, floorz — read once
-    // for the whole wall. Build never runs them through getzsofslope, and it
-    // must not: an origin taken from the sloped edge is a different height in
-    // every column, so the texture re-anchors as it goes and its courses tilt
-    // to follow the slope instead of staying level. The clip edges are
-    // geometry and do follow the slope; the origin is not.
-    const oSolid = alignBottom ? sec.floorZ : sec.ceilingZ;
-    const oUpper = alignBottom ? sec.ceilingZ : (nsec ? nsec.ceilingZ : sec.ceilingZ);
-    const oLower = alignBottom ? sec.ceilingZ : (nsec ? nsec.floorZ : sec.floorZ);
-
-    // When both sides parallax the same plane there is no step to draw: the
-    // sky is continuous across the opening, so Build skips the surface and,
-    // with it, the clipping. That skipped clip is what lets the view flood on
-    // through and reach the sky rather than stopping at this wall.
-    const skipUpper = !!nsec && (sec.ceilingStat & 1) !== 0 && (nsec.ceilingStat & 1) !== 0;
-    const skipLower = !!nsec && (sec.floorStat & 1) !== 0 && (nsec.floorStat & 1) !== 0;
-
-    // The probe's detail record, built only when the probe column asks for
-    // it. Defined once per wall: as a closure inside the column loop it was a
-    // fresh function object per column and frame, for the collector to sweep.
-    const detail = (tile, anchor) => ({
-      wall: entry.wall, cstat: w.cstat,
-      yPan: w.yPanning, yRep: w.yRepeat, xPan: w.xPanning, xRep: w.xRepeat,
-      tileH: tile ? tile.height : null, tileW: tile ? tile.width : null,
-      anchor,
-    });
-
-    const xa = Math.max(entry.x1, this.colLo), xb = Math.min(entry.x2, this.colHi);
-    for (let x = xa; x <= xb; x++) {
-      // The probe's bookkeeping (#mark, the band detail) only where the probe
-      // pixel is: building it for every column allocated per column and frame.
-      const pc = this.probeIdx >= 0 && this.probeIdx % this.width === x;
-      this.pc = pc;
-      const top = umost[x], bot = dmost[x];
-      if (top > bot) continue;
-
-      const f = (x + 0.5 - entry.sxa) / span;
-      const invZ = invZ1 + (invZ2 - invZ1) * f;
-      const dist = 1 / invZ;
-
-      // Perspective-correct parameter along the wall: 1/z and t/z are both
-      // linear in screen x, so their ratio recovers t.
-      const t = (entry.tOverZ1 + (entry.tOverZ2 - entry.tOverZ1) * f) / invZ;
-
-      // The x-flip belongs to the texture only. Build mirrors lwall, which is
-      // the texture parameter, and never touches the parameter the geometry
-      // runs on — so a flipped wall in a sloped sector keeps its edges.
-      // Folding the flip into t before evaluating the slope planes reads the
-      // ceiling and floor at the wrong end of the wall, which bends every
-      // flipped wall that happens to sit on a slope.
-      const uRaw = Math.floor(t * uSpan);
-      const uOff = xflip ? uSpan - 1 - uRaw : uRaw;
-
-      const zCeil = lc.z0 + lc.zs * t;
-      const zFloor = lf.z0 + lf.zs * t;
-      const yCeil = horizon + (zCeil - cam.z) / 16 * focalY * invZ;
-      const yFloor = horizon + (zFloor - cam.z) / 16 * focalY * invZ;
-      const rowCeil = clamp(Math.round(yCeil), top, bot + 1);
-      const rowFloor = clamp(Math.round(yFloor), top - 1, bot);
-
-      // Flats carry their slope in the probe too: a surface that looks too
-      // steep is a question about heinum and the reference wall, and neither
-      // is visible in a picture.
-      // The gradient settles whether two neighbouring panels slope together
-      // or against each other. heinum alone cannot: its sign is relative to
-      // each sector's own first wall, so equal heinums on oppositely aimed
-      // reference walls tilt in opposite directions.
-      if (pc) this.#mark('ceiling', entry.sect, sec.ceilingPicNum, sec.ceilingShade, {
-        stat: sec.ceilingStat, heinum: sec.ceilingHeinum,
-        across: ceilFlat.align ? ceilFlat.align.across : null,
-        flatZ: sec.ceilingZ, slopeZ: Math.round(zCeil), refWall: sec.wallPtr,
-        gradX: planes.ceil.A, gradY: planes.ceil.B,
-        // Raw bytes, not the folded texel counts in the descriptor: the fold
-        // is what is under test whenever a seam is being chased, so the probe
-        // has to report the datum and let the HUD show the conversion.
-        xPan: sec.ceilingXPanning, yPan: sec.ceilingYPanning,
-        tileW: ceilFlat.tile ? ceilFlat.tile.width : 0,
-        tileH: ceilFlat.tile ? ceilFlat.tile.height : 0,
-      });
-      this.#flatSpan(x, top, rowCeil - 1, ceilFlat);
-      if (pc) this.#mark('floor', entry.sect, sec.floorPicNum, sec.floorShade, {
-        stat: sec.floorStat, heinum: sec.floorHeinum,
-        across: floorFlat.align ? floorFlat.align.across : null,
-        flatZ: sec.floorZ, slopeZ: Math.round(zFloor), refWall: sec.wallPtr,
-        gradX: planes.floor.A, gradY: planes.floor.B,
-        xPan: sec.floorXPanning, yPan: sec.floorYPanning,
-        tileW: floorFlat.tile ? floorFlat.tile.width : 0,
-        tileH: floorFlat.tile ? floorFlat.tile.height : 0,
-      });
-      this.#flatSpan(x, rowFloor + 1, bot, floorFlat);
-
-      const shade = this.shade(w.shade, dist, sec.visibility);
-
-      if (!portal) {
-        if (pc) this.#mark('wall', entry.sect, w.picNum, w.shade,
-          detail(mainTile, alignBottom ? 'floor' : 'ceiling'));
-        this.#surface(x, rowCeil, rowFloor, mainTile, uOff, w.xPanning, w.yPanning,
-          zCeil, zFloor, yCeil, yFloor, oSolid, vScale,
-          KIND_WALL, entry.sect, w.picNum, shade, invZ, w.pal);
-        // Build closes the whole column after a white wall (umost 1, dmost
-        // 0): its ceiling and floor spans were painted just before and the
-        // wall fills the rest. That holds only while the spans actually
-        // painted every row — a plane the eye is on the wrong side of, or a
-        // flat's rows beyond the horizon, or a slope (relative to a dragged
-        // hinge wall) that turns away halfway down the column, paint
-        // nothing there (florscan's "UNDER the floor: do NOT render"), and
-        // closing those rows leaves them to nobody: Build's hall of mirrors.
-        // E1L5: the quake drags sector 114 and squashes the goggle niche 323
-        // until its back walls sort in front of the portal; seen from far
-        // below or, with the jetpack, from above, the niche's planes cover
-        // nothing of the column and its off-screen white wall blanked what
-        // the portal's steps should have painted. So the closure is read
-        // off the z-buffer: the rows above the wall are done only if all of
-        // them were painted, likewise the rows below. The wall's own rows
-        // are z-buffer-guarded regardless. One pass over the column, for
-        // white walls only.
-        let topDone = true, botDone = true;
-        for (let y = rowCeil - 1; y >= top; y--) if (zbuf[y * width + x] === 0) { topDone = false; break; }
-        for (let y = rowFloor + 1; y <= bot; y++) if (zbuf[y * width + x] === 0) { botDone = false; break; }
-        if (topDone && botDone) { umost[x] = 1; dmost[x] = 0; }
-        else if (topDone) umost[x] = Math.max(top, rowFloor + 1);
-        else if (botDone) dmost[x] = Math.min(bot, rowCeil - 1);
-        continue;
-      }
-
-      const zNCeil = lnc.z0 + lnc.zs * t;
-      const zNFloor = lnf.z0 + lnf.zs * t;
-      const yNCeil = horizon + (zNCeil - cam.z) / 16 * focalY * invZ;
-      const yNFloor = horizon + (zNFloor - cam.z) / 16 * focalY * invZ;
-      const rowNCeil = clamp(Math.round(yNCeil), top, bot + 1);
-      const rowNFloor = clamp(Math.round(yNFloor), top - 1, bot);
-
-      // Through a closed portal nothing is scanned, so the window row the
-      // neighbour used to paint — where the upper step's last row and the
-      // lower step's first meet — is the upper step's too.
-      const upperEnd = entry.closed && !skipLower ? Math.max(rowNCeil - 1, rowNFloor) : rowNCeil - 1;
-      if (!skipUpper) {
-        if (pc) this.#mark('upper', entry.sect, w.picNum, w.shade,
-          detail(mainTile, alignBottom ? 'ceiling' : 'nextCeil'));
-        this.#surface(x, rowCeil, upperEnd, mainTile, uOff, w.xPanning, w.yPanning,
-          zCeil, zNCeil, yCeil, yNCeil, oUpper, vScale,
-          KIND_UPPER, entry.sect, w.picNum, shade, invZ, w.pal);
-      }
-      // A lower step shares its bottom edge with the sector floor, so under
-      // floor anchoring it continues the solid wall beside it for free. Under
-      // ceiling anchoring the same continuity is what Build's quirk buys by
-      // reaching all the way up to the sector ceiling for the origin.
-      if (!skipLower) {
-        if (pc) this.#mark('lower', entry.sect, lowerWall.picNum, w.shade,
-          { ...detail(lowerTile, alignBottom ? 'ceiling' : 'nextFloor'), swapped: swapLower });
-        this.#surface(x, rowNFloor + 1, rowFloor, lowerTile, uOff, w.xPanning, w.yPanning,
-          zNFloor, zFloor, yNFloor, yFloor, oLower, vScale,
-          KIND_LOWER, entry.sect, lowerWall.picNum, shade, invZ, lowerWall.pal);
-      }
-
-      if (!skipUpper) umost[x] = Math.max(top, upperEnd + 1);
-      if (!skipLower) dmost[x] = Math.min(bot, rowNFloor);
-    }
-  }
-
-  /**
-   * One vertical run of a wall surface: textured when a tile is available,
-   * otherwise the flat average colour of stage 3.
-   *
-   * topZ/botZ are the world heights of the run's ends and yTop/yBot their
-   * unrounded screen rows, so the texture stays put when the run is clipped.
-   */
-  #surface(x, y0, y1, tile, uOff, xPan, yPan, topZ, botZ, yTop, yBot,
-           // pal last, so every existing call keeps its shape and a caller that
-           // has not been taught about palettes draws in pal 0 as before.
-           originZ, vScale, kind, sectIdx, picNum, shade, invZ, pal = 0) {
-    if (y1 < y0) return;
-
-    if (!tile) {
-      // Distinguish "textures are switched off" from "this wall's tile is not
-      // in the ART set". The second is worth counting: it is the difference
-      // between a deliberate flat render and a surface that silently lost its
-      // texture.
-      if (this.res.textures && this.mode !== MODE_SURFACE && this.mode !== MODE_SECTOR) {
-        this.stats.untextured++;
-      }
-      const base = this.res.colours[picNum] ?? 96;
-      this.#column(x, y0, y1, this.#pick(kind, sectIdx, base, shade), invZ);
-      return;
-    }
-
-    // A wall of no screen height still owns its rows.
-    //
-    // y0..y1 has already been established as non-empty, and the ceiling and
-    // floor spans beside it are cut to start after it — so whoever is handed
-    // these rows has to fill them or nobody will. Returning here left a
-    // one-row gap with the sector's own ceiling above and floor below, which
-    // is what E1L1 shows wherever a closed door is in view: a door sector has
-    // floorz == ceilingz, so its walls are exactly this case.
-    //
-    // The untextured path above never had the problem, because #column takes
-    // the rows as given. That asymmetry is why the flat and textured modes
-    // disagreed on coverage by precisely this count.
-    //
-    // vStep is a limit, not a division: with no height the wall shows one row
-    // of texels, so the step is zero and the start is the top edge itself.
-    const dy = yBot - yTop;
-    const degenerate = Math.abs(dy) < 1e-6;
-
-    const pan = panTexels(yPan, tile.height, vScale);
-    const u = mod(xPan + uOff, tile.width);
-    const vTop = (topZ - originZ) * vScale + pan;
-    const vStep = degenerate ? 0 : ((botZ - originZ) * vScale + pan - vTop) / dy;
-
-    // y0 has already been clamped to the column's clip window by the caller,
-    // so the texture start is measured from the unrounded screen row of the
-    // surface's top edge — that is what keeps it still under clipping.
-    const vStart = degenerate ? vTop : vTop + (y0 + 0.5 - yTop) * vStep;
-
-    // Which band of the tile this surface actually shows. A wall shorter than
-    // one repeat displays a slice and never the rest, so "the tile looks
-    // wrong" is usually a question about which slice — and that is not
-    // readable from panning and repeat without doing the arithmetic. Added to
-    // the probe detail here, after #mark has run and before #hit can fire.
-    if (this.pc) {
-      const vBot = (botZ - originZ) * vScale + pan;
-      this.pDetail = { ...(this.pDetail ?? {}), vTop, vBot };
-    }
-
-    this.#texColumn(x, y0, y1, tile, u, vStart, vStep, shade, invZ, pal);
-  }
-
-  #texColumn(x, y0, y1, tile, u, v, vStep, shade, invZ, pal = 0) {
-    const { width, pixels, depth: zbuf, height } = this;
-    const shadeLuts = this.#luts(pal);
-    const h = tile.height;
-    const col = u * h;
-    const lut = shade * 256;
-
-    if (y1 > height - 1) y1 = height - 1;
-
-    const tpx = tile.pixels, wallOf = this.wallOf, cw = this.curWall;
-    const probeCol = this.probeIdx >= 0 && this.probeIdx % width === x;
-    // Nearly every wall tile is a power of two tall. For v >= 0 the float
-    // remainder truncated is the truncated v masked — fmod is exact — so the
-    // mask is the same texel, without a floating-point division per pixel.
-    // Negative v and other heights keep the remainder.
-    const hm = (h & (h - 1)) === 0 ? h - 1 : -1;
-    for (let y = y0; y <= y1; y++, v += vStep) {
-      const i = y * width + x;
-      if (zbuf[i] !== 0) {
-        if (invZ > zbuf[i]) this.stats.sortErrors++;
-        else continue;
-      }
-      let iv;
-      if (hm >= 0 && v >= 0 && v < 2147483648) iv = (v | 0) & hm;
-      else { iv = v % h; if (iv < 0) iv += h; }
-      zbuf[i] = invZ;
-      wallOf[i] = cw;
-      pixels[i] = shadeLuts[lut + tpx[col + (iv | 0)]];
-      if (probeCol) { this.#uvAt(i, u, iv | 0); this.#hit(i); }
-    }
-  }
-
-  // --- masked walls -----------------------------------------------------------
-
-  #drawMaskedWalls() {
-    if (!this.res.textures) return;
-    for (const entry of this.masked) this.#drawMaskedWall(entry);
-  }
-
-  /**
-   * The transparent texture a portal can carry: fences, grates, window bars.
-   *
-   * It fills the opening — between the lower of the two ceilings and the
-   * higher of the two floors — and is drawn against the depth buffer after
-   * the walls, so whatever shows through it is already there.
-   */
-  /**
-   * Build's translucency, in RGB. The engine looks the pair up in the
-   * 256x256 `transluc` table of PALETTE.DAT: TRANS_NORMAL is
-   * transluc[(old<<8)|new], TRANS_REVERSE transluc[(new<<8)|old]. Measured
-   * over Duke's table (a least-squares fit across 20000 pairs), the entry is
-   * 0.313*old + 0.665*new with an 8.5/255 residual that is the palette's
-   * quantisation — a third of what was there and two thirds of what is
-   * drawn. So: normal keeps a third of the background, reverse two thirds.
-   * The frame buffer holds RGBA, not indices, which is why it is done here
-   * rather than through the table; the weights are the table's.
-   */
-  static blend(old, colour, reverse) {
-    const wo = reverse ? 2 : 1, wn = 3 - wo;
-    const r = ((old & 255) * wo + (colour & 255) * wn) / 3;
-    const g = (((old >>> 8) & 255) * wo + ((colour >>> 8) & 255) * wn) / 3;
-    const b = (((old >>> 16) & 255) * wo + ((colour >>> 16) & 255) * wn) / 3;
-    return ((colour & 0xff000000) | (b << 16) | (g << 8) | r) >>> 0;
-  }
-
-  /** spritewallfront(), engine.c: the sprite's centre on the wall's front side. */
-  #spriteInFrontOfWall(spr, w) {
-    const { map } = this.res;
-    const wa = map.walls[w], wb = map.walls[wa.point2];
-    return (wb.x - wa.x) * (spr.y - wa.y) - (spr.x - wa.x) * (wb.y - wa.y) >= 0;
-  }
-
-  #drawMaskedWall(entry) {
-    const { map } = this.res;
-    this.curWall = entry.wall;
-    const trans = (map.walls[entry.wall].cstat & 128) !== 0, transRev = (map.walls[entry.wall].cstat & 512) !== 0;
-    const { horizon, focalY, cam, width, height, pixels, depth: zbuf } = this;
-
-    const w = map.walls[entry.wall];
-    const tile = this.#tile(w.overPicNum);
-    if (!tile) { this.stats.maskedSkipped++; return; }
-
-    const p2w = map.walls[w.point2];
-    const zLine = (plane) => ({
-      z0: plane.A * w.x + plane.B * w.y + plane.C,
-      zs: plane.A * (p2w.x - w.x) + plane.B * (p2w.y - w.y),
-    });
-    const here = this.#plane(entry.sect), there = this.#plane(entry.next);
-    const lc = zLine(here.ceil), lf = zLine(here.floor);
-    const lnc = zLine(there.ceil), lnf = zLine(there.floor);
-
-    const invZ1 = 1 / entry.d1, invZ2 = 1 / entry.d2;
-    const span = entry.sxb - entry.sxa;
-    const uSpan = w.xRepeat * U_PER_XREPEAT;
-    const xflip = (w.cstat & 8) !== 0;
-    const vUp = (w.cstat & 0x100) !== 0;
-    const vScale = w.yRepeat * this.wallV * (vUp ? -1 : 1);
-    // Masked walls hang from the bottom of the opening by default, the
-    // opposite of a solid wall. A fence floating above the floor is the sign
-    // that this is the wrong way round.
-    const alignTop = (w.cstat & 4) === 0;
-    const th = tile.height, tw = tile.width;
-    const thm = (th & (th - 1)) === 0 ? th - 1 : -1;
-    const tpx = tile.pixels, wallOf = this.wallOf, cw = this.curWall;
-    const maskPan = panTexels(w.yPanning, th, vScale);
-    // A grate or a force field carries its own pal like any other surface.
-    const maskedLuts = this.#luts(w.pal);
-
-    // The origin is fixed for the whole wall, and Build takes it from the flat
-    // sector heights rather than the sloped planes:
-    //
-    //   z1 = max(nsec->ceilingz, sec->ceilingz)
-    //   z2 = min(nsec->floorz,   sec->floorz)
-    //
-    // both computed once, outside any per-column work. Anchoring to the
-    // sloped opening instead re-anchors the texture in every column, which
-    // shears a grate across a tilted opening — the pattern slides along the
-    // slope instead of hanging straight.
-    const nearSec = map.sectors[entry.sect], farSec = map.sectors[entry.next];
-    const originZ = alignTop
-      ? Math.max(nearSec.ceilingZ, farSec.ceilingZ)
-      : Math.min(nearSec.floorZ, farSec.floorZ);
-    this.#mark('masked', entry.sect, w.overPicNum, w.shade, {
-      wall: entry.wall, cstat: w.cstat,
-      yPan: w.yPanning, yRep: w.yRepeat, xPan: w.xPanning, xRep: w.xRepeat,
-      tileH: th, tileW: tw, anchor: alignTop ? 'top' : 'bottom',
-    });
-    let drawn = false;
-
-    const xa = Math.max(entry.x1, this.colLo), xb = Math.min(entry.x2, this.colHi);
-    for (let x = xa; x <= xb; x++) {
-      const f = (x + 0.5 - entry.sxa) / span;
-      const invZ = invZ1 + (invZ2 - invZ1) * f;
-      const dist = 1 / invZ;
-      const t = (entry.tOverZ1 + (entry.tOverZ2 - entry.tOverZ1) * f) / invZ;
-      const uRaw = Math.floor(t * uSpan);          // see #drawWall: geometry
-      const uOff = xflip ? uSpan - 1 - uRaw : uRaw; // keeps the unflipped t
-
-      // z grows downwards, so the opening's top is the larger of the two
-      // ceiling heights and its floor the smaller of the two floors.
-      const zTop = Math.max(lc.z0 + lc.zs * t, lnc.z0 + lnc.zs * t);
-      const zBot = Math.min(lf.z0 + lf.zs * t, lnf.z0 + lnf.zs * t);
-      if (zBot <= zTop) continue;
-
-      const yTop = horizon + (zTop - cam.z) / 16 * focalY * invZ;
-      const yBot = horizon + (zBot - cam.z) / 16 * focalY * invZ;
-      if (yBot - yTop < 1e-6) continue;
-
-      const vTop = (zTop - originZ) * vScale + maskPan;
-      const vStep = ((zBot - originZ) * vScale + maskPan - vTop) / (yBot - yTop);
-      const col = mod(w.xPanning + uOff, tw) * th;
-      const shade = this.shade(w.shade, dist, map.sectors[entry.sect].visibility) * 256;
-
-      const ya = Math.max(0, Math.ceil(yTop - 0.5));
-      const yb = Math.min(height - 1, Math.floor(yBot - 0.5));
-      let v = vTop + (ya + 0.5 - yTop) * vStep;
-      const probeCol = this.probeIdx >= 0 && this.probeIdx % width === x;
-
-      for (let y = ya; y <= yb; y++, v += vStep) {
-        const i = y * width + x;
-        if (invZ < zbuf[i] * (1 - SPRITE_DEPTH_TIE)) continue;
-        // The mask instead of the remainder where they agree; see #texColumn.
-        let iv;
-        if (thm >= 0 && v >= 0 && v < 2147483648) iv = (v | 0) & thm;
-        else { iv = v % th; if (iv < 0) iv += th; }
-        const texel = tpx[col + (iv | 0)];
-        if (texel === 255) continue;
-        zbuf[i] = invZ;
-        wallOf[i] = cw;
-        // Wall cstat 128: translucent (512 reverses it).
-        pixels[i] = trans ? Renderer.blend(pixels[i], maskedLuts[shade + texel], transRev) : maskedLuts[shade + texel];
-        if (probeCol) this.#hit(i);
-        drawn = true;
-      }
-    }
-    if (drawn) this.stats.masked++;
-  }
-
-  // --- sprites --------------------------------------------------------------
-
-  /**
-   * Sprites go in after the walls, tested against the depth buffer rather
-   * than woven into the bunch order. With binary transparency — palette index
-   * 255 and nothing in between — a depth test is order-independent, so no
-   * sorting is needed and sprites occlude and are occluded correctly.
-   */
-  #drawSprites() {
-    const { map, textures } = this.res;
-    if (!textures) return;
-
-    // The per-sector index is rebuilt every frame from the live list, not
-    // taken from prep. prep's copy was built once at load, and a sprite that
-    // walks into another sector stayed filed under the one it was born in:
-    // drawn when THAT sector was in view, missing when its real one was, and a
-    // sprite made after load — every projectile — was in no list at all. The
-    // trooper brightened (it had fired) and no laser ever appeared.
-    const bySector = this.#indexSprites(map);
-    for (const sectIdx of this.stats.visited) {
-      const list = bySector[sectIdx];
-      if (!list || list.length === 0) continue;
-      for (const si of list) {
-        const spr = map.sprites[si];
-
-        // Build's own visibility test, from scansector():
-        //
-        //   if ((((spr->cstat&0x8000) == 0) || (showinvisibility)) &&
-        //       (spr->xrepeat > 0) && (spr->yrepeat > 0) && ...
-        //
-        // The repeats are as much a part of it as the invisible bit. A sprite
-        // scaled to zero is one of the ways a map hides something it still
-        // wants to keep — the editor shows it, the game never does — so a
-        // viewer that only honours cstat draws objects the original does not.
-        // The player's own sprite shows in a mirror, and wherever Duke's
-        // animatesprites lets it through: display_mirror (a monitor's
-        // picture, xyzmirror) or newowner > -1 (the player watching a
-        // camera) — the page sets res.showPlayer for those.
-        const ownShown = (this.inMirrorPass || this.res.showPlayer) && si === this.res.playerSprite;
-        if ((spr.cstat & 0x8000) && !ownShown) continue;   // marked invisible
-        if (spr.xRepeat <= 0 || spr.yRepeat <= 0) { this.stats.spritesHidden++; continue; }
-        // An APLAYER with no owner and no stat 10 is the holoduke's hologram
-        // (actors.c 1264: owner -1) — drawn like any sprite.
-        if (isHiddenSprite(spr.picNum) && !ownShown && !(spr.picNum === TILE_APLAYER && spr.owner === -1 && si === this.res.holoduke)) {
-          this.stats.markers++;
-          if (!this.res.showMarkers) continue;
-        }
-        const sec = map.sectors[sectIdx];
-        // animatesprites' tsprite changes for this frame (spr.tspr), laid
-        // over the sprite: a dead camera's monitor as STATIC, larger, flipped.
-        const view = spr.tspr ? { ...spr, ...spr.tspr } : spr;
-        // The index travels with the record so the probe can name it. A tile
-        // number alone does not identify a sprite — the same tile appears
-        // dozens of times in a map — and without the index there is no way to
-        // go from something odd on screen to the record that produced it.
-        // The alignment is cstat's bits 4..5, read here rather than from
-        // the `align` field readMap derives at load: a sprite made at run
-        // time — a bullet hole, a trip bomb, a laser line — is given its
-        // cstat AFTER makeSprite, and a stale `align` of 0 drew every one of
-        // them as a 3x3 face sprite on the wall's own plane, hidden in it.
-        const align = (view.cstat >> 4) & 3;
-        // game.c 5966: the shadow, drawn first so the actor's own picture
-        // wins where they meet. Only while the eye is above its floor.
-        if (align === ALIGN_FACE && spr.shadowZ !== undefined && this.res.shadows !== false && this.cam.z < spr.shadowZ && (spr.yRepeat >> 3) > 0) {
-          this.#drawFaceSprite({ ...spr, z: spr.shadowZ, yRepeat: spr.yRepeat >> 3, shade: 127, dispShade: 127, pal: 4, dispPal: 4, cstat: spr.cstat | 2 }, sec, -1);
-          this.stats.shadows = (this.stats.shadows ?? 0) + 1;
-        }
-        if (align === ALIGN_FACE) this.#drawFaceSprite(view, sec, si);
-        else if (align === ALIGN_WALL) this.#drawWallSprite(view, sec, si);
-        else if (align === ALIGN_FLOOR) this.#drawFloorSprite(view, sec, si);
-        else this.stats.spritesSkipped++;
-      }
-    }
-  }
-
-  /**
-   * A face sprite is a billboard square to the view, so every point on it
-   * shares one depth and the texture runs linearly in screen space.
-   */
-  /**
-   * Live sprites by their CURRENT sector, for this frame. ~1000 sprites.
-   *
-   * The per-sector arrays are kept between frames and emptied, not
-   * reallocated. It was first written against a rise in frame time; the rise
-   * was the scene: the live index draws every sprite
-   * where it now IS, and a level with 65 monsters awake has more of them in
-   * view than one where they were filed under the sector they were born in.
-   * The reuse stays because it costs nothing; the claim does not.
-   */
-  #spriteIndex = null;
-  #indexSprites(map) {
-    let by = this.#spriteIndex;
-    if (!by || by.length !== map.sectors.length) {
-      by = this.#spriteIndex = new Array(map.sectors.length);
-      for (let n = 0; n < by.length; n++) by[n] = [];
-    } else {
-      for (let n = 0; n < by.length; n++) by[n].length = 0;
-    }
-    for (let i = 0; i < map.sprites.length; i++) {
-      const spr = map.sprites[i];
-      if (spr.removed) continue;
-      const n = spr.sectNum;
-      if (n < 0 || n >= by.length) continue;
-      by[n].push(i);
-    }
-    return by;
-  }
-
-  #drawFaceSprite(spr, sec, spriteIdx = -1) {
-    const trans = (spr.cstat & 2) !== 0, transRev = (spr.cstat & 512) !== 0;
-    const { halfW, horizon, focalX, focalY, cam, width, height, pixels, depth: zbuf } = this;
-
-    const dx = spr.x - cam.x, dy = spr.y - cam.y;
-    const d = dx * this.fx + dy * this.fy;
-    const dbg = spriteIdx === this.debugSprite ? (this.stats.spriteWhy = { idx: spriteIdx, stage: 'start', d, sect: spr.sectNum, px: 0, depthFlat: 0, depthWall: 0, transparent: 0 }) : null;
-    if (d < NEAR) { if (dbg) dbg.stage = 'too near'; return; }
-
-    // animatesprites' pick, when the CON has one; the map's tile otherwise.
-    const tile = this.#tile(spr.dispPicNum ?? spr.picNum);
-    if (!tile) { if (dbg) dbg.stage = 'no tile ' + spr.picNum; this.stats.spritesSkipped++; return; }
-
-    const scale = this.res.spriteScale ?? SPRITE_SCALE;
-    const worldW = tile.width * spr.xRepeat * scale;
-    const worldH = tile.height * spr.yRepeat * scale;
-    if (worldW <= 0 || worldH <= 0) { if (dbg) dbg.stage = 'zero size'; return; }
-
-    // The tile's own centring offsets from picanm, plus the sprite's.
-    const anim = tile.anim ?? { xOffset: 0, yOffset: 0 };
-    const xoff = (anim.xOffset + spr.xOffset) * spr.xRepeat * scale;
-    const yoff = (anim.yOffset + spr.yOffset) * spr.yRepeat * scale;
-
-    const invZ = 1 / d;
-    const l = dx * this.rx + dy * this.ry;
-    // The centre is projected like a wall, the half-width is not: Build takes
-    // the column from spritesx[] (halfxdimen*lateral/depth, so focalX) and the
-    // extent from xsiz (0.4*xdim, so spriteFocalX). The tile's own centring
-    // offset belongs to the extent, since Build applies it as
-    // `i = mulscale30(siz,xv*xoff)` off the already-projected column.
-    const cx = halfW + l * invZ * focalX - xoff * invZ * this.spriteFocalX;
-    const halfW2 = worldW / 2 * invZ * this.spriteFocalX;
-    const sxa = cx - halfW2, sxb = cx + halfW2;
-
-    // z is the sprite's foot unless bit 7 asks for true centring.
-    let botZ = spr.z - yoff * 16;
-    if (spr.cstat & 0x80) botZ += worldH * 16 / 2;
-    const topZ = botZ - worldH * 16;
-    const yBot = horizon + (botZ - cam.z) / 16 * focalY * invZ;
-    const yTop = horizon + (topZ - cam.z) / 16 * focalY * invZ;
-    if (yBot - yTop < 1e-6 || sxb - sxa < 1e-6) { if (dbg) dbg.stage = 'degenerate'; return; }
-
-    const x1 = Math.max(this.colLo, Math.ceil(sxa - 0.5));
-    const x2 = Math.min(this.colHi, Math.floor(sxb - 0.5));
-    if (x1 > x2) { if (dbg) dbg.stage = 'off screen x'; return; }
-    if (dbg) {
-      dbg.stage = 'columns'; dbg.x1 = x1; dbg.x2 = x2; dbg.yTop = Math.round(yTop); dbg.yBot = Math.round(yBot);
-      dbg.cam = `${cam.x},${cam.y},${cam.z} a${cam.ang & 2047}`;
-      // What already sits in the sprite's box: the walls by pixel count and the depth range.
-      const hist = new Map(); let dmin = 1e9, dmax = 0;
-      const ya = Math.max(0, Math.round(yTop)), yb = Math.min(height - 1, Math.round(yBot));
-      for (let yy = ya; yy <= yb; yy += 2) for (let xx = x1; xx <= x2; xx += 2) { const k = yy * width + xx; const w = this.wallOf[k]; hist.set(w, (hist.get(w) || 0) + 1); const dd = zbuf[k] > 0 ? 1 / zbuf[k] : 1e9; if (dd < dmin) dmin = dd; if (dd > dmax && dd < 1e8) dmax = dd; }
-      dbg.there = [...hist].sort((p, q) => q[1] - p[1]).slice(0, 4).map(([w, n]) => `${w}:${n}`).join(',') + ` depth ${Math.round(dmin)}..${Math.round(dmax)} vs ${Math.round(d)}`;
-    }
-
-    // The rotation frame's mirror is set on Duke's DRAWING copy, overriding
-    // the sprite's own bit; null means the viewtype had no opinion.
-    const xflip = spr.dispFlip ?? ((spr.cstat & 4) !== 0);
-    const yflip = (spr.cstat & 8) !== 0;
-    const shade = this.shade(spr.dispShade ?? spr.shade, d, sec.visibility);
-    this.#markSprite(spr, spriteIdx, 'face');
-    const lut = shade * 256;
-    const th = tile.height, tw = tile.width;
-    const spriteLuts = this.#luts(spr.dispPal ?? spr.pal);
-    const vScale = th / (yBot - yTop);
-
-    let drawn = false;
-    const tpx = tile.pixels, wallOf = this.wallOf;
-    const tie = 1 - SPRITE_DEPTH_TIE;
-    // spritewallfront() depends on the sprite and the wall only, and a run of
-    // pixels behind one wall asks it of the same wall again and again — a
-    // close explosion asked it for every pixel it covered. Kept per wall, as
-    // the wall-sprite path does.
-    let sideW = -2, sideFront = false;
-    const y1 = Math.max(0, Math.ceil(yTop - 0.5));
-    const y2 = Math.min(height - 1, Math.floor(yBot - 0.5));
-    for (let x = x1; x <= x2; x++) {
-      let uf = (x + 0.5 - sxa) / (sxb - sxa);
-      if (xflip) uf = 1 - uf;
-      const u = clamp(Math.floor(uf * tw), 0, tw - 1);
-      const col = u * th;
-      const probeCol = this.probeIdx >= 0 && this.probeIdx % width === x;
-
-      for (let y = y1; y <= y2; y++) {
-        const i = y * width + x;
-        if (invZ < zbuf[i] * tie) {           // something nearer
-          // A nearer WALL hides the billboard only when its centre lies
-          // behind that wall's line (spritewallfront); a nearer flat or
-          // sprite hides it outright.
-          const w = wallOf[i];
-          if (w >= 0 && w !== sideW) { sideW = w; sideFront = this.#spriteInFrontOfWall(spr, w); }
-          if (w < 0 || !sideFront) { if (dbg) { if (w < 0) dbg.depthFlat++; else { dbg.depthWall++; dbg.lastWall = w; } } continue; }
-        }
-        let v = (y + 0.5 - yTop) * vScale;
-        if (yflip) v = th - v;
-        const texel = tpx[col + clamp(Math.floor(v), 0, th - 1)];
-        if (texel === 255) { if (dbg) dbg.transparent++; continue; }             // transparent
-        zbuf[i] = invZ;
-        wallOf[i] = -1;
-        if (dbg) dbg.px++;
-        pixels[i] = trans ? Renderer.blend(pixels[i], spriteLuts[lut + texel], transRev) : spriteLuts[lut + texel];
-        if (probeCol) this.#hit(i);
-        drawn = true;
-      }
-    }
-    // Recorded only when something actually landed on screen, alongside the
-    // counter it belongs to. Listing every candidate instead put four indices
-    // next to "sprites 2", which reads as a contradiction and sends the
-    // reader after sprites that were never drawn.
-    if (drawn) { this.stats.sprites++; this.stats.spriteIds.push(spriteIdx); }
-  }
-
-  /** Common geometry: world size, texel offsets and vertical extent. */
-  #spriteMetrics(spr, tile) {
-    const scale = this.res.spriteScale ?? SPRITE_SCALE;
-    const anim = tile.anim ?? { xOffset: 0, yOffset: 0 };
-    const worldW = tile.width * spr.xRepeat * scale;
-    const worldH = tile.height * spr.yRepeat * scale;
-    let xoff = (anim.xOffset + spr.xOffset) * spr.xRepeat * scale;
-    let yoff = (anim.yOffset + spr.yOffset) * spr.yRepeat * scale;
-    if (spr.cstat & 4) xoff = -xoff;
-    if (spr.cstat & 8) yoff = -yoff;
-
-    let botZ = spr.z - yoff * 16;
-    if (spr.cstat & 0x80) botZ += worldH * 16 / 2;
-    return { worldW, worldH, xoff, yoff, botZ, topZ: botZ - worldH * 16 };
-  }
-
-  /**
-   * A wall-aligned sprite is a vertical quad at a fixed angle — geometrically
-   * a free-standing wall, so it projects the same way and gets the same
-   * perspective-correct parameter along its length.
-   *
-   * Unlike a real wall it is two-sided unless cstat bit 6 says otherwise, so
-   * seeing it from behind reverses it rather than culling it.
-   */
-  #drawWallSprite(spr, sec, spriteIdx = -1) {
-    const trans = (spr.cstat & 2) !== 0, transRev = (spr.cstat & 512) !== 0;
-    this.#markSprite(spr, spriteIdx, 'wall');
-    const { halfW, horizon, focalX, focalY, cam, width, height, pixels, depth: zbuf } = this;
-
-    // animatesprites' pick, when the CON has one; the map's tile otherwise.
-    const tile = this.#tile(spr.dispPicNum ?? spr.picNum);
-    if (!tile) { this.stats.spritesSkipped++; return; }
-    const m = this.#spriteMetrics(spr, tile);
-    if (m.worldW <= 0 || m.worldH <= 0) return;
-
-    const a = spr.ang * Math.PI / 1024;
-    const sn = Math.sin(a), cs = Math.cos(a);
-
-    // Build lays a wall sprite's width along (sin ang, sin(ang + 1536)), and
-    // 1536 of 2048 is three quarters of a turn, so the second term is -cos.
-    // The check that settles the handedness: viewed from the facing side the
-    // camera's own right vector is exactly (sin ang, -cos ang), so u has to
-    // run that way or the texture comes out mirrored.
-    const ux = sn, uy = -cs;
-
-    if (spr.cstat & 0x40) {                        // one-sided
-      if ((cam.x - spr.x) * cs + (cam.y - spr.y) * sn <= 0) return;
-    }
-
-    const ox = spr.x - ux * m.xoff, oy = spr.y - uy * m.xoff;
-    let ax = ox - ux * m.worldW / 2 - cam.x, ay = oy - uy * m.worldW / 2 - cam.y;
-    let bx = ox + ux * m.worldW / 2 - cam.x, by = oy + uy * m.worldW / 2 - cam.y;
-
-    let d1 = ax * this.fx + ay * this.fy, l1 = ax * this.rx + ay * this.ry;
-    let d2 = bx * this.fx + by * this.fy, l2 = bx * this.rx + by * this.ry;
-    let t1 = 0, t2 = 1;
-    if (d1 < NEAR && d2 < NEAR) return;
-    if (d1 < NEAR) { const c = (NEAR - d1) / (d2 - d1); l1 += (l2 - l1) * c; t1 += (t2 - t1) * c; d1 = NEAR; }
-    else if (d2 < NEAR) { const c = (NEAR - d2) / (d1 - d2); l2 += (l1 - l2) * c; t2 += (t1 - t2) * c; d2 = NEAR; }
-
-    let sxa = halfW + l1 / d1 * focalX, sxb = halfW + l2 / d2 * focalX;
-    let iz1 = 1 / d1, iz2 = 1 / d2;
-    if (sxb < sxa) {                               // seen from the back
-      [sxa, sxb] = [sxb, sxa]; [iz1, iz2] = [iz2, iz1]; [t1, t2] = [t2, t1];
-    }
-    if (sxb - sxa < 1e-6) return;
-
-    const x1 = Math.max(this.colLo, Math.ceil(sxa - 0.5));
-    const x2 = Math.min(this.colHi, Math.floor(sxb - 0.5));
-    if (x1 > x2) return;
-
-    const tOverZ1 = t1 * iz1, tOverZ2 = t2 * iz2;
-    const xflip = spr.dispFlip ?? ((spr.cstat & 4) !== 0), yflip = (spr.cstat & 8) !== 0;
-    const kTop = (m.topZ - cam.z) / 16 * focalY, kBot = (m.botZ - cam.z) / 16 * focalY;
-    const th = tile.height, tw = tile.width;
-    const lutBase = 256;
-    const spriteLuts = this.#luts(spr.dispPal ?? spr.pal);
-    let drawn = false;
-    // Per sprite: the texels, and the last wall-side verdict — runs of pixels
-    // share their nearer wall, and the side test is geometry, not a lookup.
-    const tpx = tile.pixels, wallOf = this.wallOf, probeOn = this.probeIdx >= 0;
-    let sideW = -2, sideFront = false;
-
-    for (let x = x1; x <= x2; x++) {
-      const f = (x + 0.5 - sxa) / (sxb - sxa);
-      const invZ = iz1 + (iz2 - iz1) * f;
-      let t = (tOverZ1 + (tOverZ2 - tOverZ1) * f) / invZ;
-      if (xflip) t = 1 - t;
-      const u = clamp(Math.floor(t * tw), 0, tw - 1) * th;
-
-      const yTop = horizon + kTop * invZ, yBot = horizon + kBot * invZ;
-      if (yBot - yTop < 1e-6) continue;
-      const vScale = th / (yBot - yTop);
-      const shade = this.shade(spr.dispShade ?? spr.shade, 1 / invZ, sec.visibility) * lutBase;
-
-      const ya = Math.max(0, Math.ceil(yTop - 0.5));
-      const yb = Math.min(height - 1, Math.floor(yBot - 0.5));
-      for (let y = ya; y <= yb; y++) {
-        const i = y * width + x;
-        if (invZ < zbuf[i] * (1 - SPRITE_DEPTH_TIE)) {
-          // As for a face sprite: a nearer WALL hides a wall sprite only
-          // when the sprite's centre lies behind that wall's line — Build
-          // decides wall-against-sprite by side (spritewallfront), not per
-          // pixel. E2L1's SECURITY poster (#109, tile 499) hangs eight
-          // units in front of its own back wall 1523, slightly skewed; by
-          // depth the wall won the poster's left half.
-          const w = wallOf[i];
-          if (w < 0) continue;
-          if (w !== sideW) { sideW = w; sideFront = this.#spriteInFrontOfWall(spr, w); }
-          if (!sideFront) continue;
-        }
-        let v = (y + 0.5 - yTop) * vScale;
-        if (yflip) v = th - v;
-        const texel = tpx[u + clamp(Math.floor(v), 0, th - 1)];
-        if (texel === 255) continue;
-        zbuf[i] = invZ;
-        wallOf[i] = -1;
-        pixels[i] = trans ? Renderer.blend(pixels[i], spriteLuts[shade + texel], transRev) : spriteLuts[shade + texel];
-        if (probeOn) this.#hit(i);
-        drawn = true;
-      }
-    }
-    // Recorded only when something actually landed on screen, alongside the
-    // counter it belongs to. Listing every candidate instead put four indices
-    // next to "sprites 2", which reads as a contradiction and sends the
-    // reader after sprites that were never drawn.
-    if (drawn) { this.stats.sprites++; this.stats.spriteIds.push(spriteIdx); }
-  }
-
-  /**
-   * A floor-aligned sprite is a rectangle lying in a horizontal plane, so it
-   * is drawn like a flat: the ray meets the plane, and the world point is
-   * then carried back into the sprite's own frame to test the bounds and pick
-   * the texel.
-   */
-  #drawFloorSprite(spr, sec, spriteIdx = -1) {
-    const trans = (spr.cstat & 2) !== 0, transRev = (spr.cstat & 512) !== 0;
-    this.#markSprite(spr, spriteIdx, 'floor');
-    const { halfW, horizon, focalX, focalY, cam, width, height, pixels, depth: zbuf, invRow, invRowF } = this;
-
-    // animatesprites' pick, when the CON has one; the map's tile otherwise.
-    const tile = this.#tile(spr.dispPicNum ?? spr.picNum);
-    if (!tile) { this.stats.spritesSkipped++; return; }
-    const m = this.#spriteMetrics(spr, tile);
-    if (m.worldW <= 0 || m.worldH <= 0) return;
-
-    // One-sided floor sprites face up unless the y-flip bit turns them over.
-    if (spr.cstat & 0x40) {
-      if ((cam.z > spr.z) === ((spr.cstat & 8) === 0)) return;
-    }
-
-    const a = spr.ang * Math.PI / 1024;
-    const sn = Math.sin(a), cs = Math.cos(a);
-    // Floor sprites take the opposite sense from wall sprites in Build's own
-    // corner construction. Unverified against real art: a floor decal with
-    // legible text or a directional arrow would settle it.
-    const ux = -sn, uy = cs;      // tile x runs this way
-    const vx = -cs, vy = -sn;     // tile y runs this way
-
-    // Corner the local frame is measured from, offsets folded in.
-    const cx = spr.x + sn * (m.worldW / 2 + m.xoff) + cs * (m.worldH / 2 + m.yoff);
-    const cy = spr.y + sn * (m.worldH / 2 + m.yoff) - cs * (m.worldW / 2 + m.xoff);
-
-    const k = (spr.z - cam.z) / 16 * focalY;
-    if (k === 0) return;
-
-    // Screen bounds from the four corners; anything crossing the near plane
-    // falls back to the whole frame rather than producing a bogus box.
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, safe = true;
-    for (const [su, sv] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
-      const wx = cx + ux * m.worldW * su + vx * m.worldH * sv;
-      const wy = cy + uy * m.worldW * su + vy * m.worldH * sv;
-      const dx = wx - cam.x, dy = wy - cam.y;
-      const d = dx * this.fx + dy * this.fy;
-      if (d < NEAR) { safe = false; break; }
-      const iz = 1 / d;
-      const px2 = halfW + (dx * this.rx + dy * this.ry) * iz * focalX;
-      const py2 = horizon + (spr.z - cam.z) / 16 * focalY * iz;
-      if (px2 < minX) minX = px2; if (px2 > maxX) maxX = px2;
-      if (py2 < minY) minY = py2; if (py2 > maxY) maxY = py2;
-    }
-    const x1 = safe ? Math.max(this.colLo, Math.floor(minX)) : this.colLo;
-    const x2 = safe ? Math.min(this.colHi, Math.ceil(maxX)) : this.colHi;
-    const y1 = safe ? Math.max(0, Math.floor(minY)) : 0;
-    const y2 = safe ? Math.min(height - 1, Math.ceil(maxY)) : height - 1;
-    if (x1 > x2 || y1 > y2) return;
-
-    const th = tile.height, tw = tile.width;
-    const spriteLuts = this.#luts(spr.dispPal ?? spr.pal);
-    let drawn = false;
-
-    // Row by row: every pixel here reads and writes only itself, so the order
-    // is free, and along a row the depth, the shade and half of the world
-    // point are constant. Column by column the same work strode through the
-    // frame a row apart — and an unsafe bounding box is the whole frame.
-    const tpx = tile.pixels, worldW = m.worldW, worldH = m.worldH;
-    const baseShade = spr.dispShade ?? spr.shade, tie = 1 - SPRITE_DEPTH_TIE;
-    const { fx, fy, rx, ry } = this;
-    const probeRow = this.probeIdx >= 0 ? Math.floor(this.probeIdx / width) : -1;
-    for (let y = y1; y <= y2; y++) {
-      const inv = invRow[y];
-      if (inv === 0) continue;
-      const dist = k * inv;
-      if (dist <= 0) continue;
-      const invZ = 1 / dist;
-      const ky = invRowF[y];
-      const bx = cam.x + fx * dist, by = cam.y + fy * dist;
-      const lut = this.shade(baseShade, dist, sec.visibility) * 256;
-      const o = y * width;
-      for (let x = x1; x <= x2; x++) {
-        const i = o + x;
-        if (invZ < zbuf[i] * tie) continue;
-
-        const off = (x + 0.5 - halfW) * k * ky;
-        const relx = bx + rx * off - cx;
-        const rely = by + ry * off - cy;
-
-        const tu = relx * ux + rely * uy;
-        if (tu < 0 || tu >= worldW) continue;
-        const tv = relx * vx + rely * vy;
-        if (tv < 0 || tv >= worldH) continue;
-
-        const texel = tpx[
-          clamp(Math.floor(tu / worldW * tw), 0, tw - 1) * th +
-          clamp(Math.floor(tv / worldH * th), 0, th - 1)];
-        if (texel === 255) continue;
-        zbuf[i] = invZ;
-        const c = spriteLuts[lut + texel];
-        pixels[i] = trans ? Renderer.blend(pixels[i], c, transRev) : c;
-        if (y === probeRow) this.#hit(i);
-        drawn = true;
-      }
-    }
-    // Recorded only when something actually landed on screen, alongside the
-    // counter it belongs to. Listing every candidate instead put four indices
-    // next to "sprites 2", which reads as a contradiction and sends the
-    // reader after sprites that were never drawn.
-    if (drawn) { this.stats.sprites++; this.stats.spriteIds.push(spriteIdx); }
-  }
-
-  /**
-   * Resolve a tile through its animation. picanm lives on the base tile, so
-   * the frame offset is worked out there and then applied to the number.
-   */
-  #tile(picNum) {
-    const base = tileOf(this.res.art, picNum);
-    if (!base) return null;
-    const off = animOffset(base.anim, this.clock);
-    return off === 0 ? base : (tileOf(this.res.art, picNum + off) ?? base);
-  }
-
-  /**
-   * The shade table for a surface's palette.
-   *
-   * `pal` selects one of LOOKUP.DAT's alternate palettes, and until now the
-   * renderer ignored the field entirely: every coloured wall, sector and sprite
-   * in every level was drawn in pal 0. Falls back to the base table for pal 0
-   * and for any pal the file does not define, which is what Build does by
-   * leaving palookup[pal] pointing at nothing usable.
-   */
-  #luts(pal) {
-    if (!pal) return this.res.shadeLuts;
-    return this.res.palLuts?.get(pal) ?? this.res.shadeLuts;
-  }
-
-  #pick(kind, sectIdx, base, shade) {
-    if (this.mode === MODE_SURFACE) return KIND_COLOURS[kind];
-    if (this.mode === MODE_SECTOR) return sectorColour(sectIdx);
-    return this.res.shadeLuts[shade * 256 + base];
-  }
-
-  /**
-   * Distance shading.
-   *
-   * Build's formula, not an approximation of it:
-   *
-   *   shade = globalshade + ((swall * globvis) >> 24)
-   *
-   * with the whole fixed-point chain collapsed into DEFAULT_FADE_RATE — see
-   * there for the derivation and for why the screen geometry drops out.
-   *
-   * `dist` must be depth along the view axis, which is what camera-space Y is
-   * in Build and what both call sites here already pass. Euclidean distance
-   * would darken the edges of the frame in a way the original does not.
-   */
-  shade(baseShade, dist, visibility) {
-    if (this.mode >= MODE_FULLBRIGHT) return 0;
-    if (this.mode === MODE_NO_FADE) return clamp(Math.round(baseShade), 0, this.res.numShades - 1);
-    const fade = dist * this.fadeRate * foldVisibility(visibility);
-    // getpalookup adds the distance term as (davis>>8) — an integer shift,
-    // so it truncates. Rounding instead biases every surface by half a shade,
-    // uniformly across the frame, which reads as the whole scene sitting one
-    // step too bright or too dark. The base shade is already an integer from
-    // the map, so flooring the sum is the same operation Build performs.
-    return clamp(Math.floor(baseShade + fade), 0, this.res.numShades - 1);
-  }
-
-  /**
-   * Remember what a surface is, for the pixel under the crosshair.
-   *
-   * `detail` carries whatever the surface kind can say about its own texture
-   * mapping — panning, repeat, tile height. Those are the numbers that decide
-   * whether a misplaced texture is a mirror, an anchor, or a panning unit, and
-   * reading them off the wall beats inferring them from the picture.
-   */
-  #mark(kind, sect, pic, shade, detail) {
-    this.pKind = kind; this.pSect = sect; this.pPic = pic; this.pShade = shade;
-    this.pDetail = detail ?? null;
-  }
-
-  /**
-   * Stamp a reason on one pixel index, with the sector whose span declined it.
-   *
-   * The sector is the part that turns a category into a lead: "a floor span
-   * was dropped" is a symptom, "sector 94's floor span was dropped over the
-   * lower half of the frame" is something you can go and look at.
-   */
-  #dropAt(i, reason, sect = -1) {
-    if (!this.trackDrops || this.drops[i] !== DROP_NONE) return;
-    this.drops[i] = reason;
-    this.dropSect[i] = sect;
-  }
-
-  /**
-   * Record a sprite as the surface under the crosshair.
-   *
-   * All three alignments, not just face sprites. Only the face path used to
-   * do this, so a crosshair on a wall-aligned or floor-aligned sprite kept
-   * whatever surface was marked last — normally the wall behind it — and the
-   * probe confidently named the wrong thing. A probe that is silently stale
-   * is worse than one that says nothing.
-   *
-   * The index matters as much as the tile: one tile appears dozens of times
-   * in a map, and only the index leads back to the record. Pair it with
-   * `spriteprobe <GRP> <MAP> tile:N` or `near:x,y`.
-   */
-  #markSprite(spr, spriteIdx, align) {
-    this.#mark('sprite', spr.sectNum, spr.picNum, spr.shade, {
-      sprite: spriteIdx,
-      align,
-      cstat: spr.cstat,
-      xRep: spr.xRepeat, yRep: spr.yRepeat,
-      spriteAng: spr.ang,
-    });
-  }
-
-  /**
-   * The texel a path is about to write, when it is the probe pixel.
-   *
-   * "Do the courses line up where a wall meets a sloped ceiling" is a
-   * question about texture coordinates, and comparing two surfaces by eye at
-   * a seam is exactly the kind of judgement that has been wrong before here.
-   * Reading u and v off both sides turns it into two numbers.
-   */
-  #uvAt(i, u, v) {
-    if (i === this.probeIdx) this.pUV = { u, v };
-  }
-
-  #hit(i) {
-    if (i !== this.probeIdx) return;
-    // Depth as well as identity. Two surfaces at the same screen position can
-    // only be told apart by how far away they are, and "is this sprite in
-    // front of that wall or behind it" is not answerable from a tile number.
-    // Read from the buffer, which every path has just written, so it is the
-    // depth actually used for the test rather than a recomputation.
-    const inv = this.depth[i];
-    this.probe = {
-      kind: this.pKind, sect: this.pSect, pic: this.pPic, shade: this.pShade,
-      dist: inv ? 1 / inv : null,
-      ...(this.pDetail ?? {}),
-      ...(this.pUV ?? {}),
-    };
-    this.pUV = null;
-  }
-
-  #column(x, y0, y1, colour, invZ) {
-    const { width, pixels, depth: zbuf } = this;
-    if (y0 < 0) y0 = 0;
-    if (y1 > this.height - 1) y1 = this.height - 1;
-    for (let y = y0; y <= y1; y++) {
-      const i = y * width + x;
-      // Bunches are drawn front to back, so a pixel that already has depth
-      // should win. Anything arriving nearer than what is there means the
-      // ordering was wrong — counted rather than hidden.
-      if (zbuf[i] !== 0) {
-        if (invZ > zbuf[i]) this.stats.sortErrors++;
-        else continue;
-      }
-      zbuf[i] = invZ;
-      this.wallOf[i] = this.curWall;
-      pixels[i] = colour;
-      this.#hit(i);
-    }
-  }
-
-  /**
-   * Everything about one flat that does not vary along a column, worked out
-   * once per wall rather than once per pixel.
-   */
-  #flatDesc(sectIdx, sec, ceiling) {
-    const { map, colours, textures } = this.res;
-    const stat = ceiling ? sec.ceilingStat : sec.floorStat;
-    const picNum = ceiling ? sec.ceilingPicNum : sec.floorPicNum;
-    const flat = !textures || this.mode === MODE_SURFACE || this.mode === MODE_SECTOR;
-
-    const desc = {
-      sect: sectIdx,
-      kind: ceiling ? KIND_CEIL : KIND_FLOOR,
-      k: ((ceiling ? sec.ceilingZ : sec.floorZ) - this.cam.z) / 16 * this.focalY,
-      plane: this.#plane(sectIdx)[ceiling ? 'ceil' : 'floor'],
-      base: colours[picNum] ?? 96,
-      shade: ceiling ? sec.ceilingShade : sec.floorShade,
-      // A sector's two planes carry separate pals, and SE 4 flips them every
-      // time a light flashes — so this is read per frame like the shade is,
-      // not baked when the level loads.
-      pal: ceiling ? sec.ceilingPal : sec.floorPal,
-      visibility: sec.visibility,
-      parallax: (stat & 1) !== 0,
-      tile: flat ? null : this.#tile(picNum),
-      swapXY: (stat & 4) !== 0,
-      xflip: (stat & 16) !== 0,
-      yflip: (stat & 32) !== 0,
-      xPan: ceiling ? sec.ceilingXPanning : sec.floorXPanning,
-      yPan: ceiling ? sec.ceilingYPanning : sec.floorYPanning,
-      align: null,
-    };
-
-    // Bit 3 doubles the rate, halving the texel; bit 6 turns the texture with
-    // the sector's first wall instead of leaving it on the world axes.
-    //
-    // One rate for both axes. Build derives each from its own dimension, but
-    // the dimension cancels against the fetch shift on each axis separately,
-    // so a non-square tile is not a special case: u and v both run at a
-    // sixteenth of a texel per unit.
-    const rate = FLAT_TEXELS_PER_UNIT * ((stat & 8) ? 2 : 1) * (this.res.flatScale ?? 1);
-    desc.uScale = rate;
-    desc.vScale = rate;
-    desc.scale = rate;   // kept for the flat-colour paths
-
-    // Panning is a byte covering exactly one repetition, not a texel count —
-    // the same shape as the wall case, and for the same reason. ceilscan
-    // shifts the accumulated origin by globalxshift and only then adds
-    //
-    //   globalxpanning += (((int32_t)sec->ceilingxpanning)<<24);
-    //
-    // while hlineasm4 takes the texel from the top log2(width) bits of that
-    // 32-bit accumulator. So one unit is 2^(log2 w - 8) = width/256 texels,
-    // and a full 256 walks the tile once whatever its resolution. grouscan
-    // and slopevlin land on the same figure, so slopes share it.
-    //
-    // Bit 3 does not reach this: the sector's byte is added after the shift,
-    // so halving the texel size does not halve the pan.
-    if (desc.tile) {
-      desc.xPan = desc.xPan * desc.tile.width / 256;
-      desc.yPan = desc.yPan * desc.tile.height / 256;
-    }
-
-    if ((stat & 64) && desc.tile) {
-      const w1 = map.walls[sec.wallPtr];
-      const w2 = w1 ? map.walls[w1.point2] : null;
-      if (w1 && w2) {
-        const dx = w2.x - w1.x, dy = w2.y - w1.y;
-        const len = Math.hypot(dx, dy);
-        if (len > 0) {
-          // Across the reference wall the texture is stretched by the slope's
-          // secant. grouscan():
-          //
-          //   i = nsqrtasm(daslope*daslope + 16777216);   // 4096^2
-          //   globaly = mulscale12(dmulscale16(-y,dx,x,dy), i);
-          //
-          // mulscale12 divides by 4096, so the factor is
-          // sqrt(heinum^2 + 4096^2)/4096 — exactly sec of the tilt. It keeps
-          // the texels square ON the sloped surface rather than in its
-          // ground-plan projection, which is what makes a sloped ceiling
-          // continue the courses of the wall it meets.
-          //
-          // Without it the flat runs slow by that factor and the seam drifts:
-          // at heinum 4096 the tilt is 45 degrees and the error is sqrt(2),
-          // which is what put E1L5's ceiling rivets out of step with the
-          // wall's. Flat surfaces have heinum 0 and a factor of 1, so this
-          // costs them nothing.
-          const heinum = ceiling ? sec.ceilingHeinum : sec.floorHeinum;
-          const across = Math.hypot(heinum, 4096) / 4096;
-          desc.align = { ox: w1.x, oy: w1.y, ux: dx / len, uy: dy / len, across };
-        }
-      }
-    }
-
-    if (desc.parallax) {
-      desc.skyColour = this.#pick(desc.kind, sectIdx, desc.base, this.shade(desc.shade, 0, 0));
-      desc.sky = flat ? null : this.#skyPanorama(picNum);
-      desc.skyShade = this.shade(desc.shade, 0, 0);
-    }
-    return desc;
-  }
-
-  /**
-   * A parallaxed ceiling is a panorama, not a surface: Build spreads a run of
-   * consecutive tiles around the full turn and picks by view angle.
-   *
-   * How many tiles that run holds is set in the game's CON scripts, which are
-   * not parsed here, so it is recovered from the art instead: tiles following
-   * the first one that share its exact dimensions belong to the same sky.
-   */
-  #skyPanorama(picNum) {
-    if (!this.skyCache) this.skyCache = new Map();
-    const hit = this.skyCache.get(picNum);
-    if (hit !== undefined) return hit;
-
-    const art = this.res.art;
-    const first = tileOf(art, picNum);
-    if (!first) { this.skyCache.set(picNum, null); return null; }
-
-    // One tile per segment, via the offset table. An offset whose tile is
-    // missing from the ART falls back to the base rather than dropping the
-    // segment, which keeps the panorama the right width either way.
-    const spec = SKY_TABLE.get(picNum) ?? SKY_DEFAULT;
-    const tiles = spec.off.map((o) => {
-      const t = o === 0 ? first : tileOf(art, picNum + o);
-      return t && t.width === first.width && t.height === first.height ? t : first;
-    });
-
-    const sky = {
-      tiles, tileW: first.width, height: first.height,
-      width: SKY_SEGMENTS * first.width,
-      yScale: spec.yScale,
-      known: SKY_TABLE.has(picNum),
-    };
-    this.skyCache.set(picNum, sky);
-    return sky;
-  }
-
-  #skySpan(x, y0, y1, d) {
-    const { width, pixels, depth: zbuf } = this;
-    // A parallax sky takes its sector's pal like any other flat.
-    const shadeLuts = this.#luts(d.pal);
-    const sky = d.sky;
-
-    // The sky has its own horizon. parascan() shears it by parallaxyscale and
-    // puts the engine's back afterwards, so the panorama lags the world by
-    // that factor — a half for most Duke skies, all of it for CLOUDYOCEAN,
-    // about a quarter for LA. It is an anchor, not a plane intersection: the
-    // row below is a distance from this line and nothing here meets geometry.
-    const skyHorizon = this.halfH + (this.horizon - this.halfH) * sky.yScale;
-
-    const ang = mod(this.cam.ang + this.colAng[x], 2048);
-    const su = mod(Math.floor(ang / 2048 * sky.width), sky.width);
-    const tile = sky.tiles[Math.floor(su / sky.tileW)];
-    const col = (su % sky.tileW) * sky.height;
-
-    // Build anchors the panorama by its middle: globalzd puts texel h/2 on
-    // the horizon, so only the upper half of the tile is ever above it.
-    //
-    // One texel per row at the reference width and field of view, scaled for
-    // both. The slider stays as a debug override with a default of 1, so a
-    // mismatch shows up as a number away from 1 rather than as a constant
-    // quietly absorbing an error elsewhere.
-    const vScale = this.skyStep * (this.res.skyVScale ?? 1);
-    const vMid = sky.height / 2;
-    const lut = d.skyShade * 256;
-
-    for (let y = y0; y <= y1; y++) {
-      const i = y * width + x;
-      if (zbuf[i] !== 0) continue;
-      zbuf[i] = 1e-6;                       // effectively infinitely far away
-      this.#hit(i);
-      const v = clamp(Math.floor(vMid + (y - skyHorizon) * vScale), 0, sky.height - 1);
-      pixels[i] = shadeLuts[lut + tile.pixels[col + v]];
-    }
-  }
-
-  /**
-   * A sloped floor or ceiling.
-   *
-   * The flat case gets away with one reciprocal per screen row because depth
-   * is constant along a row. On a slope it is not, so each pixel needs the
-   * ray meeting the plane. Everything that depends only on the column is
-   * lifted out, leaving one division in the inner loop.
-   */
-  #slopedSpan(x, y0, y1, d) {
-    const { width, pixels, depth: zbuf, cam, rowK, halfW, focalX } = this;
-    const { A, B, C } = d.plane;
-
-    if (y0 < 0) y0 = 0;
-    if (y1 > this.height - 1) y1 = this.height - 1;
-
-    const u = (x + 0.5 - halfW) / focalX;
-    const hx = this.fx + this.rx * u;
-    const hy = this.fy + this.ry * u;
-    const den1 = A * hx + B * hy;
-    const num = cam.z - A * cam.x - B * cam.y - C;
-
-    const tile = d.tile;
-    const th = tile ? tile.height : 0;
-    const tw = tile ? tile.width : 0;
-
-    // Per span, as in #flatSpan: the pal's table, the masks, the probe
-    // column, and shade() unrolled into its three modes with its factors
-    // read once — the same expression in the same order, so the same shade.
-    const luts = this.#luts(d.pal);
-    const twm = (tw & (tw - 1)) === 0 ? tw - 1 : -1, thm = (th & (th - 1)) === 0 ? th - 1 : -1;
-    const probeCol = this.probeIdx >= 0 && this.probeIdx % width === x;
-    const tpx = tile ? tile.pixels : null;
-    const mode = this.mode, maxShade = this.res.numShades - 1;
-    const fadeRate = this.fadeRate, fold = foldVisibility(d.visibility);
-    const fixedShade = mode >= MODE_FULLBRIGHT ? 0
-      : mode === MODE_NO_FADE ? clamp(Math.round(d.shade), 0, maxShade) : -1;
-    const al = d.align;
-    const uScale = d.uScale, vScale = d.vScale, xPan = d.xPan, yPan = d.yPan;
-    const swapXY = d.swapXY, xflip = d.xflip, yflip = d.yflip;
-    const cx = cam.x, cy = cam.y;
-
-    for (let y = y0; y <= y1; y++) {
-      const i = y * width + x;
-      const den = den1 - 16 * rowK[y];
-      if (Math.abs(den) < 1e-9) { this.#dropAt(i, DROP_SLOPE_PARALLEL, d.sect); continue; }
-      // The sloped twin of the flat guard above; grouscan compares against
-      // getflorzofslope/getceilzofslope and calls it back-face culling.
-      const dist = num / den;
-      if (dist <= 0) { this.#dropAt(i, DROP_SLOPE_BEHIND, d.sect); continue; }
-
-      if (zbuf[i] !== 0) continue;
-      zbuf[i] = 1 / dist;
-
-      if (!tile) {
-        pixels[i] = this.#pick(d.kind, d.sect, d.base, this.shade(d.shade, dist, d.visibility));
-        this.#hit(i);
-        continue;
-      }
-
-      const wx = cx + hx * dist;
-      const wy = cy + hy * dist;
-      let tu, tv;
-      if (al) {
-        const rx = wx - al.ox, ry = wy - al.oy;
-        tu = rx * al.ux + ry * al.uy;
-        tv = (ry * al.ux - rx * al.uy) * al.across;
-      } else { tu = wx; tv = -wy; }   // world axes: v runs against world y
-      tu *= uScale; tv *= vScale;
-      if (swapXY) { const t = tu; tu = tv; tv = t; }
-      if (xflip) tu = -tu;
-      if (yflip) tv = -tv;
-
-      const gu = Math.floor(tu + xPan), gv = Math.floor(tv + yPan);
-      const fu = twm >= 0 ? gu & twm : mod(gu, tw), fv = thm >= 0 ? gv & thm : mod(gv, th);
-      const texel = tpx[fu * th + fv];
-      const sh = fixedShade >= 0 ? fixedShade
-        : clamp(Math.floor(d.shade + dist * fadeRate * fold), 0, maxShade);
-      pixels[i] = luts[sh * 256 + texel];
-      // #hit after #uvAt, never before: #hit folds the pending texel into the
-      // report and clears it. Called first it would fold in whatever #uvAt
-      // left behind last — the previous frame's, since nothing else consumes
-      // it. The wall path has always had this order.
-      if (probeCol) { this.#uvAt(i, fu, fv); this.#hit(i); }
-    }
-  }
-
-  #flatSpan(x, y0, y1, d) {
-    if (y1 < y0) return;
-    const { width, pixels, depth: zbuf, cam, invRow, invRowF, halfW } = this;
-
-    if (y0 < 0) y0 = 0;
-    if (y1 > this.height - 1) y1 = this.height - 1;
-
-    // Parallax first, and without consulting the plane at all.
-    //
-    // A parallaxed ceiling is a panorama, not a surface: Build's parascan
-    // never intersects the ray with the sector's plane, and neither may this.
-    // Routing the untextured fallback through the plane below made the sky
-    // depend on where its ceilingz happened to sit — with the eye above that
-    // plane, `dist = k * invRow` comes out negative for every row above the
-    // horizon and the guard drops the lot. The result was the whole upper
-    // half of the frame unpainted, in runs ending exactly at the horizon row,
-    // whenever the view carried a sky whose plane lay below eye level. Only
-    // the flat paths could show it, since the textured path takes #skySpan
-    // one line down and that has no plane in it either.
-    if (d.parallax) {
-      if (d.sky) { this.#skySpan(x, y0, y1, d); return; }
-      for (let y = y0; y <= y1; y++) {
-        const i = y * width + x;
-        if (zbuf[i] !== 0) continue;
-        zbuf[i] = 1e-6;                     // effectively infinitely far away
-        this.#hit(i);
-        pixels[i] = d.skyColour;
-      }
-      return;
-    }
-    if (d.plane.sloped) { this.#slopedSpan(x, y0, y1, d); return; }
-
-    const lat = x + 0.5 - halfW;
-    const tile = d.tile;
-    const th = tile ? tile.height : 0;
-    const tw = tile ? tile.width : 0;
-    // Per span, not per pixel: the shade table of the pal, power-of-two masks
-    // (flats always are; mod() stays for the rest), the fade factor, and
-    // whether the probe pixel lies in this column at all.
-    const luts = this.#luts(d.pal);
-    const twm = (tw & (tw - 1)) === 0 ? tw - 1 : -1, thm = (th & (th - 1)) === 0 ? th - 1 : -1;
-    const fading = this.mode < MODE_FULLBRIGHT && this.mode !== MODE_NO_FADE;
-    const fadeK = fading ? this.fadeRate * foldVisibility(d.visibility) : 0;
-    const maxShade = this.res.numShades - 1;
-    const probeCol = this.probeIdx >= 0 && this.probeIdx % width === x;
-    const tpx = tile ? tile.pixels : null;
-
-    const k = d.k, al = d.align;
-    const uScale = d.uScale, vScale = d.vScale, xPan = d.xPan, yPan = d.yPan;
-    const swapXY = d.swapXY, xflip = d.xflip, yflip = d.yflip, dShade = d.shade;
-    const { fx, fy, rx, ry } = this;
-    const cx = cam.x, cy = cam.y, latK = lat * k;
-
-    for (let y = y0; y <= y1; y++) {
-      const i = y * width + x;
-      const inv = invRow[y];
-      if (inv === 0) { this.#dropAt(i, DROP_FLAT_HORIZON, d.sect); continue; }
-
-      // Back-face culling, and Build does exactly this. florscan opens with
-      //
-      //   globalzd = globalposz - sec->floorz;
-      //   //We are UNDER the floor: Do NOT render anything.
-      //   if (globalzd > 0) return;
-      //
-      // ceilscan has the mirror of it and grouscan the sloped version, where
-      // the comment in the original reads "Back-face culling" outright. A
-      // plane the eye is on the wrong side of is not drawn, full stop.
-      //
-      // So pixels dropped here are not a defect: the original leaves them
-      // unpainted too, which is where Build's famous hall-of-mirrors comes
-      // from. They turn up in a sweep at vantage points a player never
-      // occupies and are invisible in normal play.
-      const dist = k * inv;
-      if (dist <= 0) { this.#dropAt(i, DROP_FLAT_BEHIND, d.sect); continue; }
-
-      if (zbuf[i] !== 0) continue;
-      zbuf[i] = 1 / dist;
-
-      if (!tile) {
-        pixels[i] = this.#pick(d.kind, d.sect, d.base, this.shade(dShade, dist, d.visibility));
-        this.#hit(i);
-        continue;
-      }
-
-      // World point under this pixel. Depth is fixed for the row, and the
-      // sideways offset scales with it, so both fall out of the tabulated
-      // reciprocal without a division. (lat * k is lat * d.k * ..., read
-      // left to right — hoisted, not reassociated.)
-      const off = latK * invRowF[y];
-      const wx = cx + fx * dist + rx * off;
-      const wy = cy + fy * dist + ry * off;
-
-      let tu, tv;
-      if (al) {
-        const ax = wx - al.ox, ay = wy - al.oy;
-        tu = ax * al.ux + ay * al.uy;
-        tv = (ay * al.ux - ax * al.uy) * al.across;
-      } else {
-        // World axes. Build's v runs against world y: ceilscan sets
-        //
-        //   globalxpanning = (globalposx<<20);
-        //   globalypanning = -(globalposy<<20);
-        //
-        // and grouscan the same, as globalx1 = (globalposx<<8), globaly1 =
-        // -(globalposy<<8). Relative alignment (bit 6) reverses v again —
-        // both its origin and the coefficients that drive it flip sign — so
-        // with a reference wall along +x the two modes agree on u and run v
-        // in opposite directions. That relation is pinned in the tests.
-        tu = wx; tv = -wy;
-      }
-      tu *= uScale; tv *= vScale;
-      if (swapXY) { const t = tu; tu = tv; tv = t; }
-      if (xflip) tu = -tu;
-      if (yflip) tv = -tv;
-
-      const fu = Math.floor(tu + xPan), fv = Math.floor(tv + yPan);
-      const u = twm >= 0 ? fu & twm : mod(fu, tw);
-      const v = thm >= 0 ? fv & thm : mod(fv, th);
-      let sh;
-      if (fading) { sh = Math.floor(dShade + dist * fadeK); sh = sh < 0 ? 0 : sh > maxShade ? maxShade : sh; }
-      else sh = this.shade(dShade, dist, d.visibility);
-      pixels[i] = luts[sh * 256 + tpx[u * th + v]];
-      if (probeCol) { this.#uvAt(i, u, v); this.#hit(i); }   // #hit after #uvAt — see the sloped span
-    }
-  }
+	constructor(width = 320, height = 200, fov = 90, opts = {}) {
+		this.fov = fov;
+		// refHeight: the screen's full height (Build's ydim) when the view is a
+		// shorter viewport of it — with the status bar, 166 of 200 rows. The
+		// focal length and the horiz unit belong to the screen, the centre row
+		// to the viewport (setview / vscrn).
+		this.refHeight = opts.refHeight ?? height;
+		// tall: a viewport larger than its reference screen is allowed — the
+		// tilted view (rotscrnang) renders a margin around the screen to rotate.
+		this.tall = !!opts.tall;
+		// horPlus: a view widened beyond 4:3 (the page in a wide window). The
+		// wider field of view zooms the HORIZONTAL axis only; rows keep the 4:3
+		// screen's focal length, so the picture is not squashed and the
+		// crosshair stays where the shot goes.
+		this.horPlus = !!opts.horPlus;
+		this.#declare();
+		this.resize(width, height);
+	}
+
+	/**
+	 * Every field a renderer ever carries, made here, in one order, for every
+	 * instance. V8 gives objects that grew the same properties in the same
+	 * order one hidden class; a field first assigned later — `scratch` at the
+	 * first mirror, `clipLo`/`inMirrorPass` on the mirror's renderer only,
+	 * `debugSprite` and `prof` from the page, `prof` but not `debugSprite` on
+	 * the tilt renderers, neither on a monitor's — gave the instances different
+	 * classes. They all run through the same hot code, whose property loads
+	 * then turn polymorphic: one look aside (rotscrnang's tilted view) or one
+	 * monitor in view left the main view's r:walls about a quarter slower for
+	 * the rest of the visit. Measured headless on E3L11, 8.6 -> 11.0 ms.
+	 */
+	#declare() {
+		// the page's and the mirror pass's
+		this.prof = null; this.debugSprite = -1;
+		this.clipLo = null; this.clipHi = null; this.inMirrorPass = false;
+		// render()'s per-frame state
+		this.mode = 0; this.fadeRate = 0; this.clock = 0; this.wallV = 0; this.horiz = 0;
+		this.probeX = 0; this.probeY = 0; this.probeIdx = 0; this.probe = null; this.pUV = null;
+		this.pc = false; this.pKind = null; this.pSect = -1; this.pPic = -1; this.pShade = 0; this.pDetail = null;
+		this.res = null; this.cam = null; this.curWall = -1; this.colLo = 0; this.colHi = 0;
+		this.trackDrops = false; this.drops = null; this.dropSect = null;
+		this.fx = 0; this.fy = 0; this.rx = 0; this.ry = 0;
+		this.got = null; this.wallSeen = null; this.wallSlot = null; this.wallTaken = null; this.stamp = 0;
+		this.scanned = null; this.bunches = null; this.masked = null; this.stats = null;
+		this.mirrorSeen = -1; this.mirrorDist = 0; this.scratch = null; this.skyCache = null;
+	}
+
+	resize(width, height) {
+		this.width = width;
+		this.height = height;
+		if (!this.refHeight || (this.refHeight < height && !this.tall)) this.refHeight = height;
+		this.halfW = width / 2;
+		this.halfH = height / 2;
+		// viewingrange is a zoom on BOTH axes: it enters through yp, the depth
+		// denominator every projection divides by. So one factor, and the ratio
+		// between the axes is fixed by the resolution alone — not a knob.
+		const zoom = Math.tan(REF_FOV * Math.PI / 360) / Math.tan(this.fov * Math.PI / 360);
+		this.focalX = this.halfW * zoom;                                  // xdim/2
+		this.focalY = this.refHeight * VERT_FOCAL / VERT_FOCAL_ROWS * (this.horPlus ? 1 : zoom);   // 0.64*ydim — the screen's, not the viewport's
+		this.spriteFocalX = this.focalX * SPRITE_FOCAL_RATIO;             // 0.4*xdim
+
+		// The view's buffers are column-major — index x * height + y — because
+		// every inner loop here runs down a column (walls, flats, sky, masked
+		// walls, sprites). Row-major, each step of y jumped a whole row of three
+		// buffers; at the resolution slider's 3x a frame is megabytes per buffer
+		// and the column walk missed the cache on nearly every pixel. The page
+		// turns the result into rows once (blit.js columnsInto).
+		this.pixels = new Uint32Array(width * height);
+		this.depth = new Float32Array(width * height);
+		// Which wall drew each pixel (-1: a flat, a sprite, or nothing yet).
+		// Build clips a face sprite against a wall by SIDE, not by depth —
+		// spritewallfront(): the sprite's centre must lie behind the wall's
+		// line for the wall to hide it. A billboard's far corner dipping behind
+		// an oblique facade is not hidden in Build; a per-pixel depth test cut
+		// the left half off an explosion on E1L1's street. This buffer lets
+		// the sprite drawer ask the wall instead of the depth.
+		this.wallOf = new Int16Array(width * height);
+		this.umost = new Int16Array(width);
+		// A face sprite's texel row per screen row (#drawFaceSprite).
+		this.rowTex = new Int32Array(height);
+		this.dmost = new Int16Array(width);
+
+		// For a horizontal surface the depth at a screen row is constant, so the
+		// reciprocal can be tabulated once. That is what makes per-pixel flat
+		// texturing cheap enough to skip Build's span bookkeeping: no division in
+		// the inner loop, just multiplies.
+		//
+		// All three are measured from the HORIZON, not from the middle of the
+		// frame — the two only coincide at horiz 100. Build's own tables are
+		// indexed as `yp-globalhoriz+horizycent`, i.e. relative to the same row.
+		this.invRow = new Float32Array(height);
+		this.invRowF = new Float32Array(height);
+		this.rowK = new Float32Array(height);
+		this.horizon = this.halfH;
+		this.tabHorizon = NaN;
+		this.#retable(this.halfH);
+
+		// Horizontal angle each column looks along, in Build's 2048-unit turn.
+		// The sky depends on view direction only, so this is all it needs.
+		// Unaffected by pitch: a shear moves no column.
+		this.colAng = new Float32Array(width);
+		for (let x = 0; x < width; x++) {
+			this.colAng[x] = Math.atan((x + 0.5 - this.halfW) / this.focalX) * 1024 / Math.PI;
+		}
+
+		// How fast the sky runs past vertically, in texels per screen row.
+		// DERIVED, and it belongs to the vertical axis — this used to be tied to
+		// the frame WIDTH, the same mistake as the shared focal length and
+		// invisible for the same reason: at 320x200 both readings are 1.
+		//
+		// parascan hands wallscan a constant span, swplc = mulscale16(xdimscale,
+		// viewingrange), and wallscan turns it into
+		//
+		//   vince = swal * globalyscale,  texel = vplce >> globalshiftval
+		//
+		// with globalyscale = 8 << (globalshiftval-19). The tile's height cancels
+		// out of that pair, leaving swal/2^16 texels per row — a 300-tall sky
+		// steps exactly like a 128-tall one. Unfolding
+		//
+		//   xdimscale = scale(320,xyaspect,xdimen),  xyaspect = divscale32(1,yxaspect)
+		//   yxaspect  = divscale16(ydim*320, xdim*200)
+		//
+		// collapses the whole thing to 200/ydim at the default viewingrange, and
+		// the zoom divides it as it multiplies every focal length. That is exactly
+		// VERT_FOCAL/focalY: the sky advances one texel per 1/128 of the vertical
+		// focal length, which is also one unit of horiz. The panorama and the
+		// pitch move in the same currency, as they must, since parascan reaches
+		// the panorama through globalhoriz.
+		this.skyStep = VERT_FOCAL / this.focalY;
+	}
+
+	/**
+	 * Refill the row tables for a horizon row, if it has moved.
+	 *
+	 * A frame costs one pass over `height` entries when the pitch changes and
+	 * nothing at all when it does not, so holding still is as cheap as it was
+	 * before pitch existed. Keeping the tables indexed by absolute row instead —
+	 * offsetting at each lookup — would put an add and a bounds question in the
+	 * innermost loop of every flat span, which is the one place this renderer
+	 * has bothered to keep free of them.
+	 */
+	#retable(horizon) {
+		if (this.tabHorizon === horizon) return;
+		this.tabHorizon = horizon;
+		const { height, focalY } = this;
+		for (let y = 0; y < height; y++) {
+			const dy = y + 0.5 - horizon;
+			const inv = Math.abs(dy) < 1e-6 ? 0 : 1 / dy;
+			this.invRow[y] = inv;
+			// Both convert a row offset into a world quantity, so both are vertical.
+			this.invRowF[y] = inv / focalY;
+			this.rowK[y] = dy / focalY;
+		}
+	}
+
+	/**
+	 * @param {object} cam {x, y, z, ang, sectNum} — z in Build z units (1/16)
+	 * @param {object} res {map, prep, colours, shadeLuts, numShades, mode}
+	 */
+	/** This frame's planes, by sector index. Rebuilt every render(); see #plane. */
+	#planeCache = [];
+
+	/**
+	 * The sector's floor or ceiling plane, as it stands RIGHT NOW.
+	 *
+	 * prepareMap() used to hand these out, computed once when the level loaded.
+	 * That was correct for exactly as long as nothing in a level moved, which
+	 * stopped being true when the doors arrived and was not noticed because the
+	 * two halves of the error look like different problems: the rows a wall is
+	 * clipped to came from the frozen plane, while #flatDesc took the surface's
+	 * own height live from sec.floorZ. A moved floor was therefore drawn in the
+	 * old place and textured for the new one — read as a texture bug in E1L3,
+	 * with 590 sort errors in the frame because the depth comparison was being
+	 * made against a surface that was not there.
+	 *
+	 * Rebuilt per frame rather than invalidated per move: a floor can be moved by
+	 * doAnimations, moveEffectors or a test poking sec.floorZ directly, and a
+	 * cache that three callers have to remember to dirty is a cache that will be
+	 * stale again. One slopePlane call per visited sector per frame is nothing
+	 * next to the per-pixel work it feeds.
+	 */
+	#plane(sectIdx) {
+		let p = this.#planeCache[sectIdx];
+		if (p === undefined) {
+			p = {
+				ceil: slopePlane(this.res.map, sectIdx, true),
+				floor: slopePlane(this.res.map, sectIdx, false),
+			};
+			this.#planeCache[sectIdx] = p;
+		}
+		return p;
+	}
+
+	render(cam, res) {
+		const { width, height } = this;
+		this.mode = res.mode ?? res.shadeMode ?? MODE_FULL;
+		// fadeScale is the HUD knob. Now that the rate is derived rather than
+		// dialled in, the knob is a pure multiplier defaulting to 1: if it has to
+		// be moved to make a scene look right, that is a finding about the
+		// derivation, not a setting. fadeRate stays a separate override so tests
+		// can pin a rate without depending on this default.
+		this.fadeRate = (res.fadeRate ?? DEFAULT_FADE_RATE) * (res.fadeScale ?? 1);
+		this.clock = res.clock ?? 0;
+		this.wallV = res.wallVScale ?? V_PER_YREPEAT;
+
+		// Pitch. Level by default, so a caller that knows nothing about horiz gets
+		// exactly the frame it got before. See HORIZ_LEVEL for why this is the
+		// only place the value is consulted: from here on the horizon is a row,
+		// and every path adds it.
+		this.horiz = cam.horiz ?? HORIZ_LEVEL;
+		this.horizon = horizonRow(this.horiz, this.height, this.refHeight);
+		this.#retable(this.horizon);
+		// Two conventions the format alone did not settle, stated as values
+		// rather than as flips — the flip form had already inverted meaning twice
+		// and each inversion silently rewrote what the tests were asserting.
+		//
+		// 'ceiling' anchors the texture at the sector ceiling, 'floor' at its
+		// floor; cstat bit 2 swaps whichever is in force. 'down' runs v the way
+		// the tile is drawn, 'up' mirrors it; cstat bit 8 swaps that.
+		// No wallAnchor switch: Build has no single anchor rule to switch. Each
+		// wall part picks its own pair of origins, keyed on cstat bit 2 alone.
+
+		// Masked walls anchor independently of solid ones. Tying the two together
+		// was a mistake: a setting that put brickwork right on one level threw the
+		// grates off on another, because they answer to different conventions.
+		// Likewise for masked walls: bit clear anchors to the top of the opening.
+
+		// What ends up under the middle of the screen. Answering "which tile am I
+		// looking at" turns questions like whether a texture is upside down from
+		// an argument into a lookup in the tile browser.
+		//
+		// `probeAt` overrides it. Reading a seam means reading the texel just
+		// above and just below one edge, and the crosshair cannot be in two places
+		// at once; moving the camera instead changes the very thing being
+		// measured. Out of range falls back to the centre rather than silently
+		// probing nothing.
+		// probeAt is a row-major index (y * width + x) as the callers count;
+		// the buffers are column-major (x * height + y), see resize().
+		const at = res.probeAt;
+		const pAt = (Number.isInteger(at) && at >= 0 && at < width * height) ? at : (this.halfH | 0) * width + (this.halfW | 0);
+		this.probeX = pAt % width;
+		this.probeY = (pAt - this.probeX) / width;
+		this.probeIdx = this.probeX * height + this.probeY;
+		this.probe = null;
+		// The pending texel too, not just the report. Left standing it survives
+		// into the next frame and turns a stale reading into a plausible one.
+		this.pUV = null;
+		this.res = res;
+		this.cam = cam;
+		// Planes are rebuilt for this frame on first use. They cannot be prepared
+		// once and kept: a plane's constant term IS the sector's z, so a stored
+		// plane is only true until a door, a drop floor or a rise bridge moves —
+		// and then the rows a wall is clipped to come from the old height while
+		// the flat's own height comes from the new one. See #plane().
+		this.#planeCache = new Array(res.map.sectors.length);
+
+		// Per-phase timing for the perf line (Alt+D): the page hands in its
+		// frame record as `prof`; without it nothing is measured.
+		const P = this.prof;
+		let pt = P ? performance.now() : 0;
+		const lap = P ? (k) => { const n = performance.now(); P[k] = (P[k] ?? 0) + n - pt; pt = n; } : null;
+
+		this.pixels.fill(this.mode >= MODE_FULLBRIGHT ? UNPAINTED : BACKGROUND);
+		this.depth.fill(0);
+		this.wallOf.fill(-1);
+		this.curWall = -1;
+		this.umost.fill(0);
+		this.dmost.fill(height - 1);
+		// The columns this pass has to deliver: all of them, except for the
+		// mirror's scratch pass, which is asked for the mirror's columns only
+		// (#drawMirror sets clipLo/clipHi). Outside them the clip arrays start
+		// closed, so walls and flats skip those columns, and the sprite and
+		// masked-wall loops are cut to the window.
+		this.colLo = Math.max(0, this.clipLo ?? 0);
+		this.colHi = Math.min(width - 1, this.clipHi ?? width - 1);
+		for (let x = 0; x < this.colLo; x++) { this.umost[x] = 1; this.dmost[x] = 0; }
+		for (let x = this.colHi + 1; x < width; x++) { this.umost[x] = 1; this.dmost[x] = 0; }
+
+		// Opt-in: one byte per pixel, cleared per frame. Off by default so the
+		// interactive path pays nothing for it.
+		this.trackDrops = !!res.trackDrops;
+		if (this.trackDrops) {
+			if (!this.drops || this.drops.length !== width * height) {
+				this.drops = new Uint8Array(width * height);
+				this.dropSect = new Int32Array(width * height);
+			}
+			this.drops.fill(DROP_NONE);
+			this.dropSect.fill(-1);
+		}
+
+		const a = cam.ang * Math.PI / 1024;
+		this.fx = Math.cos(a); this.fy = Math.sin(a);
+		this.rx = -this.fy; this.ry = this.fx;
+
+		const map = res.map;
+		// Both dimensions have to be checked, not just the sector count. Two maps
+		// can agree on sectors and differ in walls, and then the wall arrays stay
+		// at the old length: writes past the end of a TypedArray are silently
+		// dropped and reads come back undefined, so `wallSeen[wi] === stamp` is
+		// false for every wall beyond the old bound. Nothing throws — the frame
+		// just comes back with no bunches at all, which reads as a traversal
+		// failure rather than as the stale buffer it is.
+		if (!this.got || this.got.length !== map.sectors.length
+				|| this.wallSeen.length !== map.walls.length) {
+			this.got = new Uint8Array(map.sectors.length);
+			this.wallSeen = new Int32Array(map.walls.length);
+			this.wallSlot = new Int32Array(map.walls.length);
+			this.wallTaken = new Int32Array(map.walls.length);
+			this.stamp = 0;
+		}
+		this.got.fill(0);
+		this.stamp++;
+		if (lap) lap('r:clear');
+
+		this.scanned = [];
+		this.bunches = [];
+		this.masked = [];
+		this.stats = {
+			sectors: 0, walls: 0, portals: 0,
+			bunches: 0, sortErrors: 0, incomparable: 0, disjoint: 0, untextured: 0, unpainted: 0,
+			sprites: 0, spritesSkipped: 0, spritesHidden: 0, spriteIds: [], markers: 0, masked: 0, maskedSkipped: 0,
+			// filled only now and then; declared so every frame's record has one shape
+			nearPortals: 0, shadows: 0, mirror: null, spriteWhy: null, drops: null, dropsBySector: null,
+			// Retained so callers written against stage 3a keep working; the
+			// architecture no longer has anything to report here.
+			reentered: 0, capped: 0, truncated: 0, maxDepth: 0, maxVisits: 1,
+			visited: new Set(),
+		};
+
+		this.mirrorSeen = -1;
+		if (cam.sectNum >= 0 && cam.sectNum < map.sectors.length) {
+			this.#scan(cam.sectNum);
+			if (lap) lap('r:scan');
+			// A camera standing on a portal's line: engine.c scansector takes the
+			// sector across it by its own rule (#scan).
+			this.#drawBunches();
+			if (lap) lap('r:walls');
+			this.#drawMaskedWalls();
+			if (lap) lap('r:masked');
+			this.#drawSprites();
+			if (lap) lap('r:sprites');
+			if (this.mirrorSeen >= 0 && !this.inMirrorPass) { this.#drawMirror(this.mirrorSeen); if (lap) lap('r:mirror'); }
+		}
+
+		// Coverage, measured from the depth buffer rather than from pixel colour:
+		// a zero there means nothing was ever drawn. This separates "the
+		// traversal missed geometry" from "the geometry is there but shaded to
+		// black", which look identical on screen and have nothing in common.
+		//
+		// A whole pass over the depth buffer, so on request only (res.countUnpainted,
+		// or with the drop tracking that needs it anyway); otherwise null.
+		if (res.countUnpainted || this.trackDrops) {
+			let blank = 0;
+			for (let i = 0; i < this.depth.length; i++) if (this.depth[i] === 0) blank++;
+			this.stats.unpainted = blank;
+		} else this.stats.unpainted = null;
+
+		// Attribute the survivors. A reason stamped on a pixel that some later
+		// span covered is not a gap and is not counted here.
+		if (this.trackDrops) {
+			const why = new Uint32Array(DROP_NAMES.length);
+			const bySect = new Map();
+			for (let i = 0; i < this.depth.length; i++) {
+				if (this.depth[i] !== 0) continue;
+				why[this.drops[i]]++;
+				const sect = this.dropSect[i];
+				if (sect >= 0) {
+					const key = `${sect}:${this.drops[i]}`;
+					bySect.set(key, (bySect.get(key) ?? 0) + 1);
+				}
+			}
+			this.stats.drops = why;
+			this.stats.dropsBySector = bySect;
+		}
+
+		return this.stats;
+	}
+
+	// --- scanning -------------------------------------------------------------
+
+	/** Flood sectors once each, projecting their visible walls into bunches. */
+	#scan(startSector) {
+		const { map, prep } = this.res;
+		const queue = [startSector];
+		this.got[startSector] = 1;
+
+		while (queue.length) {
+			const sectIdx = queue.shift();
+			const sec = map.sectors[sectIdx];
+			const sign = prep.facing[sectIdx];
+			const end = sec.wallPtr + sec.wallNum;
+
+			this.stats.sectors++;
+			this.stats.visited.add(sectIdx);
+
+			const visible = [];
+			for (let wi = sec.wallPtr; wi < end; wi++) {
+				// engine.c scansector: a portal whose line passes within a hair of
+				// the camera takes its sector along whatever the projection says —
+				// `tempint = x1*y2-x2*y1` (twice the triangle camera/wall) below
+				// 262144 in magnitude, and tempint^2>>5 no more than the wall's
+				// squared length, i.e. the camera within about sqrt(32) units of the
+				// line. A camera standing ON a portal (E4L10, sector 644 on the
+				// diagonal into 643) sees that portal edge-on and culled, and the
+				// sector behind it — which fills the view — was never scanned.
+				{
+					const w = map.walls[wi];
+					if (w.nextSector >= 0 && (w.cstat & 32) === 0 && !this.got[w.nextSector]) {
+						const p2 = map.walls[w.point2];
+						const cx = Math.trunc(this.cam.x), cy = Math.trunc(this.cam.y);
+						const x1 = w.x - cx, y1 = w.y - cy, x2 = p2.x - cx, y2 = p2.y - cy;
+						const t = x1 * y2 - x2 * y1;
+						if (t + 262144 >= 0 && t + 262144 < 524288 && Math.floor(t * t / 32) <= (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)) {
+							this.got[w.nextSector] = 1;
+							queue.push(w.nextSector);
+							this.stats.nearPortals = (this.stats.nearPortals ?? 0) + 1;
+						}
+					}
+				}
+				const entry = this.#project(wi, sectIdx, sign);
+				if (!entry) continue;
+
+				this.wallSeen[wi] = this.stamp;
+				this.wallSlot[wi] = this.scanned.length;
+				this.scanned.push(entry);
+				visible.push(wi);
+				this.stats.walls++;
+
+				if (entry.portal) {
+					this.stats.portals++;
+					entry.closed = this.#closedPortal(sectIdx, entry.next, wi);
+					if (!this.got[entry.next] && !entry.closed) {
+						this.got[entry.next] = 1;
+						queue.push(entry.next);
+					}
+				}
+			}
+
+			this.#formBunches(sectIdx, visible);
+		}
+	}
+
+	/**
+	 * Cull, clip and project one wall. Returns null when the wall cannot
+	 * contribute: facing away, entirely behind the near plane, or off screen.
+	 */
+	/**
+	 * game.c displayrooms + engine.c preparemirror/completemirror: a mirror
+	 * is a one-way wall (cstat 32) carrying MIRROR (560) as its overpicnum,
+	 * with a sector behind it. The scene is drawn a second time from the
+	 * REFLECTED camera — the position mirrored across the wall's line, the
+	 * angle 2*wallangle - ang, starting in the mirror sector and looking back
+	 * out through the wall — and that image, flipped left to right, is what
+	 * the mirror shows. Here the main pass has already painted the mirror
+	 * wall (tagging its pixels in wallOf); the second pass renders into a
+	 * scratch renderer of the same size, and every tagged pixel takes the
+	 * scratch pixel of the mirrored column. Duke draws the player's own
+	 * sprite in the mirror; uDuke has no player sprite yet.
+	 */
+	#drawMirror(wi) {
+		const { map } = this.res;
+		const w = map.walls[wi], w2 = map.walls[w.point2];
+		const dx = w2.x - w.x, dy = w2.y - w.y;
+		const jj = dx * dx + dy * dy;
+		if (jj === 0 || w.nextSector < 0) return;
+		const cam = this.cam;
+		const ii = ((cam.x - w.x) * dx + (cam.y - w.y) * dy) * 2;
+		const tx = (w.x * 2) + Math.floor(dx * ii / jj) - cam.x;
+		const ty = (w.y * 2) + Math.floor(dy * ii / jj) - cam.y;
+		const wallAng = Math.round(Math.atan2(dy, dx) * 1024 / Math.PI) & 2047;
+		const tang = ((wallAng << 1) - cam.ang) & 2047;
+		if (!this.scratch || this.scratch.width !== this.width || this.scratch.height !== this.height) {
+			this.scratch = new Renderer(this.width, this.height, this.fov);
+		}
+		const sc = this.scratch;
+		// Only the mirror's own columns are copied back, flipped, so only those
+		// are rendered: the main pass's projection of the mirror wall gives them.
+		const W = this.width, H = this.height;
+		const me = this.wallSeen[wi] === this.stamp ? this.scanned[this.wallSlot[wi]] : null;
+		const mx1 = me ? Math.max(0, me.x1) : 0, mx2 = me ? Math.min(W - 1, me.x2) : W - 1;
+		sc.clipLo = W - 1 - mx2; sc.clipHi = W - 1 - mx1;
+		const mcam = { x: tx, y: ty, z: cam.z, ang: tang, horiz: cam.horiz, sectNum: w.nextSector };
+		// The actors' view frames are chosen for the camera that looks at them:
+		// for the mirror that is the reflected one (Duke calls animatesprites
+		// again with tposx/tposy/tang). The page hands the call in.
+		if (this.res.animateFor) this.res.animateFor(mcam);
+		sc.inMirrorPass = true;
+		sc.render(mcam, this.res);
+		sc.inMirrorPass = false;
+		if (this.res.animateFor) this.res.animateFor(cam);
+		for (let x = mx1; x <= mx2; x++) {
+			const o = x * H, so = (W - 1 - x) * H;
+			for (let y = 0; y < H; y++) {
+				if (this.wallOf[o + y] !== wi) continue;
+				this.pixels[o + y] = sc.pixels[so + y];
+			}
+		}
+		this.stats.mirror = { wall: wi, sector: w.nextSector, tx, ty, tang };
+	}
+
+	/**
+	 * A portal whose window is empty at both ends of the wall — the higher
+	 * ceiling at or below the lower floor — shows nothing beyond it, so the
+	 * neighbour is not scanned through it (a closed ceiling door, a shut lift
+	 * shaft). It matters for sprites: E1L1's cinema hides a secret niche
+	 * whose sector OVERLAPS the lobby in the map; reached through the shut
+	 * door it was "visited", and its goggles floated in the lobby's air. The
+	 * wall itself is still projected and drawn per edge as before; parallax
+	 * ceilings are left alone, since the sky beyond a wall is drawn by the
+	 * far sector.
+	 */
+	#closedPortal(sectIdx, next, wi) {
+		const { map } = this.res;
+		const a = map.sectors[sectIdx], b = map.sectors[next];
+		if ((a.ceilingStat & 1) || (b.ceilingStat & 1)) return false;
+		const w1 = map.walls[wi], w2 = map.walls[w1.point2];
+		for (const p of [w1, w2]) {
+			const za = getZsOfSlope(map, sectIdx, p.x, p.y), zb = getZsOfSlope(map, next, p.x, p.y);
+			const top = Math.max(za.ceilZ, zb.ceilZ), bot = Math.min(za.floorZ, zb.floorZ);
+			if (top < bot) return false;
+		}
+		return true;
+	}
+
+	#project(wi, sectIdx, sign) {
+		const { map } = this.res;
+		const cam = this.cam;
+		const w = map.walls[wi];
+		const p2 = map.walls[w.point2];
+		if (!p2) return null;
+
+		// The camera must be on the sector side of the wall.
+		if (side(w, p2, cam.x, cam.y) * sign <= 0) return null;
+
+		// In a sector whose outer loop winds the other way, the walls run the
+		// other way round too and would project right-to-left.
+		let ax = w.x - cam.x, ay = w.y - cam.y;
+		let bx = p2.x - cam.x, by = p2.y - cam.y;
+		if (sign < 0) { const tx = ax, ty = ay; ax = bx; ay = by; bx = tx; by = ty; }
+
+		let d1 = ax * this.fx + ay * this.fy;
+		let l1 = ax * this.rx + ay * this.ry;
+		let d2 = bx * this.fx + by * this.fy;
+		let l2 = bx * this.rx + by * this.ry;
+
+		// Texture parameter at each end, following the wall's own direction. The
+		// swap above reverses it, and near-plane clipping moves an endpoint along
+		// the wall, so both have to be tracked rather than assumed 0 and 1.
+		let t1 = sign < 0 ? 1 : 0;
+		let t2 = sign < 0 ? 0 : 1;
+
+		if (d1 < NEAR && d2 < NEAR) return null;
+		if (d1 < NEAR) {
+			const c = (NEAR - d1) / (d2 - d1);
+			l1 += (l2 - l1) * c; t1 += (t2 - t1) * c; d1 = NEAR;
+		} else if (d2 < NEAR) {
+			const c = (NEAR - d2) / (d1 - d2);
+			l2 += (l1 - l2) * c; t2 += (t1 - t2) * c; d2 = NEAR;
+		}
+
+		const sxa = this.halfW + l1 / d1 * this.focalX;
+		const sxb = this.halfW + l2 / d2 * this.focalX;
+		if (sxb - sxa < 1e-6) return null;
+
+		const x1 = Math.max(0, Math.ceil(sxa - 0.5));
+		const x2 = Math.min(this.width - 1, Math.floor(sxb - 0.5));
+		if (x1 > x2) return null;
+
+		// Build enters the solid ("white wall") path on exactly two conditions:
+		// no neighbour, or the one-way bit. There is no test for whether the
+		// neighbour has vertical extent — a degenerate neighbour is still a
+		// portal, and what shows through it is decided per edge further down.
+		// uDuke used to treat a zero-height neighbour as a closed door, which
+		// painted picnum 0 over every sky opening in the level.
+		let portal = null, next = -1;
+		if (w.nextSector >= 0 && (w.cstat & 32) === 0) {
+			portal = map.sectors[w.nextSector];
+			next = w.nextSector;
+		} else if (w.nextSector >= 0 && (w.cstat & 32) && w.overPicNum === 560 && !this.inMirrorPass) {
+			// A mirror in view: the nearest one (game.c takes the nearest by
+			// Manhattan distance) gets the second pass after this one.
+			const d = Math.abs(w.x - this.cam.x) + Math.abs(w.y - this.cam.y);
+			if (this.mirrorSeen < 0 || d < this.mirrorDist) { this.mirrorSeen = wi; this.mirrorDist = d; }
+		}
+
+		const entry = {
+			wall: wi, sect: sectIdx, d1, d2, sxa, sxb, x1, x2, portal, next,
+			tOverZ1: t1 / d1, tOverZ2: t2 / d2,
+		};
+		// A masked wall hangs a transparent texture in the portal opening, so it
+		// has to wait until the geometry behind it exists — it goes in with the
+		// sprites rather than into a bunch. Build's test is (cstat&48)==16: the
+		// one-way bit wins over the mask bit rather than combining with it.
+		// ...except one carrying MIRROR (560): Duke zeroes that tile's size at
+		// start-up (game.c 7772), so a mirror's masked side draws nothing and the
+		// reflection behind it shows clean — drawn, the 10x10 tile laid a grid
+		// over the bathroom mirror of E1L1.
+		if (w.nextSector >= 0 && (w.cstat & 48) === 16 && w.overPicNum !== 560) this.masked.push(entry);
+		return entry;
+	}
+
+	/**
+	 * Group a sector's visible walls into bunches: maximal runs joined by
+	 * point2. A run starts where the predecessor around the loop is invisible.
+	 */
+	#formBunches(sectIdx, visible) {
+		const { prep } = this.res;
+
+		for (const wi of visible) {
+			const prev = prep.prevWall[wi];
+			if (prev >= 0 && this.wallSeen[prev] === this.stamp) continue;
+			this.#collectBunch(sectIdx, wi);
+		}
+		// A loop entirely on screen has no invisible predecessor to start from.
+		for (const wi of visible) {
+			if (this.wallTaken[wi] !== this.stamp) this.#collectBunch(sectIdx, wi);
+		}
+	}
+
+	#collectBunch(sectIdx, first) {
+		const { map } = this.res;
+		if (this.wallTaken[first] === this.stamp) return;
+		if (this.bunches.length >= BUNCH_BUDGET) return;
+
+		const walls = [];
+		let x1 = Infinity, x2 = -Infinity;
+		let wi = first;
+
+		while (wi >= 0 && this.wallSeen[wi] === this.stamp && this.wallTaken[wi] !== this.stamp) {
+			this.wallTaken[wi] = this.stamp;
+			const entry = this.scanned[this.wallSlot[wi]];
+			walls.push(entry);
+			if (entry.x1 < x1) x1 = entry.x1;
+			if (entry.x2 > x2) x2 = entry.x2;
+			wi = map.walls[wi].point2;
+		}
+
+		if (walls.length) {
+			this.bunches.push({ sect: sectIdx, walls, x1, x2 });
+			this.stats.bunches++;
+		}
+	}
+
+	// --- ordering -------------------------------------------------------------
+
+	/**
+	 * Is wall `a` in front of wall `b`, seen from the camera?
+	 *
+	 * If b lies wholly on one side of a's line, then a is in front exactly when
+	 * the camera is on the other side — otherwise b sits between the camera and
+	 * a. If b straddles a's line, the same test is applied the other way round.
+	 * Walls that straddle each other would have to cross in plan view, which
+	 * Build geometry does not do.
+	 *
+	 * @returns {boolean|null} null when the two cannot be ordered
+	 */
+	#wallInFront(ea, eb) {
+		const W = this.res.map.walls;
+		const cam = this.cam;
+		const a1 = W[ea.wall], a2 = W[a1.point2];
+		const b1 = W[eb.wall], b2 = W[b1.point2];
+
+		let t1 = side(a1, a2, b1.x, b1.y);
+		let t2 = side(a1, a2, b2.x, b2.y);
+		if (t1 === 0) t1 = t2;
+		if (t2 === 0) t2 = t1;
+		if (t1 !== 0 && (t1 > 0) === (t2 > 0)) {
+			const tc = side(a1, a2, cam.x, cam.y);
+			if (tc === 0) return null;
+			return (tc > 0) !== (t1 > 0);
+		}
+
+		let s1 = side(b1, b2, a1.x, a1.y);
+		let s2 = side(b1, b2, a2.x, a2.y);
+		if (s1 === 0) s1 = s2;
+		if (s2 === 0) s2 = s1;
+		if (s1 !== 0 && (s1 > 0) === (s2 > 0)) {
+			const sc = side(b1, b2, cam.x, cam.y);
+			if (sc === 0) return null;
+			return (sc > 0) === (s1 > 0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Order two bunches by the first wall pair that overlaps on screen.
+	 *
+	 * Two outcomes share the return value null and must not share a counter.
+	 * Bunches that do not overlap on screen need no ordering at all — Build's
+	 * bunchfront() returns -1 for exactly this and it is the common case, one
+	 * per pair of bunches looking in different directions. Bunches that DO
+	 * overlap and still yield no decision are the ones worth knowing about,
+	 * because an undetermined order is what comes back later as a sort error.
+	 */
+	#bunchInFront(a, b) {
+		if (a.x1 > b.x2 || b.x1 > a.x2) { this.stats.disjoint++; return null; }
+		for (const ea of a.walls) {
+			for (const eb of b.walls) {
+				if (ea.x1 > eb.x2 || eb.x1 > ea.x2) continue;
+				const r = this.#wallInFront(ea, eb);
+				if (r !== null) return r;
+			}
+		}
+		this.stats.incomparable++;
+		return null;
+	}
+
+	// --- drawing --------------------------------------------------------------
+
+	#drawBunches() {
+		const pending = this.bunches;
+		while (pending.length) {
+			const closest = closestBunch(pending.length,
+				(i, j) => this.#bunchInFront(pending[i], pending[j]));
+
+			const bunch = pending[closest];
+			pending[closest] = pending[pending.length - 1];
+			pending.pop();
+
+			for (const entry of bunch.walls) this.#drawWall(entry);
+		}
+	}
+
+	#drawWall(entry) {
+		const { map, textures } = this.res;
+		const { horizon, focalY, cam, umost, dmost, width, height, depth: zbuf } = this;
+		this.curWall = entry.wall;
+
+		const sec = map.sectors[entry.sect];
+		const w = map.walls[entry.wall];
+		const portal = entry.portal;
+
+		const invZ1 = 1 / entry.d1, invZ2 = 1 / entry.d2;
+
+		// Floor and ceiling heights along the wall. A slope is affine in world
+		// position and the wall is a straight line, so z is linear in the wall
+		// parameter t — the same t the texture already uses, so a sloped edge
+		// costs two multiplies per column and no special case.
+		const p2w = map.walls[w.point2];
+		const zLine = (plane) => ({
+			z0: plane.A * w.x + plane.B * w.y + plane.C,
+			zs: plane.A * (p2w.x - w.x) + plane.B * (p2w.y - w.y),
+		});
+		const planes = this.#plane(entry.sect);
+		const lc = zLine(planes.ceil);
+		const lf = zLine(planes.floor);
+		const nplanes = entry.next >= 0 ? this.#plane(entry.next) : null;
+		const lnc = nplanes ? zLine(nplanes.ceil) : null;
+		const lnf = nplanes ? zLine(nplanes.floor) : null;
+
+		const span = entry.sxb - entry.sxa;
+		const ceilFlat = this.#flatDesc(entry.sect, sec, true);
+		const floorFlat = this.#flatDesc(entry.sect, sec, false);
+
+		// Bit 1 sends the lower step to the neighbour's wall for its texture, so
+		// a step reads as part of the room it steps down into.
+		const swapLower = (w.cstat & 2) !== 0 && w.nextWall >= 0;
+		const lowerWall = swapLower ? map.walls[w.nextWall] : w;
+
+		const xflip = (w.cstat & 8) !== 0;
+		const vUp = (w.cstat & 0x100) !== 0;
+		const vScale = w.yRepeat * this.wallV * (vUp ? -1 : 1);
+		const uSpan = w.xRepeat * U_PER_XREPEAT;
+
+		const flat = !textures || this.mode === MODE_SURFACE || this.mode === MODE_SECTOR;
+		// engine.c 2516: a one-way wall WITH a neighbour is textured with its
+		// overpicnum (a mirror, and MIRRORBROKE once it is shot), a true one-
+		// sided wall with its picnum.
+		const oneWayOver = w.nextSector >= 0 && (w.cstat & 32) !== 0;
+		const mainTile = flat ? null : this.#tile(oneWayOver ? w.overPicNum : w.picNum);
+		const lowerTile = flat ? null : this.#tile(lowerWall.picNum);
+
+		// Build's vertical origin, one row of the table per wall part. Bit 2 of
+		// cstat is the only input; there is deliberately no global override,
+		// because no single choice can satisfy all three rows at once:
+		//
+		//   part    bit clear            bit set
+		//   solid   sec.ceilingz         sec.floorz
+		//   upper   nextsec.ceilingz     sec.ceilingz
+		//   lower   nextsec.floorz       sec.ceilingz
+		//
+		// Note the lower step: its default origin is its OWN top edge, the
+		// neighbour's floor, not the sector floor. Reaching up to the sector
+		// ceiling is what the bit buys, and that is the quirk which lets a step
+		// continue the texture of the wall above it.
+		const alignBottom = (w.cstat & 4) !== 0;
+
+		const nsec = entry.next >= 0 ? map.sectors[entry.next] : null;
+
+		// Every origin below is a raw sector field — ceilingz, floorz — read once
+		// for the whole wall. Build never runs them through getzsofslope, and it
+		// must not: an origin taken from the sloped edge is a different height in
+		// every column, so the texture re-anchors as it goes and its courses tilt
+		// to follow the slope instead of staying level. The clip edges are
+		// geometry and do follow the slope; the origin is not.
+		const oSolid = alignBottom ? sec.floorZ : sec.ceilingZ;
+		const oUpper = alignBottom ? sec.ceilingZ : (nsec ? nsec.ceilingZ : sec.ceilingZ);
+		const oLower = alignBottom ? sec.ceilingZ : (nsec ? nsec.floorZ : sec.floorZ);
+
+		// When both sides parallax the same plane there is no step to draw: the
+		// sky is continuous across the opening, so Build skips the surface and,
+		// with it, the clipping. That skipped clip is what lets the view flood on
+		// through and reach the sky rather than stopping at this wall.
+		const skipUpper = !!nsec && (sec.ceilingStat & 1) !== 0 && (nsec.ceilingStat & 1) !== 0;
+		const skipLower = !!nsec && (sec.floorStat & 1) !== 0 && (nsec.floorStat & 1) !== 0;
+
+		// The probe's detail record, built only when the probe column asks for
+		// it. Defined once per wall: as a closure inside the column loop it was a
+		// fresh function object per column and frame, for the collector to sweep.
+		const detail = (tile, anchor) => ({
+			wall: entry.wall, cstat: w.cstat,
+			yPan: w.yPanning, yRep: w.yRepeat, xPan: w.xPanning, xRep: w.xRepeat,
+			tileH: tile ? tile.height : null, tileW: tile ? tile.width : null,
+			anchor,
+		});
+
+		const xa = Math.max(entry.x1, this.colLo), xb = Math.min(entry.x2, this.colHi);
+		for (let x = xa; x <= xb; x++) {
+			// The probe's bookkeeping (#mark, the band detail) only where the probe
+			// pixel is: building it for every column allocated per column and frame.
+			const pc = this.probeX === x;
+			this.pc = pc;
+			const top = umost[x], bot = dmost[x];
+			if (top > bot) continue;
+
+			const f = (x + 0.5 - entry.sxa) / span;
+			const invZ = invZ1 + (invZ2 - invZ1) * f;
+			const dist = 1 / invZ;
+
+			// Perspective-correct parameter along the wall: 1/z and t/z are both
+			// linear in screen x, so their ratio recovers t.
+			const t = (entry.tOverZ1 + (entry.tOverZ2 - entry.tOverZ1) * f) / invZ;
+
+			// The x-flip belongs to the texture only. Build mirrors lwall, which is
+			// the texture parameter, and never touches the parameter the geometry
+			// runs on — so a flipped wall in a sloped sector keeps its edges.
+			// Folding the flip into t before evaluating the slope planes reads the
+			// ceiling and floor at the wrong end of the wall, which bends every
+			// flipped wall that happens to sit on a slope.
+			const uRaw = Math.floor(t * uSpan);
+			const uOff = xflip ? uSpan - 1 - uRaw : uRaw;
+
+			const zCeil = lc.z0 + lc.zs * t;
+			const zFloor = lf.z0 + lf.zs * t;
+			const yCeil = horizon + (zCeil - cam.z) / 16 * focalY * invZ;
+			const yFloor = horizon + (zFloor - cam.z) / 16 * focalY * invZ;
+			const rowCeil = clamp(Math.round(yCeil), top, bot + 1);
+			const rowFloor = clamp(Math.round(yFloor), top - 1, bot);
+
+			// Flats carry their slope in the probe too: a surface that looks too
+			// steep is a question about heinum and the reference wall, and neither
+			// is visible in a picture.
+			// The gradient settles whether two neighbouring panels slope together
+			// or against each other. heinum alone cannot: its sign is relative to
+			// each sector's own first wall, so equal heinums on oppositely aimed
+			// reference walls tilt in opposite directions.
+			if (pc) this.#mark('ceiling', entry.sect, sec.ceilingPicNum, sec.ceilingShade, {
+				stat: sec.ceilingStat, heinum: sec.ceilingHeinum,
+				across: ceilFlat.align ? ceilFlat.align.across : null,
+				flatZ: sec.ceilingZ, slopeZ: Math.round(zCeil), refWall: sec.wallPtr,
+				gradX: planes.ceil.A, gradY: planes.ceil.B,
+				// Raw bytes, not the folded texel counts in the descriptor: the fold
+				// is what is under test whenever a seam is being chased, so the probe
+				// has to report the datum and let the HUD show the conversion.
+				xPan: sec.ceilingXPanning, yPan: sec.ceilingYPanning,
+				tileW: ceilFlat.tile ? ceilFlat.tile.width : 0,
+				tileH: ceilFlat.tile ? ceilFlat.tile.height : 0,
+			});
+			this.#flatSpan(x, top, rowCeil - 1, ceilFlat);
+			if (pc) this.#mark('floor', entry.sect, sec.floorPicNum, sec.floorShade, {
+				stat: sec.floorStat, heinum: sec.floorHeinum,
+				across: floorFlat.align ? floorFlat.align.across : null,
+				flatZ: sec.floorZ, slopeZ: Math.round(zFloor), refWall: sec.wallPtr,
+				gradX: planes.floor.A, gradY: planes.floor.B,
+				xPan: sec.floorXPanning, yPan: sec.floorYPanning,
+				tileW: floorFlat.tile ? floorFlat.tile.width : 0,
+				tileH: floorFlat.tile ? floorFlat.tile.height : 0,
+			});
+			this.#flatSpan(x, rowFloor + 1, bot, floorFlat);
+
+			const shade = this.shade(w.shade, dist, sec.visibility);
+
+			if (!portal) {
+				if (pc) this.#mark('wall', entry.sect, w.picNum, w.shade,
+					detail(mainTile, alignBottom ? 'floor' : 'ceiling'));
+				this.#surface(x, rowCeil, rowFloor, mainTile, uOff, w.xPanning, w.yPanning,
+					zCeil, zFloor, yCeil, yFloor, oSolid, vScale,
+					KIND_WALL, entry.sect, w.picNum, shade, invZ, w.pal);
+				// Build closes the whole column after a white wall (umost 1, dmost
+				// 0): its ceiling and floor spans were painted just before and the
+				// wall fills the rest. That holds only while the spans actually
+				// painted every row — a plane the eye is on the wrong side of, or a
+				// flat's rows beyond the horizon, or a slope (relative to a dragged
+				// hinge wall) that turns away halfway down the column, paint
+				// nothing there (florscan's "UNDER the floor: do NOT render"), and
+				// closing those rows leaves them to nobody: Build's hall of mirrors.
+				// E1L5: the quake drags sector 114 and squashes the goggle niche 323
+				// until its back walls sort in front of the portal; seen from far
+				// below or, with the jetpack, from above, the niche's planes cover
+				// nothing of the column and its off-screen white wall blanked what
+				// the portal's steps should have painted. So the closure is read
+				// off the z-buffer: the rows above the wall are done only if all of
+				// them were painted, likewise the rows below. The wall's own rows
+				// are z-buffer-guarded regardless. One pass over the column, for
+				// white walls only.
+				let topDone = true, botDone = true;
+				for (let y = rowCeil - 1; y >= top; y--) if (zbuf[x * height + y] === 0) { topDone = false; break; }
+				for (let y = rowFloor + 1; y <= bot; y++) if (zbuf[x * height + y] === 0) { botDone = false; break; }
+				if (topDone && botDone) { umost[x] = 1; dmost[x] = 0; }
+				else if (topDone) umost[x] = Math.max(top, rowFloor + 1);
+				else if (botDone) dmost[x] = Math.min(bot, rowCeil - 1);
+				continue;
+			}
+
+			const zNCeil = lnc.z0 + lnc.zs * t;
+			const zNFloor = lnf.z0 + lnf.zs * t;
+			const yNCeil = horizon + (zNCeil - cam.z) / 16 * focalY * invZ;
+			const yNFloor = horizon + (zNFloor - cam.z) / 16 * focalY * invZ;
+			const rowNCeil = clamp(Math.round(yNCeil), top, bot + 1);
+			const rowNFloor = clamp(Math.round(yNFloor), top - 1, bot);
+
+			// Through a closed portal nothing is scanned, so the window row the
+			// neighbour used to paint — where the upper step's last row and the
+			// lower step's first meet — is the upper step's too.
+			const upperEnd = entry.closed && !skipLower ? Math.max(rowNCeil - 1, rowNFloor) : rowNCeil - 1;
+			if (!skipUpper) {
+				if (pc) this.#mark('upper', entry.sect, w.picNum, w.shade,
+					detail(mainTile, alignBottom ? 'ceiling' : 'nextCeil'));
+				this.#surface(x, rowCeil, upperEnd, mainTile, uOff, w.xPanning, w.yPanning,
+					zCeil, zNCeil, yCeil, yNCeil, oUpper, vScale,
+					KIND_UPPER, entry.sect, w.picNum, shade, invZ, w.pal);
+			}
+			// A lower step shares its bottom edge with the sector floor, so under
+			// floor anchoring it continues the solid wall beside it for free. Under
+			// ceiling anchoring the same continuity is what Build's quirk buys by
+			// reaching all the way up to the sector ceiling for the origin.
+			if (!skipLower) {
+				if (pc) this.#mark('lower', entry.sect, lowerWall.picNum, w.shade,
+					{ ...detail(lowerTile, alignBottom ? 'ceiling' : 'nextFloor'), swapped: swapLower });
+				this.#surface(x, rowNFloor + 1, rowFloor, lowerTile, uOff, w.xPanning, w.yPanning,
+					zNFloor, zFloor, yNFloor, yFloor, oLower, vScale,
+					KIND_LOWER, entry.sect, lowerWall.picNum, shade, invZ, lowerWall.pal);
+			}
+
+			if (!skipUpper) umost[x] = Math.max(top, upperEnd + 1);
+			if (!skipLower) dmost[x] = Math.min(bot, rowNFloor);
+		}
+	}
+
+	/**
+	 * One vertical run of a wall surface: textured when a tile is available,
+	 * otherwise the flat average colour of stage 3.
+	 *
+	 * topZ/botZ are the world heights of the run's ends and yTop/yBot their
+	 * unrounded screen rows, so the texture stays put when the run is clipped.
+	 */
+	#surface(x, y0, y1, tile, uOff, xPan, yPan, topZ, botZ, yTop, yBot,
+					 // pal last, so every existing call keeps its shape and a caller that
+					 // has not been taught about palettes draws in pal 0 as before.
+					 originZ, vScale, kind, sectIdx, picNum, shade, invZ, pal = 0) {
+		if (y1 < y0) return;
+
+		if (!tile) {
+			// Distinguish "textures are switched off" from "this wall's tile is not
+			// in the ART set". The second is worth counting: it is the difference
+			// between a deliberate flat render and a surface that silently lost its
+			// texture.
+			if (this.res.textures && this.mode !== MODE_SURFACE && this.mode !== MODE_SECTOR) {
+				this.stats.untextured++;
+			}
+			const base = this.res.colours[picNum] ?? 96;
+			this.#column(x, y0, y1, this.#pick(kind, sectIdx, base, shade), invZ);
+			return;
+		}
+
+		// A wall of no screen height still owns its rows.
+		//
+		// y0..y1 has already been established as non-empty, and the ceiling and
+		// floor spans beside it are cut to start after it — so whoever is handed
+		// these rows has to fill them or nobody will. Returning here left a
+		// one-row gap with the sector's own ceiling above and floor below, which
+		// is what E1L1 shows wherever a closed door is in view: a door sector has
+		// floorz == ceilingz, so its walls are exactly this case.
+		//
+		// The untextured path above never had the problem, because #column takes
+		// the rows as given. That asymmetry is why the flat and textured modes
+		// disagreed on coverage by precisely this count.
+		//
+		// vStep is a limit, not a division: with no height the wall shows one row
+		// of texels, so the step is zero and the start is the top edge itself.
+		const dy = yBot - yTop;
+		const degenerate = Math.abs(dy) < 1e-6;
+
+		const pan = panTexels(yPan, tile.height, vScale);
+		const u = mod(xPan + uOff, tile.width);
+		const vTop = (topZ - originZ) * vScale + pan;
+		const vStep = degenerate ? 0 : ((botZ - originZ) * vScale + pan - vTop) / dy;
+
+		// y0 has already been clamped to the column's clip window by the caller,
+		// so the texture start is measured from the unrounded screen row of the
+		// surface's top edge — that is what keeps it still under clipping.
+		const vStart = degenerate ? vTop : vTop + (y0 + 0.5 - yTop) * vStep;
+
+		// Which band of the tile this surface actually shows. A wall shorter than
+		// one repeat displays a slice and never the rest, so "the tile looks
+		// wrong" is usually a question about which slice — and that is not
+		// readable from panning and repeat without doing the arithmetic. Added to
+		// the probe detail here, after #mark has run and before #hit can fire.
+		if (this.pc) {
+			const vBot = (botZ - originZ) * vScale + pan;
+			this.pDetail = { ...(this.pDetail ?? {}), vTop, vBot };
+		}
+
+		this.#texColumn(x, y0, y1, tile, u, vStart, vStep, shade, invZ, pal);
+	}
+
+	#texColumn(x, y0, y1, tile, u, v, vStep, shade, invZ, pal = 0) {
+		const { width, pixels, depth: zbuf, height } = this;
+		const shadeLuts = this.#luts(pal);
+		const h = tile.height;
+		const col = u * h;
+		const lut = shade * 256;
+
+		if (y1 > height - 1) y1 = height - 1;
+
+		const tpx = tile.pixels, wallOf = this.wallOf, cw = this.curWall;
+		const probeCol = this.probeX === x;
+		// Nearly every wall tile is a power of two tall. For v >= 0 the float
+		// remainder truncated is the truncated v masked — fmod is exact — so the
+		// mask is the same texel, without a floating-point division per pixel.
+		// Negative v and other heights keep the remainder.
+		const hm = (h & (h - 1)) === 0 ? h - 1 : -1;
+		for (let y = y0; y <= y1; y++, v += vStep) {
+			const i = x * height + y;
+			if (zbuf[i] !== 0) {
+				if (invZ > zbuf[i]) this.stats.sortErrors++;
+				else continue;
+			}
+			let iv;
+			if (hm >= 0 && v >= 0 && v < 2147483648) iv = (v | 0) & hm;
+			else { iv = v % h; if (iv < 0) iv += h; }
+			zbuf[i] = invZ;
+			wallOf[i] = cw;
+			pixels[i] = shadeLuts[lut + tpx[col + (iv | 0)]];
+			if (probeCol) { this.#uvAt(i, u, iv | 0); this.#hit(i); }
+		}
+	}
+
+	// --- masked walls -----------------------------------------------------------
+
+	#drawMaskedWalls() {
+		if (!this.res.textures) return;
+		for (const entry of this.masked) this.#drawMaskedWall(entry);
+	}
+
+	/**
+	 * The transparent texture a portal can carry: fences, grates, window bars.
+	 *
+	 * It fills the opening — between the lower of the two ceilings and the
+	 * higher of the two floors — and is drawn against the depth buffer after
+	 * the walls, so whatever shows through it is already there.
+	 */
+	/**
+	 * Build's translucency, in RGB. The engine looks the pair up in the
+	 * 256x256 `transluc` table of PALETTE.DAT: TRANS_NORMAL is
+	 * transluc[(old<<8)|new], TRANS_REVERSE transluc[(new<<8)|old]. Measured
+	 * over Duke's table (a least-squares fit across 20000 pairs), the entry is
+	 * 0.313*old + 0.665*new with an 8.5/255 residual that is the palette's
+	 * quantisation — a third of what was there and two thirds of what is
+	 * drawn. So: normal keeps a third of the background, reverse two thirds.
+	 * The frame buffer holds RGBA, not indices, which is why it is done here
+	 * rather than through the table; the weights are the table's.
+	 */
+	static blend(old, colour, reverse) {
+		const wo = reverse ? 2 : 1, wn = 3 - wo;
+		// floor(sum / 3) for a sum of 0..765, as the truncation of the division
+		// gave it: (sum * 21846) >> 16 is exact over that range (checked for
+		// every value), and keeps the per-pixel division out.
+		const r = (((old & 255) * wo + (colour & 255) * wn) * 21846) >> 16;
+		const g = ((((old >>> 8) & 255) * wo + ((colour >>> 8) & 255) * wn) * 21846) >> 16;
+		const b = ((((old >>> 16) & 255) * wo + ((colour >>> 16) & 255) * wn) * 21846) >> 16;
+		return ((colour & 0xff000000) | (b << 16) | (g << 8) | r) >>> 0;
+	}
+
+	/**
+	 * Per tile column, the first and last texel that is not transparent (255),
+	 * as [first0, last0, first1, last1, ...]; first > last for an empty column.
+	 * Keyed by the pixel array, so a tile whose picture is swapped (a camera
+	 * monitor, loadtile) gets its own.
+	 */
+	static #spans = new WeakMap();
+	static opaqueSpans(tile) {
+		const px = tile.pixels;
+		let sp = Renderer.#spans.get(px);
+		if (sp) return sp;
+		const w = tile.width, h = tile.height;
+		sp = new Int16Array(2 * w);
+		for (let u = 0; u < w; u++) {
+			let a = 0, b = h - 1;
+			const o = u * h;
+			while (a < h && px[o + a] === 255) a++;
+			while (b > a && px[o + b] === 255) b--;
+			if (a === h) { sp[2 * u] = 1; sp[2 * u + 1] = 0; } else { sp[2 * u] = a; sp[2 * u + 1] = b; }
+		}
+		Renderer.#spans.set(px, sp);
+		return sp;
+	}
+
+	/** spritewallfront(), engine.c: the sprite's centre on the wall's front side. */
+	#spriteInFrontOfWall(spr, w) {
+		const { map } = this.res;
+		const wa = map.walls[w], wb = map.walls[wa.point2];
+		return (wb.x - wa.x) * (spr.y - wa.y) - (spr.x - wa.x) * (wb.y - wa.y) >= 0;
+	}
+
+	#drawMaskedWall(entry) {
+		const { map } = this.res;
+		this.curWall = entry.wall;
+		const trans = (map.walls[entry.wall].cstat & 128) !== 0, transRev = (map.walls[entry.wall].cstat & 512) !== 0;
+		const { horizon, focalY, cam, width, height, pixels, depth: zbuf } = this;
+
+		const w = map.walls[entry.wall];
+		const tile = this.#tile(w.overPicNum);
+		if (!tile) { this.stats.maskedSkipped++; return; }
+
+		const p2w = map.walls[w.point2];
+		const zLine = (plane) => ({
+			z0: plane.A * w.x + plane.B * w.y + plane.C,
+			zs: plane.A * (p2w.x - w.x) + plane.B * (p2w.y - w.y),
+		});
+		const here = this.#plane(entry.sect), there = this.#plane(entry.next);
+		const lc = zLine(here.ceil), lf = zLine(here.floor);
+		const lnc = zLine(there.ceil), lnf = zLine(there.floor);
+
+		const invZ1 = 1 / entry.d1, invZ2 = 1 / entry.d2;
+		const span = entry.sxb - entry.sxa;
+		const uSpan = w.xRepeat * U_PER_XREPEAT;
+		const xflip = (w.cstat & 8) !== 0;
+		const vUp = (w.cstat & 0x100) !== 0;
+		const vScale = w.yRepeat * this.wallV * (vUp ? -1 : 1);
+		// Masked walls hang from the bottom of the opening by default, the
+		// opposite of a solid wall. A fence floating above the floor is the sign
+		// that this is the wrong way round.
+		const alignTop = (w.cstat & 4) === 0;
+		const th = tile.height, tw = tile.width;
+		const thm = (th & (th - 1)) === 0 ? th - 1 : -1;
+		const tpx = tile.pixels, wallOf = this.wallOf, cw = this.curWall;
+		const maskPan = panTexels(w.yPanning, th, vScale);
+		// A grate or a force field carries its own pal like any other surface.
+		const maskedLuts = this.#luts(w.pal);
+
+		// The origin is fixed for the whole wall, and Build takes it from the flat
+		// sector heights rather than the sloped planes:
+		//
+		//   z1 = max(nsec->ceilingz, sec->ceilingz)
+		//   z2 = min(nsec->floorz,   sec->floorz)
+		//
+		// both computed once, outside any per-column work. Anchoring to the
+		// sloped opening instead re-anchors the texture in every column, which
+		// shears a grate across a tilted opening — the pattern slides along the
+		// slope instead of hanging straight.
+		const nearSec = map.sectors[entry.sect], farSec = map.sectors[entry.next];
+		const originZ = alignTop
+			? Math.max(nearSec.ceilingZ, farSec.ceilingZ)
+			: Math.min(nearSec.floorZ, farSec.floorZ);
+		this.#mark('masked', entry.sect, w.overPicNum, w.shade, {
+			wall: entry.wall, cstat: w.cstat,
+			yPan: w.yPanning, yRep: w.yRepeat, xPan: w.xPanning, xRep: w.xRepeat,
+			tileH: th, tileW: tw, anchor: alignTop ? 'top' : 'bottom',
+		});
+		let drawn = false;
+
+		const xa = Math.max(entry.x1, this.colLo), xb = Math.min(entry.x2, this.colHi);
+		for (let x = xa; x <= xb; x++) {
+			const f = (x + 0.5 - entry.sxa) / span;
+			const invZ = invZ1 + (invZ2 - invZ1) * f;
+			const dist = 1 / invZ;
+			const t = (entry.tOverZ1 + (entry.tOverZ2 - entry.tOverZ1) * f) / invZ;
+			const uRaw = Math.floor(t * uSpan);          // see #drawWall: geometry
+			const uOff = xflip ? uSpan - 1 - uRaw : uRaw; // keeps the unflipped t
+
+			// z grows downwards, so the opening's top is the larger of the two
+			// ceiling heights and its floor the smaller of the two floors.
+			const zTop = Math.max(lc.z0 + lc.zs * t, lnc.z0 + lnc.zs * t);
+			const zBot = Math.min(lf.z0 + lf.zs * t, lnf.z0 + lnf.zs * t);
+			if (zBot <= zTop) continue;
+
+			const yTop = horizon + (zTop - cam.z) / 16 * focalY * invZ;
+			const yBot = horizon + (zBot - cam.z) / 16 * focalY * invZ;
+			if (yBot - yTop < 1e-6) continue;
+
+			const vTop = (zTop - originZ) * vScale + maskPan;
+			const vStep = ((zBot - originZ) * vScale + maskPan - vTop) / (yBot - yTop);
+			const col = mod(w.xPanning + uOff, tw) * th;
+			const shade = this.shade(w.shade, dist, map.sectors[entry.sect].visibility) * 256;
+
+			const ya = Math.max(0, Math.ceil(yTop - 0.5));
+			const yb = Math.min(height - 1, Math.floor(yBot - 0.5));
+			let v = vTop + (ya + 0.5 - yTop) * vStep;
+			const probeCol = this.probeX === x;
+
+			for (let y = ya; y <= yb; y++, v += vStep) {
+				const i = x * height + y;
+				if (invZ < zbuf[i] * (1 - SPRITE_DEPTH_TIE)) continue;
+				// The mask instead of the remainder where they agree; see #texColumn.
+				let iv;
+				if (thm >= 0 && v >= 0 && v < 2147483648) iv = (v | 0) & thm;
+				else { iv = v % th; if (iv < 0) iv += th; }
+				const texel = tpx[col + (iv | 0)];
+				if (texel === 255) continue;
+				zbuf[i] = invZ;
+				wallOf[i] = cw;
+				// Wall cstat 128: translucent (512 reverses it).
+				pixels[i] = trans ? Renderer.blend(pixels[i], maskedLuts[shade + texel], transRev) : maskedLuts[shade + texel];
+				if (probeCol) this.#hit(i);
+				drawn = true;
+			}
+		}
+		if (drawn) this.stats.masked++;
+	}
+
+	// --- sprites --------------------------------------------------------------
+
+	/**
+	 * Sprites go in after the walls, tested against the depth buffer rather
+	 * than woven into the bunch order. With binary transparency — palette index
+	 * 255 and nothing in between — a depth test is order-independent, so no
+	 * sorting is needed and sprites occlude and are occluded correctly.
+	 */
+	#drawSprites() {
+		const { map, textures } = this.res;
+		if (!textures) return;
+
+		// The per-sector index is rebuilt every frame from the live list, not
+		// taken from prep. prep's copy was built once at load, and a sprite that
+		// walks into another sector stayed filed under the one it was born in:
+		// drawn when THAT sector was in view, missing when its real one was, and a
+		// sprite made after load — every projectile — was in no list at all. The
+		// trooper brightened (it had fired) and no laser ever appeared.
+		const bySector = this.#indexSprites(map);
+		for (const sectIdx of this.stats.visited) {
+			const list = bySector[sectIdx];
+			if (!list || list.length === 0) continue;
+			for (const si of list) {
+				const spr = map.sprites[si];
+
+				// Build's own visibility test, from scansector():
+				//
+				//   if ((((spr->cstat&0x8000) == 0) || (showinvisibility)) &&
+				//       (spr->xrepeat > 0) && (spr->yrepeat > 0) && ...
+				//
+				// The repeats are as much a part of it as the invisible bit. A sprite
+				// scaled to zero is one of the ways a map hides something it still
+				// wants to keep — the editor shows it, the game never does — so a
+				// viewer that only honours cstat draws objects the original does not.
+				// The player's own sprite shows in a mirror, and wherever Duke's
+				// animatesprites lets it through: display_mirror (a monitor's
+				// picture, xyzmirror) or newowner > -1 (the player watching a
+				// camera) — the page sets res.showPlayer for those.
+				const ownShown = (this.inMirrorPass || this.res.showPlayer) && si === this.res.playerSprite;
+				if ((spr.cstat & 0x8000) && !ownShown) continue;   // marked invisible
+				if (spr.xRepeat <= 0 || spr.yRepeat <= 0) { this.stats.spritesHidden++; continue; }
+				// An APLAYER with no owner and no stat 10 is the holoduke's hologram
+				// (actors.c 1264: owner -1) — drawn like any sprite.
+				if (isHiddenSprite(spr.picNum) && !ownShown && !(spr.picNum === TILE_APLAYER && spr.owner === -1 && si === this.res.holoduke)) {
+					this.stats.markers++;
+					if (!this.res.showMarkers) continue;
+				}
+				const sec = map.sectors[sectIdx];
+				// animatesprites' tsprite changes for this frame (spr.tspr), laid
+				// over the sprite: a dead camera's monitor as STATIC, larger, flipped.
+				const view = spr.tspr ? { ...spr, ...spr.tspr } : spr;
+				// The index travels with the record so the probe can name it. A tile
+				// number alone does not identify a sprite — the same tile appears
+				// dozens of times in a map — and without the index there is no way to
+				// go from something odd on screen to the record that produced it.
+				// The alignment is cstat's bits 4..5, read here rather than from
+				// the `align` field readMap derives at load: a sprite made at run
+				// time — a bullet hole, a trip bomb, a laser line — is given its
+				// cstat AFTER makeSprite, and a stale `align` of 0 drew every one of
+				// them as a 3x3 face sprite on the wall's own plane, hidden in it.
+				const align = (view.cstat >> 4) & 3;
+				// game.c 5966: the shadow, drawn first so the actor's own picture
+				// wins where they meet. Only while the eye is above its floor.
+				if (align === ALIGN_FACE && spr.shadowZ !== undefined && this.res.shadows !== false && this.cam.z < spr.shadowZ && (spr.yRepeat >> 3) > 0) {
+					this.#drawFaceSprite({ ...spr, z: spr.shadowZ, yRepeat: spr.yRepeat >> 3, shade: 127, dispShade: 127, pal: 4, dispPal: 4, cstat: spr.cstat | 2 }, sec, -1);
+					this.stats.shadows = (this.stats.shadows ?? 0) + 1;
+				}
+				if (align === ALIGN_FACE) this.#drawFaceSprite(view, sec, si);
+				else if (align === ALIGN_WALL) this.#drawWallSprite(view, sec, si);
+				else if (align === ALIGN_FLOOR) this.#drawFloorSprite(view, sec, si);
+				else this.stats.spritesSkipped++;
+			}
+		}
+	}
+
+	/**
+	 * A face sprite is a billboard square to the view, so every point on it
+	 * shares one depth and the texture runs linearly in screen space.
+	 */
+	/**
+	 * Live sprites by their CURRENT sector, for this frame. ~1000 sprites.
+	 *
+	 * The per-sector arrays are kept between frames and emptied, not
+	 * reallocated. It was first written against a rise in frame time; the rise
+	 * was the scene: the live index draws every sprite
+	 * where it now IS, and a level with 65 monsters awake has more of them in
+	 * view than one where they were filed under the sector they were born in.
+	 * The reuse stays because it costs nothing; the claim does not.
+	 */
+	#spriteIndex = null;
+	#indexSprites(map) {
+		let by = this.#spriteIndex;
+		if (!by || by.length !== map.sectors.length) {
+			by = this.#spriteIndex = new Array(map.sectors.length);
+			for (let n = 0; n < by.length; n++) by[n] = [];
+		} else {
+			for (let n = 0; n < by.length; n++) by[n].length = 0;
+		}
+		for (let i = 0; i < map.sprites.length; i++) {
+			const spr = map.sprites[i];
+			if (spr.removed) continue;
+			const n = spr.sectNum;
+			if (n < 0 || n >= by.length) continue;
+			by[n].push(i);
+		}
+		return by;
+	}
+
+	#drawFaceSprite(spr, sec, spriteIdx = -1) {
+		const trans = (spr.cstat & 2) !== 0, transRev = (spr.cstat & 512) !== 0;
+		const { halfW, horizon, focalX, focalY, cam, width, height, pixels, depth: zbuf } = this;
+
+		const dx = spr.x - cam.x, dy = spr.y - cam.y;
+		const d = dx * this.fx + dy * this.fy;
+		// The probe follows one sprite by its index; a shadow is drawn with index
+		// -1 and the page's "no sprite" is -1 too, so without the guard every
+		// shadow ran the probe's per-pixel census, Alt+D or not.
+		const dbg = spriteIdx >= 0 && spriteIdx === this.debugSprite ? (this.stats.spriteWhy = { idx: spriteIdx, stage: 'start', d, sect: spr.sectNum, px: 0, depthFlat: 0, depthWall: 0, transparent: 0 }) : null;
+		if (d < NEAR) { if (dbg) dbg.stage = 'too near'; return; }
+
+		// animatesprites' pick, when the CON has one; the map's tile otherwise.
+		const tile = this.#tile(spr.dispPicNum ?? spr.picNum);
+		if (!tile) { if (dbg) dbg.stage = 'no tile ' + spr.picNum; this.stats.spritesSkipped++; return; }
+
+		const scale = this.res.spriteScale ?? SPRITE_SCALE;
+		const worldW = tile.width * spr.xRepeat * scale;
+		const worldH = tile.height * spr.yRepeat * scale;
+		if (worldW <= 0 || worldH <= 0) { if (dbg) dbg.stage = 'zero size'; return; }
+
+		// The tile's own centring offsets from picanm, plus the sprite's.
+		const anim = tile.anim ?? { xOffset: 0, yOffset: 0 };
+		const xoff = (anim.xOffset + spr.xOffset) * spr.xRepeat * scale;
+		const yoff = (anim.yOffset + spr.yOffset) * spr.yRepeat * scale;
+
+		const invZ = 1 / d;
+		const l = dx * this.rx + dy * this.ry;
+		// The centre is projected like a wall, the half-width is not: Build takes
+		// the column from spritesx[] (halfxdimen*lateral/depth, so focalX) and the
+		// extent from xsiz (0.4*xdim, so spriteFocalX). The tile's own centring
+		// offset belongs to the extent, since Build applies it as
+		// `i = mulscale30(siz,xv*xoff)` off the already-projected column.
+		const cx = halfW + l * invZ * focalX - xoff * invZ * this.spriteFocalX;
+		const halfW2 = worldW / 2 * invZ * this.spriteFocalX;
+		const sxa = cx - halfW2, sxb = cx + halfW2;
+
+		// z is the sprite's foot unless bit 7 asks for true centring.
+		let botZ = spr.z - yoff * 16;
+		if (spr.cstat & 0x80) botZ += worldH * 16 / 2;
+		const topZ = botZ - worldH * 16;
+		const yBot = horizon + (botZ - cam.z) / 16 * focalY * invZ;
+		const yTop = horizon + (topZ - cam.z) / 16 * focalY * invZ;
+		if (yBot - yTop < 1e-6 || sxb - sxa < 1e-6) { if (dbg) dbg.stage = 'degenerate'; return; }
+
+		const x1 = Math.max(this.colLo, Math.ceil(sxa - 0.5));
+		const x2 = Math.min(this.colHi, Math.floor(sxb - 0.5));
+		if (x1 > x2) { if (dbg) dbg.stage = 'off screen x'; return; }
+		if (dbg) {
+			dbg.stage = 'columns'; dbg.x1 = x1; dbg.x2 = x2; dbg.yTop = Math.round(yTop); dbg.yBot = Math.round(yBot);
+			dbg.cam = `${cam.x},${cam.y},${cam.z} a${cam.ang & 2047}`;
+			// What already sits in the sprite's box: the walls by pixel count and the depth range.
+			const hist = new Map(); let dmin = 1e9, dmax = 0;
+			const ya = Math.max(0, Math.round(yTop)), yb = Math.min(height - 1, Math.round(yBot));
+			for (let yy = ya; yy <= yb; yy += 2) for (let xx = x1; xx <= x2; xx += 2) { const k = xx * height + yy; const w = this.wallOf[k]; hist.set(w, (hist.get(w) || 0) + 1); const dd = zbuf[k] > 0 ? 1 / zbuf[k] : 1e9; if (dd < dmin) dmin = dd; if (dd > dmax && dd < 1e8) dmax = dd; }
+			dbg.there = [...hist].sort((p, q) => q[1] - p[1]).slice(0, 4).map(([w, n]) => `${w}:${n}`).join(',') + ` depth ${Math.round(dmin)}..${Math.round(dmax)} vs ${Math.round(d)}`;
+		}
+
+		// The rotation frame's mirror is set on Duke's DRAWING copy, overriding
+		// the sprite's own bit; null means the viewtype had no opinion.
+		const xflip = spr.dispFlip ?? ((spr.cstat & 4) !== 0);
+		const yflip = (spr.cstat & 8) !== 0;
+		const shade = this.shade(spr.dispShade ?? spr.shade, d, sec.visibility);
+		this.#markSprite(spr, spriteIdx, 'face');
+		const lut = shade * 256;
+		const th = tile.height, tw = tile.width;
+		const spriteLuts = this.#luts(spr.dispPal ?? spr.pal);
+		const vScale = th / (yBot - yTop);
+
+		let drawn = false;
+		const tpx = tile.pixels, wallOf = this.wallOf;
+		const tie = 1 - SPRITE_DEPTH_TIE;
+		// spritewallfront() depends on the sprite and the wall only, and a run of
+		// pixels behind one wall asks it of the same wall again and again — a
+		// close explosion asked it for every pixel it covered. Kept per wall, as
+		// the wall-sprite path does.
+		let sideW = -2, sideFront = false;
+		const y1 = Math.max(0, Math.ceil(yTop - 0.5));
+		const y2 = Math.min(height - 1, Math.floor(yBot - 0.5));
+		// Only the rows that can meet an opaque texel of the column. The row of
+		// texel v is floor((y + 0.5 - yTop) * vScale), monotonic in y, so the
+		// column's opaque span [f0, f1] bounds the rows; two rows of margin on
+		// each side absorb the rounding of the inversion, and the loop's own
+		// transparency test still decides every pixel. A span touching the
+		// tile's edge is not cut on that side: the clamp maps every row beyond
+		// the edge to the edge texel. Off under the sprite probe, whose counters
+		// count the transparent texels too.
+		const spans = dbg ? null : Renderer.opaqueSpans(tile);
+		// The texel row depends on y alone — the same for every column of the
+		// billboard — so it is worked out once per sprite, not once per pixel.
+		const rowTex = this.rowTex;
+		for (let y = y1; y <= y2; y++) {
+			let v = (y + 0.5 - yTop) * vScale;
+			if (yflip) v = th - v;
+			rowTex[y] = clamp(Math.floor(v), 0, th - 1);
+		}
+		for (let x = x1; x <= x2; x++) {
+			let uf = (x + 0.5 - sxa) / (sxb - sxa);
+			if (xflip) uf = 1 - uf;
+			const u = clamp(Math.floor(uf * tw), 0, tw - 1);
+			const col = u * th;
+			const probeCol = this.probeX === x;
+
+			let ya = y1, yb = y2;
+			if (spans) {
+				const f0 = spans[2 * u], f1 = spans[2 * u + 1];
+				if (f0 > f1) continue;                       // a column of nothing
+				// the range of v the span covers, and whether each end is cut
+				const vlo = yflip ? th - f1 - 1 : f0, vhi = yflip ? th - f0 : f1 + 1;
+				const cutLo = yflip ? f1 < th - 1 : f0 > 0, cutHi = yflip ? f0 > 0 : f1 < th - 1;
+				if (cutLo) ya = Math.max(y1, Math.floor(vlo / vScale + yTop - 0.5) - 2);
+				if (cutHi) yb = Math.min(y2, Math.ceil(vhi / vScale + yTop - 0.5) + 2);
+			}
+
+			for (let y = ya; y <= yb; y++) {
+				const i = x * height + y;
+				if (invZ < zbuf[i] * tie) {           // something nearer
+					// A nearer WALL hides the billboard only when its centre lies
+					// behind that wall's line (spritewallfront); a nearer flat or
+					// sprite hides it outright.
+					const w = wallOf[i];
+					if (w >= 0 && w !== sideW) { sideW = w; sideFront = this.#spriteInFrontOfWall(spr, w); }
+					if (w < 0 || !sideFront) { if (dbg) { if (w < 0) dbg.depthFlat++; else { dbg.depthWall++; dbg.lastWall = w; } } continue; }
+				}
+				const texel = tpx[col + rowTex[y]];
+				if (texel === 255) { if (dbg) dbg.transparent++; continue; }             // transparent
+				zbuf[i] = invZ;
+				wallOf[i] = -1;
+				if (dbg) dbg.px++;
+				pixels[i] = trans ? Renderer.blend(pixels[i], spriteLuts[lut + texel], transRev) : spriteLuts[lut + texel];
+				if (probeCol) this.#hit(i);
+				drawn = true;
+			}
+		}
+		// Recorded only when something actually landed on screen, alongside the
+		// counter it belongs to. Listing every candidate instead put four indices
+		// next to "sprites 2", which reads as a contradiction and sends the
+		// reader after sprites that were never drawn.
+		if (drawn) { this.stats.sprites++; this.stats.spriteIds.push(spriteIdx); }
+	}
+
+	/** Common geometry: world size, texel offsets and vertical extent. */
+	#spriteMetrics(spr, tile) {
+		const scale = this.res.spriteScale ?? SPRITE_SCALE;
+		const anim = tile.anim ?? { xOffset: 0, yOffset: 0 };
+		const worldW = tile.width * spr.xRepeat * scale;
+		const worldH = tile.height * spr.yRepeat * scale;
+		let xoff = (anim.xOffset + spr.xOffset) * spr.xRepeat * scale;
+		let yoff = (anim.yOffset + spr.yOffset) * spr.yRepeat * scale;
+		if (spr.cstat & 4) xoff = -xoff;
+		if (spr.cstat & 8) yoff = -yoff;
+
+		let botZ = spr.z - yoff * 16;
+		if (spr.cstat & 0x80) botZ += worldH * 16 / 2;
+		return { worldW, worldH, xoff, yoff, botZ, topZ: botZ - worldH * 16 };
+	}
+
+	/**
+	 * A wall-aligned sprite is a vertical quad at a fixed angle — geometrically
+	 * a free-standing wall, so it projects the same way and gets the same
+	 * perspective-correct parameter along its length.
+	 *
+	 * Unlike a real wall it is two-sided unless cstat bit 6 says otherwise, so
+	 * seeing it from behind reverses it rather than culling it.
+	 */
+	#drawWallSprite(spr, sec, spriteIdx = -1) {
+		const trans = (spr.cstat & 2) !== 0, transRev = (spr.cstat & 512) !== 0;
+		this.#markSprite(spr, spriteIdx, 'wall');
+		const { halfW, horizon, focalX, focalY, cam, width, height, pixels, depth: zbuf } = this;
+
+		// animatesprites' pick, when the CON has one; the map's tile otherwise.
+		const tile = this.#tile(spr.dispPicNum ?? spr.picNum);
+		if (!tile) { this.stats.spritesSkipped++; return; }
+		const m = this.#spriteMetrics(spr, tile);
+		if (m.worldW <= 0 || m.worldH <= 0) return;
+
+		const a = spr.ang * Math.PI / 1024;
+		const sn = Math.sin(a), cs = Math.cos(a);
+
+		// Build lays a wall sprite's width along (sin ang, sin(ang + 1536)), and
+		// 1536 of 2048 is three quarters of a turn, so the second term is -cos.
+		// The check that settles the handedness: viewed from the facing side the
+		// camera's own right vector is exactly (sin ang, -cos ang), so u has to
+		// run that way or the texture comes out mirrored.
+		const ux = sn, uy = -cs;
+
+		if (spr.cstat & 0x40) {                        // one-sided
+			if ((cam.x - spr.x) * cs + (cam.y - spr.y) * sn <= 0) return;
+		}
+
+		const ox = spr.x - ux * m.xoff, oy = spr.y - uy * m.xoff;
+		let ax = ox - ux * m.worldW / 2 - cam.x, ay = oy - uy * m.worldW / 2 - cam.y;
+		let bx = ox + ux * m.worldW / 2 - cam.x, by = oy + uy * m.worldW / 2 - cam.y;
+
+		let d1 = ax * this.fx + ay * this.fy, l1 = ax * this.rx + ay * this.ry;
+		let d2 = bx * this.fx + by * this.fy, l2 = bx * this.rx + by * this.ry;
+		let t1 = 0, t2 = 1;
+		if (d1 < NEAR && d2 < NEAR) return;
+		if (d1 < NEAR) { const c = (NEAR - d1) / (d2 - d1); l1 += (l2 - l1) * c; t1 += (t2 - t1) * c; d1 = NEAR; }
+		else if (d2 < NEAR) { const c = (NEAR - d2) / (d1 - d2); l2 += (l1 - l2) * c; t2 += (t1 - t2) * c; d2 = NEAR; }
+
+		let sxa = halfW + l1 / d1 * focalX, sxb = halfW + l2 / d2 * focalX;
+		let iz1 = 1 / d1, iz2 = 1 / d2;
+		if (sxb < sxa) {                               // seen from the back
+			[sxa, sxb] = [sxb, sxa]; [iz1, iz2] = [iz2, iz1]; [t1, t2] = [t2, t1];
+		}
+		if (sxb - sxa < 1e-6) return;
+
+		const x1 = Math.max(this.colLo, Math.ceil(sxa - 0.5));
+		const x2 = Math.min(this.colHi, Math.floor(sxb - 0.5));
+		if (x1 > x2) return;
+
+		const tOverZ1 = t1 * iz1, tOverZ2 = t2 * iz2;
+		const xflip = spr.dispFlip ?? ((spr.cstat & 4) !== 0), yflip = (spr.cstat & 8) !== 0;
+		const kTop = (m.topZ - cam.z) / 16 * focalY, kBot = (m.botZ - cam.z) / 16 * focalY;
+		const th = tile.height, tw = tile.width;
+		const lutBase = 256;
+		const spriteLuts = this.#luts(spr.dispPal ?? spr.pal);
+		let drawn = false;
+		// Per sprite: the texels, and the last wall-side verdict — runs of pixels
+		// share their nearer wall, and the side test is geometry, not a lookup.
+		const tpx = tile.pixels, wallOf = this.wallOf, probeOn = this.probeIdx >= 0;
+		let sideW = -2, sideFront = false;
+		// Per tile column the opaque span, as for a face sprite (opaqueSpans):
+		// a fence or grating is mostly holes, and its columns of nothing and the
+		// rows above and below the wire are not walked at all.
+		const spans = Renderer.opaqueSpans(tile);
+
+		for (let x = x1; x <= x2; x++) {
+			const f = (x + 0.5 - sxa) / (sxb - sxa);
+			const invZ = iz1 + (iz2 - iz1) * f;
+			let t = (tOverZ1 + (tOverZ2 - tOverZ1) * f) / invZ;
+			if (xflip) t = 1 - t;
+			const uc = clamp(Math.floor(t * tw), 0, tw - 1);
+			const f0 = spans[2 * uc], f1 = spans[2 * uc + 1];
+			if (f0 > f1) continue;                         // a column of nothing
+			const u = uc * th;
+
+			const yTop = horizon + kTop * invZ, yBot = horizon + kBot * invZ;
+			if (yBot - yTop < 1e-6) continue;
+			const vScale = th / (yBot - yTop);
+
+			let ya = Math.max(0, Math.ceil(yTop - 0.5));
+			let yb = Math.min(height - 1, Math.floor(yBot - 0.5));
+			// The rows that can meet the span, two rows of margin for the rounding
+			// of the inversion; an end at the tile's edge is not cut (the clamp).
+			const vlo = yflip ? th - f1 - 1 : f0, vhi = yflip ? th - f0 : f1 + 1;
+			if (yflip ? f1 < th - 1 : f0 > 0) ya = Math.max(ya, Math.floor(vlo / vScale + yTop - 0.5) - 2);
+			if (yflip ? f0 > 0 : f1 < th - 1) yb = Math.min(yb, Math.ceil(vhi / vScale + yTop - 0.5) + 2);
+			if (ya > yb) continue;
+			const shade = this.shade(spr.dispShade ?? spr.shade, 1 / invZ, sec.visibility) * lutBase;
+
+			for (let y = ya; y <= yb; y++) {
+				const i = x * height + y;
+				// The texel first: in a fence most of what is left is holes, and a
+				// hole needs neither the depth test nor the wall-side verdict.
+				let v = (y + 0.5 - yTop) * vScale;
+				if (yflip) v = th - v;
+				const texel = tpx[u + clamp(Math.floor(v), 0, th - 1)];
+				if (texel === 255) continue;
+				if (invZ < zbuf[i] * (1 - SPRITE_DEPTH_TIE)) {
+					// As for a face sprite: a nearer WALL hides a wall sprite only
+					// when the sprite's centre lies behind that wall's line — Build
+					// decides wall-against-sprite by side (spritewallfront), not per
+					// pixel. E2L1's SECURITY poster (#109, tile 499) hangs eight
+					// units in front of its own back wall 1523, slightly skewed; by
+					// depth the wall won the poster's left half.
+					const w = wallOf[i];
+					if (w < 0) continue;
+					if (w !== sideW) { sideW = w; sideFront = this.#spriteInFrontOfWall(spr, w); }
+					if (!sideFront) continue;
+				}
+				zbuf[i] = invZ;
+				wallOf[i] = -1;
+				pixels[i] = trans ? Renderer.blend(pixels[i], spriteLuts[shade + texel], transRev) : spriteLuts[shade + texel];
+				if (probeOn) this.#hit(i);
+				drawn = true;
+			}
+		}
+		// Recorded only when something actually landed on screen, alongside the
+		// counter it belongs to. Listing every candidate instead put four indices
+		// next to "sprites 2", which reads as a contradiction and sends the
+		// reader after sprites that were never drawn.
+		if (drawn) { this.stats.sprites++; this.stats.spriteIds.push(spriteIdx); }
+	}
+
+	/**
+	 * A floor-aligned sprite is a rectangle lying in a horizontal plane, so it
+	 * is drawn like a flat: the ray meets the plane, and the world point is
+	 * then carried back into the sprite's own frame to test the bounds and pick
+	 * the texel.
+	 */
+	#drawFloorSprite(spr, sec, spriteIdx = -1) {
+		const trans = (spr.cstat & 2) !== 0, transRev = (spr.cstat & 512) !== 0;
+		this.#markSprite(spr, spriteIdx, 'floor');
+		const { halfW, horizon, focalX, focalY, cam, width, height, pixels, depth: zbuf, invRow, invRowF } = this;
+
+		// animatesprites' pick, when the CON has one; the map's tile otherwise.
+		const tile = this.#tile(spr.dispPicNum ?? spr.picNum);
+		if (!tile) { this.stats.spritesSkipped++; return; }
+		const m = this.#spriteMetrics(spr, tile);
+		if (m.worldW <= 0 || m.worldH <= 0) return;
+
+		// One-sided floor sprites face up unless the y-flip bit turns them over.
+		if (spr.cstat & 0x40) {
+			if ((cam.z > spr.z) === ((spr.cstat & 8) === 0)) return;
+		}
+
+		const a = spr.ang * Math.PI / 1024;
+		const sn = Math.sin(a), cs = Math.cos(a);
+		// Floor sprites take the opposite sense from wall sprites in Build's own
+		// corner construction. Unverified against real art: a floor decal with
+		// legible text or a directional arrow would settle it.
+		const ux = -sn, uy = cs;      // tile x runs this way
+		const vx = -cs, vy = -sn;     // tile y runs this way
+
+		// Corner the local frame is measured from, offsets folded in.
+		const cx = spr.x + sn * (m.worldW / 2 + m.xoff) + cs * (m.worldH / 2 + m.yoff);
+		const cy = spr.y + sn * (m.worldH / 2 + m.yoff) - cs * (m.worldW / 2 + m.xoff);
+
+		const k = (spr.z - cam.z) / 16 * focalY;
+		if (k === 0) return;
+
+		// Screen bounds from the four corners; anything crossing the near plane
+		// falls back to the whole frame rather than producing a bogus box.
+		let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, safe = true;
+		for (const [su, sv] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
+			const wx = cx + ux * m.worldW * su + vx * m.worldH * sv;
+			const wy = cy + uy * m.worldW * su + vy * m.worldH * sv;
+			const dx = wx - cam.x, dy = wy - cam.y;
+			const d = dx * this.fx + dy * this.fy;
+			if (d < NEAR) { safe = false; break; }
+			const iz = 1 / d;
+			const px2 = halfW + (dx * this.rx + dy * this.ry) * iz * focalX;
+			const py2 = horizon + (spr.z - cam.z) / 16 * focalY * iz;
+			if (px2 < minX) minX = px2; if (px2 > maxX) maxX = px2;
+			if (py2 < minY) minY = py2; if (py2 > maxY) maxY = py2;
+		}
+		const x1 = safe ? Math.max(this.colLo, Math.floor(minX)) : this.colLo;
+		const x2 = safe ? Math.min(this.colHi, Math.ceil(maxX)) : this.colHi;
+		const y1 = safe ? Math.max(0, Math.floor(minY)) : 0;
+		const y2 = safe ? Math.min(height - 1, Math.ceil(maxY)) : height - 1;
+		if (x1 > x2 || y1 > y2) return;
+
+		const th = tile.height, tw = tile.width;
+		const spriteLuts = this.#luts(spr.dispPal ?? spr.pal);
+		let drawn = false;
+
+		// Row by row: every pixel here reads and writes only itself, so the order
+		// is free, and along a row the depth, the shade and half of the world
+		// point are constant. Column by column the same work strode through the
+		// frame a row apart — and an unsafe bounding box is the whole frame.
+		const tpx = tile.pixels, worldW = m.worldW, worldH = m.worldH;
+		const baseShade = spr.dispShade ?? spr.shade, tie = 1 - SPRITE_DEPTH_TIE;
+		const { fx, fy, rx, ry } = this;
+		const probeRow = this.probeY;
+		for (let y = y1; y <= y2; y++) {
+			const inv = invRow[y];
+			if (inv === 0) continue;
+			const dist = k * inv;
+			if (dist <= 0) continue;
+			const invZ = 1 / dist;
+			const ky = invRowF[y];
+			const bx = cam.x + fx * dist, by = cam.y + fy * dist;
+			const lut = this.shade(baseShade, dist, sec.visibility) * 256;
+			for (let x = x1; x <= x2; x++) {
+				const i = x * height + y;
+				if (invZ < zbuf[i] * tie) continue;
+
+				const off = (x + 0.5 - halfW) * k * ky;
+				const relx = bx + rx * off - cx;
+				const rely = by + ry * off - cy;
+
+				const tu = relx * ux + rely * uy;
+				if (tu < 0 || tu >= worldW) continue;
+				const tv = relx * vx + rely * vy;
+				if (tv < 0 || tv >= worldH) continue;
+
+				const texel = tpx[
+					clamp(Math.floor(tu / worldW * tw), 0, tw - 1) * th +
+					clamp(Math.floor(tv / worldH * th), 0, th - 1)];
+				if (texel === 255) continue;
+				zbuf[i] = invZ;
+				const c = spriteLuts[lut + texel];
+				pixels[i] = trans ? Renderer.blend(pixels[i], c, transRev) : c;
+				if (y === probeRow) this.#hit(i);
+				drawn = true;
+			}
+		}
+		// Recorded only when something actually landed on screen, alongside the
+		// counter it belongs to. Listing every candidate instead put four indices
+		// next to "sprites 2", which reads as a contradiction and sends the
+		// reader after sprites that were never drawn.
+		if (drawn) { this.stats.sprites++; this.stats.spriteIds.push(spriteIdx); }
+	}
+
+	/**
+	 * Resolve a tile through its animation. picanm lives on the base tile, so
+	 * the frame offset is worked out there and then applied to the number.
+	 */
+	#tile(picNum) {
+		const base = tileOf(this.res.art, picNum);
+		if (!base) return null;
+		const off = animOffset(base.anim, this.clock);
+		return off === 0 ? base : (tileOf(this.res.art, picNum + off) ?? base);
+	}
+
+	/**
+	 * The shade table for a surface's palette.
+	 *
+	 * `pal` selects one of LOOKUP.DAT's alternate palettes, and until now the
+	 * renderer ignored the field entirely: every coloured wall, sector and sprite
+	 * in every level was drawn in pal 0. Falls back to the base table for pal 0
+	 * and for any pal the file does not define, which is what Build does by
+	 * leaving palookup[pal] pointing at nothing usable.
+	 */
+	#luts(pal) {
+		if (!pal) return this.res.shadeLuts;
+		return this.res.palLuts?.get(pal) ?? this.res.shadeLuts;
+	}
+
+	#pick(kind, sectIdx, base, shade) {
+		if (this.mode === MODE_SURFACE) return KIND_COLOURS[kind];
+		if (this.mode === MODE_SECTOR) return sectorColour(sectIdx);
+		return this.res.shadeLuts[shade * 256 + base];
+	}
+
+	/**
+	 * Distance shading.
+	 *
+	 * Build's formula, not an approximation of it:
+	 *
+	 *   shade = globalshade + ((swall * globvis) >> 24)
+	 *
+	 * with the whole fixed-point chain collapsed into DEFAULT_FADE_RATE — see
+	 * there for the derivation and for why the screen geometry drops out.
+	 *
+	 * `dist` must be depth along the view axis, which is what camera-space Y is
+	 * in Build and what both call sites here already pass. Euclidean distance
+	 * would darken the edges of the frame in a way the original does not.
+	 */
+	shade(baseShade, dist, visibility) {
+		if (this.mode >= MODE_FULLBRIGHT) return 0;
+		if (this.mode === MODE_NO_FADE) return clamp(Math.round(baseShade), 0, this.res.numShades - 1);
+		const fade = dist * this.fadeRate * foldVisibility(visibility);
+		// getpalookup adds the distance term as (davis>>8) — an integer shift,
+		// so it truncates. Rounding instead biases every surface by half a shade,
+		// uniformly across the frame, which reads as the whole scene sitting one
+		// step too bright or too dark. The base shade is already an integer from
+		// the map, so flooring the sum is the same operation Build performs.
+		return clamp(Math.floor(baseShade + fade), 0, this.res.numShades - 1);
+	}
+
+	/**
+	 * Remember what a surface is, for the pixel under the crosshair.
+	 *
+	 * `detail` carries whatever the surface kind can say about its own texture
+	 * mapping — panning, repeat, tile height. Those are the numbers that decide
+	 * whether a misplaced texture is a mirror, an anchor, or a panning unit, and
+	 * reading them off the wall beats inferring them from the picture.
+	 */
+	#mark(kind, sect, pic, shade, detail) {
+		this.pKind = kind; this.pSect = sect; this.pPic = pic; this.pShade = shade;
+		this.pDetail = detail ?? null;
+	}
+
+	/**
+	 * Stamp a reason on one pixel index, with the sector whose span declined it.
+	 *
+	 * The sector is the part that turns a category into a lead: "a floor span
+	 * was dropped" is a symptom, "sector 94's floor span was dropped over the
+	 * lower half of the frame" is something you can go and look at.
+	 */
+	#dropAt(i, reason, sect = -1) {
+		if (!this.trackDrops || this.drops[i] !== DROP_NONE) return;
+		this.drops[i] = reason;
+		this.dropSect[i] = sect;
+	}
+
+	/**
+	 * Record a sprite as the surface under the crosshair.
+	 *
+	 * All three alignments, not just face sprites. Only the face path used to
+	 * do this, so a crosshair on a wall-aligned or floor-aligned sprite kept
+	 * whatever surface was marked last — normally the wall behind it — and the
+	 * probe confidently named the wrong thing. A probe that is silently stale
+	 * is worse than one that says nothing.
+	 *
+	 * The index matters as much as the tile: one tile appears dozens of times
+	 * in a map, and only the index leads back to the record. Pair it with
+	 * `spriteprobe <GRP> <MAP> tile:N` or `near:x,y`.
+	 */
+	#markSprite(spr, spriteIdx, align) {
+		this.#mark('sprite', spr.sectNum, spr.picNum, spr.shade, {
+			sprite: spriteIdx,
+			align,
+			cstat: spr.cstat,
+			xRep: spr.xRepeat, yRep: spr.yRepeat,
+			spriteAng: spr.ang,
+		});
+	}
+
+	/**
+	 * The texel a path is about to write, when it is the probe pixel.
+	 *
+	 * "Do the courses line up where a wall meets a sloped ceiling" is a
+	 * question about texture coordinates, and comparing two surfaces by eye at
+	 * a seam is exactly the kind of judgement that has been wrong before here.
+	 * Reading u and v off both sides turns it into two numbers.
+	 */
+	#uvAt(i, u, v) {
+		if (i === this.probeIdx) this.pUV = { u, v };
+	}
+
+	#hit(i) {
+		if (i !== this.probeIdx) return;
+		// Depth as well as identity. Two surfaces at the same screen position can
+		// only be told apart by how far away they are, and "is this sprite in
+		// front of that wall or behind it" is not answerable from a tile number.
+		// Read from the buffer, which every path has just written, so it is the
+		// depth actually used for the test rather than a recomputation.
+		const inv = this.depth[i];
+		this.probe = {
+			kind: this.pKind, sect: this.pSect, pic: this.pPic, shade: this.pShade,
+			dist: inv ? 1 / inv : null,
+			...(this.pDetail ?? {}),
+			...(this.pUV ?? {}),
+		};
+		this.pUV = null;
+	}
+
+	#column(x, y0, y1, colour, invZ) {
+		const { width, pixels, depth: zbuf, height } = this;
+		if (y0 < 0) y0 = 0;
+		if (y1 > this.height - 1) y1 = this.height - 1;
+		for (let y = y0; y <= y1; y++) {
+			const i = x * height + y;
+			// Bunches are drawn front to back, so a pixel that already has depth
+			// should win. Anything arriving nearer than what is there means the
+			// ordering was wrong — counted rather than hidden.
+			if (zbuf[i] !== 0) {
+				if (invZ > zbuf[i]) this.stats.sortErrors++;
+				else continue;
+			}
+			zbuf[i] = invZ;
+			this.wallOf[i] = this.curWall;
+			pixels[i] = colour;
+			this.#hit(i);
+		}
+	}
+
+	/**
+	 * Everything about one flat that does not vary along a column, worked out
+	 * once per wall rather than once per pixel.
+	 */
+	#flatDesc(sectIdx, sec, ceiling) {
+		const { map, colours, textures } = this.res;
+		const stat = ceiling ? sec.ceilingStat : sec.floorStat;
+		const picNum = ceiling ? sec.ceilingPicNum : sec.floorPicNum;
+		const flat = !textures || this.mode === MODE_SURFACE || this.mode === MODE_SECTOR;
+
+		const desc = {
+			sect: sectIdx,
+			kind: ceiling ? KIND_CEIL : KIND_FLOOR,
+			k: ((ceiling ? sec.ceilingZ : sec.floorZ) - this.cam.z) / 16 * this.focalY,
+			plane: this.#plane(sectIdx)[ceiling ? 'ceil' : 'floor'],
+			base: colours[picNum] ?? 96,
+			shade: ceiling ? sec.ceilingShade : sec.floorShade,
+			// A sector's two planes carry separate pals, and SE 4 flips them every
+			// time a light flashes — so this is read per frame like the shade is,
+			// not baked when the level loads.
+			pal: ceiling ? sec.ceilingPal : sec.floorPal,
+			visibility: sec.visibility,
+			parallax: (stat & 1) !== 0,
+			tile: flat ? null : this.#tile(picNum),
+			swapXY: (stat & 4) !== 0,
+			xflip: (stat & 16) !== 0,
+			yflip: (stat & 32) !== 0,
+			xPan: ceiling ? sec.ceilingXPanning : sec.floorXPanning,
+			yPan: ceiling ? sec.ceilingYPanning : sec.floorYPanning,
+			align: null,
+		};
+
+		// Bit 3 doubles the rate, halving the texel; bit 6 turns the texture with
+		// the sector's first wall instead of leaving it on the world axes.
+		//
+		// One rate for both axes. Build derives each from its own dimension, but
+		// the dimension cancels against the fetch shift on each axis separately,
+		// so a non-square tile is not a special case: u and v both run at a
+		// sixteenth of a texel per unit.
+		const rate = FLAT_TEXELS_PER_UNIT * ((stat & 8) ? 2 : 1) * (this.res.flatScale ?? 1);
+		desc.uScale = rate;
+		desc.vScale = rate;
+		desc.scale = rate;   // kept for the flat-colour paths
+
+		// Panning is a byte covering exactly one repetition, not a texel count —
+		// the same shape as the wall case, and for the same reason. ceilscan
+		// shifts the accumulated origin by globalxshift and only then adds
+		//
+		//   globalxpanning += (((int32_t)sec->ceilingxpanning)<<24);
+		//
+		// while hlineasm4 takes the texel from the top log2(width) bits of that
+		// 32-bit accumulator. So one unit is 2^(log2 w - 8) = width/256 texels,
+		// and a full 256 walks the tile once whatever its resolution. grouscan
+		// and slopevlin land on the same figure, so slopes share it.
+		//
+		// Bit 3 does not reach this: the sector's byte is added after the shift,
+		// so halving the texel size does not halve the pan.
+		if (desc.tile) {
+			desc.xPan = desc.xPan * desc.tile.width / 256;
+			desc.yPan = desc.yPan * desc.tile.height / 256;
+		}
+
+		if ((stat & 64) && desc.tile) {
+			const w1 = map.walls[sec.wallPtr];
+			const w2 = w1 ? map.walls[w1.point2] : null;
+			if (w1 && w2) {
+				const dx = w2.x - w1.x, dy = w2.y - w1.y;
+				const len = Math.hypot(dx, dy);
+				if (len > 0) {
+					// Across the reference wall the texture is stretched by the slope's
+					// secant. grouscan():
+					//
+					//   i = nsqrtasm(daslope*daslope + 16777216);   // 4096^2
+					//   globaly = mulscale12(dmulscale16(-y,dx,x,dy), i);
+					//
+					// mulscale12 divides by 4096, so the factor is
+					// sqrt(heinum^2 + 4096^2)/4096 — exactly sec of the tilt. It keeps
+					// the texels square ON the sloped surface rather than in its
+					// ground-plan projection, which is what makes a sloped ceiling
+					// continue the courses of the wall it meets.
+					//
+					// Without it the flat runs slow by that factor and the seam drifts:
+					// at heinum 4096 the tilt is 45 degrees and the error is sqrt(2),
+					// which is what put E1L5's ceiling rivets out of step with the
+					// wall's. Flat surfaces have heinum 0 and a factor of 1, so this
+					// costs them nothing.
+					const heinum = ceiling ? sec.ceilingHeinum : sec.floorHeinum;
+					const across = Math.hypot(heinum, 4096) / 4096;
+					desc.align = { ox: w1.x, oy: w1.y, ux: dx / len, uy: dy / len, across };
+				}
+			}
+		}
+
+		if (desc.parallax) {
+			desc.skyColour = this.#pick(desc.kind, sectIdx, desc.base, this.shade(desc.shade, 0, 0));
+			desc.sky = flat ? null : this.#skyPanorama(picNum);
+			desc.skyShade = this.shade(desc.shade, 0, 0);
+		}
+		return desc;
+	}
+
+	/**
+	 * A parallaxed ceiling is a panorama, not a surface: Build spreads a run of
+	 * consecutive tiles around the full turn and picks by view angle.
+	 *
+	 * How many tiles that run holds is set in the game's CON scripts, which are
+	 * not parsed here, so it is recovered from the art instead: tiles following
+	 * the first one that share its exact dimensions belong to the same sky.
+	 */
+	#skyPanorama(picNum) {
+		if (!this.skyCache) this.skyCache = new Map();
+		const hit = this.skyCache.get(picNum);
+		if (hit !== undefined) return hit;
+
+		const art = this.res.art;
+		const first = tileOf(art, picNum);
+		if (!first) { this.skyCache.set(picNum, null); return null; }
+
+		// One tile per segment, via the offset table. An offset whose tile is
+		// missing from the ART falls back to the base rather than dropping the
+		// segment, which keeps the panorama the right width either way.
+		const spec = SKY_TABLE.get(picNum) ?? SKY_DEFAULT;
+		const tiles = spec.off.map((o) => {
+			const t = o === 0 ? first : tileOf(art, picNum + o);
+			return t && t.width === first.width && t.height === first.height ? t : first;
+		});
+
+		const sky = {
+			tiles, tileW: first.width, height: first.height,
+			width: SKY_SEGMENTS * first.width,
+			yScale: spec.yScale,
+			known: SKY_TABLE.has(picNum),
+		};
+		this.skyCache.set(picNum, sky);
+		return sky;
+	}
+
+	#skySpan(x, y0, y1, d) {
+		const { width, pixels, depth: zbuf, height } = this;
+		// A parallax sky takes its sector's pal like any other flat.
+		const shadeLuts = this.#luts(d.pal);
+		const sky = d.sky;
+
+		// The sky has its own horizon. parascan() shears it by parallaxyscale and
+		// puts the engine's back afterwards, so the panorama lags the world by
+		// that factor — a half for most Duke skies, all of it for CLOUDYOCEAN,
+		// about a quarter for LA. It is an anchor, not a plane intersection: the
+		// row below is a distance from this line and nothing here meets geometry.
+		const skyHorizon = this.halfH + (this.horizon - this.halfH) * sky.yScale;
+
+		const ang = mod(this.cam.ang + this.colAng[x], 2048);
+		const su = mod(Math.floor(ang / 2048 * sky.width), sky.width);
+		const tile = sky.tiles[Math.floor(su / sky.tileW)];
+		const col = (su % sky.tileW) * sky.height;
+
+		// Build anchors the panorama by its middle: globalzd puts texel h/2 on
+		// the horizon, so only the upper half of the tile is ever above it.
+		//
+		// One texel per row at the reference width and field of view, scaled for
+		// both. The slider stays as a debug override with a default of 1, so a
+		// mismatch shows up as a number away from 1 rather than as a constant
+		// quietly absorbing an error elsewhere.
+		const vScale = this.skyStep * (this.res.skyVScale ?? 1);
+		const vMid = sky.height / 2;
+		const lut = d.skyShade * 256;
+
+		for (let y = y0; y <= y1; y++) {
+			const i = x * height + y;
+			if (zbuf[i] !== 0) continue;
+			zbuf[i] = 1e-6;                       // effectively infinitely far away
+			this.#hit(i);
+			const v = clamp(Math.floor(vMid + (y - skyHorizon) * vScale), 0, sky.height - 1);
+			pixels[i] = shadeLuts[lut + tile.pixels[col + v]];
+		}
+	}
+
+	/**
+	 * A sloped floor or ceiling.
+	 *
+	 * The flat case gets away with one reciprocal per screen row because depth
+	 * is constant along a row. On a slope it is not, so each pixel needs the
+	 * ray meeting the plane. Everything that depends only on the column is
+	 * lifted out, leaving one division in the inner loop.
+	 */
+	#slopedSpan(x, y0, y1, d) {
+		const { width, pixels, depth: zbuf, cam, rowK, halfW, focalX, height } = this;
+		const { A, B, C } = d.plane;
+
+		if (y0 < 0) y0 = 0;
+		if (y1 > this.height - 1) y1 = this.height - 1;
+
+		const u = (x + 0.5 - halfW) / focalX;
+		const hx = this.fx + this.rx * u;
+		const hy = this.fy + this.ry * u;
+		const den1 = A * hx + B * hy;
+		const num = cam.z - A * cam.x - B * cam.y - C;
+
+		const tile = d.tile;
+		const th = tile ? tile.height : 0;
+		const tw = tile ? tile.width : 0;
+
+		// Per span, as in #flatSpan: the pal's table, the masks, the probe
+		// column, and shade() unrolled into its three modes with its factors
+		// read once — the same expression in the same order, so the same shade.
+		const luts = this.#luts(d.pal);
+		const twm = (tw & (tw - 1)) === 0 ? tw - 1 : -1, thm = (th & (th - 1)) === 0 ? th - 1 : -1;
+		const probeCol = this.probeX === x;
+		const tpx = tile ? tile.pixels : null;
+		const mode = this.mode, maxShade = this.res.numShades - 1;
+		const fadeRate = this.fadeRate, fold = foldVisibility(d.visibility);
+		const fixedShade = mode >= MODE_FULLBRIGHT ? 0
+			: mode === MODE_NO_FADE ? clamp(Math.round(d.shade), 0, maxShade) : -1;
+		const al = d.align;
+		const uScale = d.uScale, vScale = d.vScale, xPan = d.xPan, yPan = d.yPan;
+		const swapXY = d.swapXY, xflip = d.xflip, yflip = d.yflip;
+		const cx = cam.x, cy = cam.y;
+
+		for (let y = y0; y <= y1; y++) {
+			const i = x * height + y;
+			const den = den1 - 16 * rowK[y];
+			if (Math.abs(den) < 1e-9) { this.#dropAt(i, DROP_SLOPE_PARALLEL, d.sect); continue; }
+			// The sloped twin of the flat guard above; grouscan compares against
+			// getflorzofslope/getceilzofslope and calls it back-face culling.
+			const dist = num / den;
+			if (dist <= 0) { this.#dropAt(i, DROP_SLOPE_BEHIND, d.sect); continue; }
+
+			if (zbuf[i] !== 0) continue;
+			zbuf[i] = 1 / dist;
+
+			if (!tile) {
+				pixels[i] = this.#pick(d.kind, d.sect, d.base, this.shade(d.shade, dist, d.visibility));
+				this.#hit(i);
+				continue;
+			}
+
+			const wx = cx + hx * dist;
+			const wy = cy + hy * dist;
+			let tu, tv;
+			if (al) {
+				const rx = wx - al.ox, ry = wy - al.oy;
+				tu = rx * al.ux + ry * al.uy;
+				tv = (ry * al.ux - rx * al.uy) * al.across;
+			} else { tu = wx; tv = -wy; }   // world axes: v runs against world y
+			tu *= uScale; tv *= vScale;
+			if (swapXY) { const t = tu; tu = tv; tv = t; }
+			if (xflip) tu = -tu;
+			if (yflip) tv = -tv;
+
+			const gu = Math.floor(tu + xPan), gv = Math.floor(tv + yPan);
+			const fu = twm >= 0 ? gu & twm : mod(gu, tw), fv = thm >= 0 ? gv & thm : mod(gv, th);
+			const texel = tpx[fu * th + fv];
+			const sh = fixedShade >= 0 ? fixedShade
+				: clamp(Math.floor(d.shade + dist * fadeRate * fold), 0, maxShade);
+			pixels[i] = luts[sh * 256 + texel];
+			// #hit after #uvAt, never before: #hit folds the pending texel into the
+			// report and clears it. Called first it would fold in whatever #uvAt
+			// left behind last — the previous frame's, since nothing else consumes
+			// it. The wall path has always had this order.
+			if (probeCol) { this.#uvAt(i, fu, fv); this.#hit(i); }
+		}
+	}
+
+	#flatSpan(x, y0, y1, d) {
+		if (y1 < y0) return;
+		const { width, pixels, depth: zbuf, cam, invRow, invRowF, halfW, height } = this;
+
+		if (y0 < 0) y0 = 0;
+		if (y1 > this.height - 1) y1 = this.height - 1;
+
+		// Parallax first, and without consulting the plane at all.
+		//
+		// A parallaxed ceiling is a panorama, not a surface: Build's parascan
+		// never intersects the ray with the sector's plane, and neither may this.
+		// Routing the untextured fallback through the plane below made the sky
+		// depend on where its ceilingz happened to sit — with the eye above that
+		// plane, `dist = k * invRow` comes out negative for every row above the
+		// horizon and the guard drops the lot. The result was the whole upper
+		// half of the frame unpainted, in runs ending exactly at the horizon row,
+		// whenever the view carried a sky whose plane lay below eye level. Only
+		// the flat paths could show it, since the textured path takes #skySpan
+		// one line down and that has no plane in it either.
+		if (d.parallax) {
+			if (d.sky) { this.#skySpan(x, y0, y1, d); return; }
+			for (let y = y0; y <= y1; y++) {
+				const i = x * height + y;
+				if (zbuf[i] !== 0) continue;
+				zbuf[i] = 1e-6;                     // effectively infinitely far away
+				this.#hit(i);
+				pixels[i] = d.skyColour;
+			}
+			return;
+		}
+		if (d.plane.sloped) { this.#slopedSpan(x, y0, y1, d); return; }
+
+		const lat = x + 0.5 - halfW;
+		const tile = d.tile;
+		const th = tile ? tile.height : 0;
+		const tw = tile ? tile.width : 0;
+		// Per span, not per pixel: the shade table of the pal, power-of-two masks
+		// (flats always are; mod() stays for the rest), the fade factor, and
+		// whether the probe pixel lies in this column at all.
+		const luts = this.#luts(d.pal);
+		const twm = (tw & (tw - 1)) === 0 ? tw - 1 : -1, thm = (th & (th - 1)) === 0 ? th - 1 : -1;
+		const fading = this.mode < MODE_FULLBRIGHT && this.mode !== MODE_NO_FADE;
+		const fadeK = fading ? this.fadeRate * foldVisibility(d.visibility) : 0;
+		const maxShade = this.res.numShades - 1;
+		const probeCol = this.probeX === x;
+		const tpx = tile ? tile.pixels : null;
+
+		const k = d.k, dShade = d.shade;
+		// Along one column every quantity of the texture mapping is affine in the
+		// row's depth: the world point is the camera plus dist times the column's
+		// ray (the sideways offset, lat * dist / focalY, is what latK * invRowF
+		// gave), and the alignment, scale, swap, flips and panning are affine in
+		// the world point. So u = u0 + dist * du and v = v0 + dist * dv, set up
+		// once per column; the loop keeps one multiply-add per axis.
+		let u0 = 0, v0 = 0, du = 0, dv = 0;
+		if (tile) {
+			const { fx, fy, rx, ry } = this;
+			const lx = lat / this.focalY;
+			const hx = fx + rx * lx, hy = fy + ry * lx;
+			const al = d.align;
+			const ox = al ? cam.x - al.ox : cam.x, oy = al ? cam.y - al.oy : cam.y;
+			const a = Renderer.#flatLinear(d, ox, oy), b = Renderer.#flatLinear(d, hx, hy);
+			u0 = a.u + d.xPan; v0 = a.v + d.yPan; du = b.u; dv = b.v;
+		}
+
+		for (let y = y0; y <= y1; y++) {
+			const i = x * height + y;
+			const inv = invRow[y];
+			if (inv === 0) { this.#dropAt(i, DROP_FLAT_HORIZON, d.sect); continue; }
+
+			// Back-face culling, and Build does exactly this. florscan opens with
+			//
+			//   globalzd = globalposz - sec->floorz;
+			//   //We are UNDER the floor: Do NOT render anything.
+			//   if (globalzd > 0) return;
+			//
+			// ceilscan has the mirror of it and grouscan the sloped version, where
+			// the comment in the original reads "Back-face culling" outright. A
+			// plane the eye is on the wrong side of is not drawn, full stop.
+			//
+			// So pixels dropped here are not a defect: the original leaves them
+			// unpainted too, which is where Build's famous hall-of-mirrors comes
+			// from. They turn up in a sweep at vantage points a player never
+			// occupies and are invisible in normal play.
+			const dist = k * inv;
+			if (dist <= 0) { this.#dropAt(i, DROP_FLAT_BEHIND, d.sect); continue; }
+
+			if (zbuf[i] !== 0) continue;
+			zbuf[i] = 1 / dist;
+
+			if (!tile) {
+				pixels[i] = this.#pick(d.kind, d.sect, d.base, this.shade(dShade, dist, d.visibility));
+				this.#hit(i);
+				continue;
+			}
+
+			const fu = Math.floor(u0 + dist * du), fv = Math.floor(v0 + dist * dv);
+			const u = twm >= 0 ? fu & twm : mod(fu, tw);
+			const v = thm >= 0 ? fv & thm : mod(fv, th);
+			let sh;
+			if (fading) { sh = Math.floor(dShade + dist * fadeK); sh = sh < 0 ? 0 : sh > maxShade ? maxShade : sh; }
+			else sh = this.shade(dShade, dist, d.visibility);
+			pixels[i] = luts[sh * 256 + tpx[u * th + v]];
+			if (probeCol) { this.#uvAt(i, u, v); this.#hit(i); }   // #hit after #uvAt — see the sloped span
+		}
+	}
+
+	/**
+	 * The linear part of a flat's texture mapping, applied to a world-space
+	 * vector (px, py): alignment (bit 6), scale, swap, flips — no panning, no
+	 * origin. World axes: Build's v runs against world y (ceilscan's
+	 * globalypanning = -(globalposy<<20)); relative alignment reverses v again.
+	 */
+	static #flatLinear(d, px, py) {
+		const al = d.align;
+		let tu, tv;
+		if (al) {
+			tu = px * al.ux + py * al.uy;
+			tv = (py * al.ux - px * al.uy) * al.across;
+		} else { tu = px; tv = -py; }
+		tu *= d.uScale; tv *= d.vScale;
+		if (d.swapXY) { const t = tu; tu = tv; tv = t; }
+		if (d.xflip) tu = -tu;
+		if (d.yflip) tv = -tv;
+		return { u: tu, v: tv };
+	}
 }
 
 /**
@@ -2749,54 +2874,54 @@ export class Renderer {
  * @returns {number} index of the nearest candidate
  */
 export function closestBunch(n, inFront) {
-  const tested = new Array(n).fill(false);
-  let closest = 0;
-  tested[0] = true;
+	const tested = new Array(n).fill(false);
+	let closest = 0;
+	tested[0] = true;
 
-  for (let i = 1; i < n; i++) {
-    const r = inFront(i, closest);
-    if (r === null) continue;
-    tested[i] = true;
-    if (r) { tested[closest] = true; closest = i; }
-  }
-  for (let i = 0; i < n; i++) {
-    if (tested[i]) continue;
-    const r = inFront(i, closest);
-    if (r === null) continue;
-    tested[i] = true;
-    if (r) { tested[closest] = true; closest = i; i = -1; }
-  }
-  return closest;
+	for (let i = 1; i < n; i++) {
+		const r = inFront(i, closest);
+		if (r === null) continue;
+		tested[i] = true;
+		if (r) { tested[closest] = true; closest = i; }
+	}
+	for (let i = 0; i < n; i++) {
+		if (tested[i]) continue;
+		const r = inFront(i, closest);
+		if (r === null) continue;
+		tested[i] = true;
+		if (r) { tested[closest] = true; closest = i; i = -1; }
+	}
+	return closest;
 }
 
 /** Stable, well-spread colour per sector index. */
 function sectorColour(i) {
-  const h = (i * 0.61803398875) % 1;   // golden ratio keeps neighbours apart
-  const s = 0.55, v = 0.85;
-  const j = Math.floor(h * 6), f = h * 6 - j;
-  const p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
-  let r, g, b;
-  switch (j % 6) {
-    case 0: r = v; g = t; b = p; break;
-    case 1: r = q; g = v; b = p; break;
-    case 2: r = p; g = v; b = t; break;
-    case 3: r = p; g = q; b = v; break;
-    case 4: r = t; g = p; b = v; break;
-    default: r = v; g = p; b = q;
-  }
-  return (255 << 24) | (Math.round(b * 255) << 16) | (Math.round(g * 255) << 8) | Math.round(r * 255);
+	const h = (i * 0.61803398875) % 1;   // golden ratio keeps neighbours apart
+	const s = 0.55, v = 0.85;
+	const j = Math.floor(h * 6), f = h * 6 - j;
+	const p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+	let r, g, b;
+	switch (j % 6) {
+		case 0: r = v; g = t; b = p; break;
+		case 1: r = q; g = v; b = p; break;
+		case 2: r = p; g = v; b = t; break;
+		case 3: r = p; g = q; b = v; break;
+		case 4: r = t; g = p; b = v; break;
+		default: r = v; g = p; b = q;
+	}
+	return (255 << 24) | (Math.round(b * 255) << 16) | (Math.round(g * 255) << 8) | Math.round(r * 255);
 }
 
 function tileOf(art, picNum) {
-  const tile = art?.get(picNum);
-  return tile?.pixels && tile.width > 0 && tile.height > 0 ? tile : null;
+	const tile = art?.get(picNum);
+	return tile?.pixels && tile.width > 0 && tile.height > 0 ? tile : null;
 }
 
 function mod(a, n) {
-  const r = a % n;
-  return r < 0 ? r + n : r;
+	const r = a % n;
+	return r < 0 ? r + n : r;
 }
 
 function clamp(v, lo, hi) {
-  return v < lo ? lo : v > hi ? hi : v;
+	return v < lo ? lo : v > hi ? hi : v;
 }

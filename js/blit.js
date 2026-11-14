@@ -1,5 +1,5 @@
 // Cache tripwire: see con.js.
-export const MODULE_STAGE = 'stage12.201';
+export const MODULE_STAGE = 'stage12.202';
 
 // uDuke - the 2D layer in software: tiles written straight into the frame's
 // pixels, as Build's rotatesprite writes into the frame buffer.
@@ -14,18 +14,18 @@ export const MODULE_STAGE = 'stage12.201';
 
 /** A tile as packed pixels, row-major, optionally mirrored left-right (rotatesprite's x-flip). */
 export function tileSource(rgba, flipX = false) {
-  const { width: w, height: h } = rgba;
-  const src = new Uint32Array(rgba.data.buffer.slice(0));
-  if (flipX) for (let y = 0; y < h; y++) src.subarray(y * w, y * w + w).reverse();
-  return { w, h, px: src };
+	const { width: w, height: h } = rgba;
+	const src = new Uint32Array(rgba.data.buffer.slice(0));
+	if (flipX) for (let y = 0; y < h; y++) src.subarray(y * w, y * w + w).reverse();
+	return { w, h, px: src };
 }
 
 const blend66 = (s, d) => {
-  // translucency at about two thirds (displaymasks' scuba mask)
-  const r = ((s & 255) * 0.66 + (d & 255) * 0.34) | 0;
-  const g = (((s >>> 8) & 255) * 0.66 + ((d >>> 8) & 255) * 0.34) | 0;
-  const b = (((s >>> 16) & 255) * 0.66 + ((d >>> 16) & 255) * 0.34) | 0;
-  return (0xff000000 | (b << 16) | (g << 8) | r) >>> 0;
+	// translucency at about two thirds (displaymasks' scuba mask)
+	const r = ((s & 255) * 0.66 + (d & 255) * 0.34) | 0;
+	const g = (((s >>> 8) & 255) * 0.66 + ((d >>> 8) & 255) * 0.34) | 0;
+	const b = (((s >>> 16) & 255) * 0.66 + ((d >>> 16) & 255) * 0.34) | 0;
+	return (0xff000000 | (b << 16) | (g << 8) | r) >>> 0;
 };
 
 /**
@@ -33,52 +33,52 @@ const blend66 = (s, d) => {
  * `scale` (rotatesprite's zoom) samples nearest; `alpha` 0.66 blends.
  */
 export function blit(dst, dw, dh, src, x, y, { scale = 1, translucent = false, clipH = dh } = {}) {
-  if (!src) return;
-  const sw = src.w, sh = src.h, sp = src.px;
-  if (scale === 1) {
-    const x0 = Math.round(x), y0 = Math.round(y);
-    const ya = Math.max(0, y0), yb = Math.min(clipH, y0 + sh);
-    const xa = Math.max(0, x0), xb = Math.min(dw, x0 + sw);
-    for (let yy = ya; yy < yb; yy++) {
-      const so = (yy - y0) * sw - x0, dofs = yy * dw;
-      for (let xx = xa; xx < xb; xx++) {
-        const v = sp[so + xx];
-        if (v >>> 24) dst[dofs + xx] = translucent ? blend66(v, dst[dofs + xx]) : v;
-      }
-    }
-    return;
-  }
-  if (Number.isInteger(scale) && scale > 1 && Number.isInteger(x) && Number.isInteger(y)) {
-    // An integer factor (the resolution slider): each source pixel a
-    // scale x scale block, no division per pixel.
-    for (let v = 0; v < sh; v++) {
-      const y0 = y + v * scale;
-      if (y0 >= clipH || y0 + scale <= 0) continue;
-      const row = v * sw;
-      for (let u = 0; u < sw; u++) {
-        const p = sp[row + u];
-        if (!(p >>> 24)) continue;
-        const x0 = x + u * scale;
-        if (x0 >= dw || x0 + scale <= 0) continue;
-        for (let yy = Math.max(0, y0), ye = Math.min(clipH, y0 + scale); yy < ye; yy++) {
-          const o = yy * dw;
-          for (let xx = Math.max(0, x0), xe = Math.min(dw, x0 + scale); xx < xe; xx++) dst[o + xx] = translucent ? blend66(p, dst[o + xx]) : p;
-        }
-      }
-    }
-    return;
-  }
-  const W = sw * scale, H = sh * scale;
-  const ya = Math.max(0, Math.ceil(y - 0.5)), yb = Math.min(clipH, Math.ceil(y + H - 0.5));
-  const xa = Math.max(0, Math.ceil(x - 0.5)), xb = Math.min(dw, Math.ceil(x + W - 0.5));
-  for (let yy = ya; yy < yb; yy++) {
-    const sy = Math.min(sh - 1, Math.floor((yy + 0.5 - y) / scale));
-    for (let xx = xa; xx < xb; xx++) {
-      const sx = Math.min(sw - 1, Math.floor((xx + 0.5 - x) / scale));
-      const v = sp[sy * sw + sx];
-      if (v >>> 24) dst[yy * dw + xx] = translucent ? blend66(v, dst[yy * dw + xx]) : v;
-    }
-  }
+	if (!src) return;
+	const sw = src.w, sh = src.h, sp = src.px;
+	if (scale === 1) {
+		const x0 = Math.round(x), y0 = Math.round(y);
+		const ya = Math.max(0, y0), yb = Math.min(clipH, y0 + sh);
+		const xa = Math.max(0, x0), xb = Math.min(dw, x0 + sw);
+		for (let yy = ya; yy < yb; yy++) {
+			const so = (yy - y0) * sw - x0, dofs = yy * dw;
+			for (let xx = xa; xx < xb; xx++) {
+				const v = sp[so + xx];
+				if (v >>> 24) dst[dofs + xx] = translucent ? blend66(v, dst[dofs + xx]) : v;
+			}
+		}
+		return;
+	}
+	if (Number.isInteger(scale) && scale > 1 && Number.isInteger(x) && Number.isInteger(y)) {
+		// An integer factor (the resolution slider): each source pixel a
+		// scale x scale block, no division per pixel.
+		for (let v = 0; v < sh; v++) {
+			const y0 = y + v * scale;
+			if (y0 >= clipH || y0 + scale <= 0) continue;
+			const row = v * sw;
+			for (let u = 0; u < sw; u++) {
+				const p = sp[row + u];
+				if (!(p >>> 24)) continue;
+				const x0 = x + u * scale;
+				if (x0 >= dw || x0 + scale <= 0) continue;
+				for (let yy = Math.max(0, y0), ye = Math.min(clipH, y0 + scale); yy < ye; yy++) {
+					const o = yy * dw;
+					for (let xx = Math.max(0, x0), xe = Math.min(dw, x0 + scale); xx < xe; xx++) dst[o + xx] = translucent ? blend66(p, dst[o + xx]) : p;
+				}
+			}
+		}
+		return;
+	}
+	const W = sw * scale, H = sh * scale;
+	const ya = Math.max(0, Math.ceil(y - 0.5)), yb = Math.min(clipH, Math.ceil(y + H - 0.5));
+	const xa = Math.max(0, Math.ceil(x - 0.5)), xb = Math.min(dw, Math.ceil(x + W - 0.5));
+	for (let yy = ya; yy < yb; yy++) {
+		const sy = Math.min(sh - 1, Math.floor((yy + 0.5 - y) / scale));
+		for (let xx = xa; xx < xb; xx++) {
+			const sx = Math.min(sw - 1, Math.floor((xx + 0.5 - x) / scale));
+			const v = sp[sy * sw + sx];
+			if (v >>> 24) dst[yy * dw + xx] = translucent ? blend66(v, dst[yy * dw + xx]) : v;
+		}
+	}
 }
 
 /**
@@ -89,42 +89,61 @@ export function blit(dst, dw, dh, src, x, y, { scale = 1, translucent = false, c
  * forward; a quarter turn leaves no holes.
  */
 export function blitPlaced(dst, dw, dh, src, at, clipH = dh, scale = 1) {
-  if (!src) return;
-  const c = Math.round(Math.cos(at.rot)), s = Math.round(Math.sin(at.rot));
-  const sw = src.w, sh = src.h, sp = src.px;
-  for (let v = 0; v < sh; v++) {
-    const r = at.yflip ? sh - 1 - v : v;
-    for (let u = 0; u < sw; u++) {
-      const p = sp[v * sw + u];
-      if (!(p >>> 24)) continue;
-      const lx = u + at.left, ly = r + at.top;
-      // the pixel's place in 320x200 units, then a scale x scale block
-      const X = Math.round(at.x + lx * c - ly * s) * scale, Y = Math.round(at.y + lx * s + ly * c) * scale;
-      for (let yy = Y; yy < Y + scale; yy++) {
-        if (yy < 0 || yy >= clipH) continue;
-        for (let xx = X; xx < X + scale; xx++) if (xx >= 0 && xx < dw) dst[yy * dw + xx] = p;
-      }
-    }
-  }
+	if (!src) return;
+	const c = Math.round(Math.cos(at.rot)), s = Math.round(Math.sin(at.rot));
+	const sw = src.w, sh = src.h, sp = src.px;
+	for (let v = 0; v < sh; v++) {
+		const r = at.yflip ? sh - 1 - v : v;
+		for (let u = 0; u < sw; u++) {
+			const p = sp[v * sw + u];
+			if (!(p >>> 24)) continue;
+			const lx = u + at.left, ly = r + at.top;
+			// the pixel's place in 320x200 units, then a scale x scale block
+			const X = Math.round(at.x + lx * c - ly * s) * scale, Y = Math.round(at.y + lx * s + ly * c) * scale;
+			for (let yy = Y; yy < Y + scale; yy++) {
+				if (yy < 0 || yy >= clipH) continue;
+				for (let xx = X; xx < X + scale; xx++) if (xx >= 0 && xx < dw) dst[yy * dw + xx] = p;
+			}
+		}
+	}
+}
+
+/**
+ * The renderer's column-major view (sw x sh, index x * sh + y) into the
+ * row-major frame dst (dw wide), rows 0..sh-1. In 16x16 blocks, so neither
+ * side strides through more than a block's worth of cache lines at a time.
+ */
+export function columnsInto(dst, dw, src, sw, sh) {
+	const B = 16;
+	for (let x0 = 0; x0 < sw; x0 += B) {
+		const x1 = Math.min(sw, x0 + B);
+		for (let y0 = 0; y0 < sh; y0 += B) {
+			const y1 = Math.min(sh, y0 + B);
+			for (let y = y0; y < y1; y++) {
+				const o = y * dw;
+				for (let x = x0; x < x1; x++) dst[o + x] = src[x * sh + y];
+			}
+		}
+	}
 }
 
 /**
  * The tilted view (rotatesprite of the tilt tile, game.c displayrooms):
  * the larger src (sw x sh) turned by `ang` (Build units, clockwise on the
  * screen) about its centre onto the window's centre, rows 0..wh-1 of dst.
- * Inverse mapping, nearest pixel.
+ * Inverse mapping, nearest pixel. src is the renderer's column-major buffer.
  */
 export function rotateInto(dst, dw, wh, src, sw, sh, ang) {
-  const t = ang * Math.PI / 1024, c = Math.cos(t), s = Math.sin(t);
-  const cx = dw / 2, cy = wh / 2, scx = sw / 2, scy = sh / 2;
-  for (let y = 0; y < wh; y++) {
-    const dy = y + 0.5 - cy;
-    // source = R(-t) . (dx, dy) + centre
-    let sxf = scx + (0.5 - cx) * c + dy * s, syf = scy - (0.5 - cx) * s + dy * c;
-    const o = y * dw;
-    for (let x = 0; x < dw; x++, sxf += c, syf -= s) {
-      const sx = Math.floor(sxf), sy = Math.floor(syf);
-      dst[o + x] = (sx >= 0 && sx < sw && sy >= 0 && sy < sh) ? src[sy * sw + sx] : 0xff000000;
-    }
-  }
+	const t = ang * Math.PI / 1024, c = Math.cos(t), s = Math.sin(t);
+	const cx = dw / 2, cy = wh / 2, scx = sw / 2, scy = sh / 2;
+	for (let y = 0; y < wh; y++) {
+		const dy = y + 0.5 - cy;
+		// source = R(-t) . (dx, dy) + centre
+		let sxf = scx + (0.5 - cx) * c + dy * s, syf = scy - (0.5 - cx) * s + dy * c;
+		const o = y * dw;
+		for (let x = 0; x < dw; x++, sxf += c, syf -= s) {
+			const sx = Math.floor(sxf), sy = Math.floor(syf);
+			dst[o + x] = (sx >= 0 && sx < sw && sy >= 0 && sy < sh) ? src[sx * sh + sy] : 0xff000000;
+		}
+	}
 }
